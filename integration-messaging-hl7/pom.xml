@@ -3,12 +3,12 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-   <parent>
+    <parent>
         <artifactId>integration</artifactId>
         <groupId>integration</groupId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
-    
+
     <artifactId>integration-messaging-hl7</artifactId>
 
     <name>integration-messaging-hl7</name>
@@ -19,87 +19,50 @@
     </properties>
 
     <dependencies>
-        
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
-        
-        <dependency>
-            <groupId>net.javacrumbs.shedlock</groupId>
-            <artifactId>shedlock-spring</artifactId>
-            <version>5.5.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>net.javacrumbs.shedlock</groupId>
-            <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>5.5.0</version>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
-            <version>4.0.0-M3</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-activemq-starter</artifactId>
-            <version>4.0.0-RC1</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-jms-starter</artifactId>
-            <version>4.0.0-M3</version>
         </dependency>
 
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jpa</artifactId>
-            <version>4.0.0-M3</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>me.snowdrop</groupId>
-            <artifactId>narayana-spring-boot-starter</artifactId>
-            <version>2.6.7</version>
         </dependency>
 
-        <dependency>
-            <groupId>jakarta.transaction</groupId>
-            <artifactId>jakarta.transaction-api</artifactId>
-            <version>2.0.1</version>
-        </dependency>
-        
+
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-mllp</artifactId>
-            <version>4.0.0-M3</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-netty</artifactId>
-            <version>4.0.0-M3</version>
         </dependency>
 
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-hl7</artifactId>
-            <version>4.0.0-M3</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>integration</groupId>
-            <artifactId>integration-core</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -107,11 +70,16 @@
             <artifactId>integration-messaging</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        
+        <dependency>
+            <groupId>integration</groupId>
+            <artifactId>integration-core</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.14.0</version>
         </dependency>
 
 
