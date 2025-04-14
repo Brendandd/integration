@@ -4,11 +4,11 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>integration</groupId>
-    <artifactId>integration</artifactId>
+    <artifactId>integration-examples</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>integration</name>
+    <name>integration-examples</name>
 
 
     <url>http://www.example.com</url>
@@ -32,12 +32,19 @@
 
     <build>
         <pluginManagement>
+            <!-- lock down plugins versions to avoid using Maven defaults (may
+			be moved to parent pom) -->
             <plugins>
+                <!-- clean lifecycle, see
+				https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.1.0</version>
                 </plugin>
 
+
+                <!-- default lifecycle, jar packaging: see
+                https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>3.0.2</version>
@@ -72,12 +79,17 @@
                 <plugin>
                     <artifactId>maven-site-plugin</artifactId>
                     <version>3.7.1</version>
-
-
                 </plugin>
+
 
                 <plugin>
                     <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>3.0.0</version>
                 </plugin>
             </plugins>
@@ -86,11 +98,13 @@
 
 
     <modules>
-        <module>integration-core</module>
-        <module>integration-messaging</module>
-        <module>integration-messaging-hl7</module>
-        <module>integration-examples</module>
-        <module>integration-rest</module>
+
+
+        <module>hl7-file-input-route</module>
+        <module>hl7-file-output-route</module>
+        <module>mllp-input-route</module>
+        <module>mllp-output-route</module>
+
     </modules>
 
 
