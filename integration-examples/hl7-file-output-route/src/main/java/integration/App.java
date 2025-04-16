@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.integration.config.EnableIntegration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -14,8 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaRepositories(basePackages = "integration.core.repository")
 @EntityScan(basePackages = "integration.core.domain")
 @ComponentScan(basePackages = { "integration.core", "integration.route", "integration.component", "integration.messaging",
-        "integration.messaging.hl7" })
-@EnableIntegration
+        "integration.messaging.hl7" }) 
 @EnableScheduling
 @EnableAsync
 @Configuration

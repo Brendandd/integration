@@ -4,9 +4,10 @@ FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
 
 # Copy the built jar into the container
-COPY target/mllp-input-route-1.0.0-SNAPSHOT.jar app.jar
+COPY target/hl7-file-output-route-1.0.0-SNAPSHOT.jar app.jar
 
-EXPOSE 8888
+# Expose the port your app runs on
+EXPOSE 8080
 
 # Run the app with all --add-opens JVM options for Apache Ignite
 CMD ["java", \

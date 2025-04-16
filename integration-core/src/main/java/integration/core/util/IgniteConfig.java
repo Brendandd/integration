@@ -30,7 +30,7 @@ public class IgniteConfig {
 
         // Setting up an IP Finder to ensure the client can locate the servers.
         TcpDiscoveryMulticastIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
-        ipFinder.setAddresses(Collections.singletonList("127.0.0.1:47500..47509"));
+        ipFinder.setAddresses(Collections.singletonList("host.docker.internal:47500..47509"));
         cfg.setDiscoverySpi(new TcpDiscoverySpi().setIpFinder(ipFinder));
 
         CacheConfiguration<String, Object> cacheCfg = new CacheConfiguration<>();

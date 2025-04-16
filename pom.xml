@@ -18,33 +18,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-
         <spring.boot.version>3.1.1</spring.boot.version>
         <mysql.version>8.0.33</mysql.version>
-        <org.json.version>20230618</org.json.version>
+        <org.json.version>20250107</org.json.version>
         <apache.ignite.version>2.16.0</apache.ignite.version>
         <apache.common.version>3.14.0</apache.common.version>
-        <apache.camel.version>4.0.0-M3</apache.camel.version>
+        <apache.camel.version>4.0.0</apache.camel.version>
     </properties>
 
     <!-- Centralized dependency versions -->
     <dependencyManagement>
         <dependencies>
-
-            <!-- JUnit -->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.11</version>
-                <scope>test</scope>
-            </dependency>
-
-            <!-- Spring Boot -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot</artifactId>
-                <version>${spring.boot.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -54,13 +38,13 @@
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-integration</artifactId>
+                <artifactId>spring-boot-starter-web</artifactId>
                 <version>${spring.boot.version}</version>
             </dependency>
-
+            
             <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
+                <artifactId>spring-boot-starter</artifactId>
                 <version>${spring.boot.version}</version>
             </dependency>
 
@@ -96,7 +80,7 @@
                 <artifactId>ignite-core</artifactId>
                 <version>${apache.ignite.version}</version>
             </dependency>
-
+			
             <dependency>
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-spring-boot-starter</artifactId>
@@ -106,7 +90,7 @@
             <dependency>
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-activemq-starter</artifactId>
-                <version>4.0.0-RC1</version>
+                <version>${apache.camel.version}</version>
             </dependency>
 
             <dependency>
@@ -116,8 +100,8 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-jpa</artifactId>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-jpa-starter</artifactId>
                 <version>${apache.camel.version}</version>
             </dependency>
 
@@ -144,7 +128,7 @@
                 <artifactId>camel-netty</artifactId>
                 <version>${apache.camel.version}</version>
             </dependency>
-
+            
         </dependencies>
     </dependencyManagement>
 
