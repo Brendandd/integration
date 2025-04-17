@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  mllp-output-route:
+    build: .
+    image: mllp-output-route
+    container_name: mllp-output-route
+    environment:
+      MYSQL_HOST_IP: ${MYSQL_HOST_IP}
+      MYSQL_USER_NAME: ${MYSQL_USER_NAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      ACTIVEMQ_HOST_IP: ${ACTIVEMQ_HOST_IP}
+      ACTIVEMQ_USER_NAME: ${ACTIVEMQ_USER_NAME}
+      ACTIVEMQ_PASSWORD: ${ACTIVEMQ_PASSWORD}
+      IGNITE_HOST_IP: ${IGNITE_HOST_IP}
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

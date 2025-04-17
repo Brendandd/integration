@@ -27,10 +27,12 @@ public class IgniteConfig {
 
         // The node will be started as a client node.
         cfg.setClientMode(true);
+        
+        String igniteHostIP = System.getenv("IGNITE_HOST_IP");
 
         // Setting up an IP Finder to ensure the client can locate the servers.
         TcpDiscoveryMulticastIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
-        ipFinder.setAddresses(Collections.singletonList("host.docker.internal:47500..47509"));
+        ipFinder.setAddresses(Collections.singletonList(igniteHostIP + ":47500..47509"));
         cfg.setDiscoverySpi(new TcpDiscoverySpi().setIpFinder(ipFinder));
 
         CacheConfiguration<String, Object> cacheCfg = new CacheConfiguration<>();
