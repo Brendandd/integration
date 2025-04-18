@@ -1,0 +1,20 @@
+services:
+  ignite:
+    image: apacheignite/ignite:latest
+    container_name: ignite-node
+    environment:
+      - IGNITE_CONFIG_URI=file:/opt/ignite/config/ignite-config.xml
+    volumes:
+      - ./ignite-data:/opt/ignite/data
+      - ./ignite-config.xml:/opt/ignite/config/ignite-config.xml
+    ports:
+      - "10800:10800"
+      - "47500:47500"
+      - "47501:47501"
+    networks:
+      - integration-net
+    restart: always
+
+networks:
+  integration-net:
+    external: true

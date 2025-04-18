@@ -1,0 +1,11 @@
+# Use the official Apache Ignite base image
+docker pull apacheignite/ignite:2.16.0
+
+# Copy your custom Ignite configuration
+COPY ignite-config.xml /opt/ignite/config/
+
+# Expose required Ignite ports
+EXPOSE 10800 47500 47501
+
+# Entry point for Ignite
+CMD ["/opt/ignite/apache-ignite/run.sh", "/opt/ignite/config/ignite-config.xml"]
