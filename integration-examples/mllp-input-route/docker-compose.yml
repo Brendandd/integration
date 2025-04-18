@@ -4,7 +4,6 @@ services:
   mllp-input-route:
     build: .
     image: mllp-input-route
-    container_name: mllp-input-route
     environment:
       MYSQL_HOST_IP: ${MYSQL_HOST_IP}
       MYSQL_USER_NAME: ${MYSQL_USER_NAME}
@@ -17,6 +16,8 @@ services:
       - "8888:8888"
     networks:
       - backend
+    volumes:
+      - ${MLLP_INPUT_ROUTE_CONFIG_FILE}:/app/route-config.json
 
 networks:
   backend:

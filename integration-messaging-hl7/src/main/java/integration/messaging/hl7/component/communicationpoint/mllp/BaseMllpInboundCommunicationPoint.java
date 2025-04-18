@@ -23,7 +23,7 @@ public abstract class BaseMllpInboundCommunicationPoint extends BaseInboundCommu
     private static final String CONTENT_TYPE = "HL7";
 
     public String getHost() {
-        return componentProperties.get("HOST");
+        return "0.0.0.0";
     }
 
     public String getPort() {

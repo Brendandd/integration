@@ -25,6 +25,7 @@ import integration.core.exception.ConfigurationException;
 import integration.core.service.ConfigurationService;
 import integration.messaging.ComponentIdentifier;
 import integration.messaging.MessageProcessor;
+import integration.messaging.component.config.RouteConfigLoader;
 import integration.messaging.service.MessagingFlowService;
 
 /**
@@ -72,6 +73,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Com
 
     @Autowired
     protected ProducerTemplate producerTemplate;
+    
+    @Autowired
+    private RouteConfigLoader configLoader;
 
     public BaseMessagingComponent(String componentName) {
         this.identifier = new ComponentIdentifier(componentName);
@@ -108,14 +112,17 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Com
         getIdentifier().setRouteId(routeDto.getId());
         getIdentifier().setComponentId(componentDto.getId());
 
-        componentProperties = componentDto.getProperties();
+        
+        // Read the config for the component       
+        componentProperties = configLoader.getConfiguration(routeDto.getName(), componentDto.getName());
 
         // Now we need to read the component state from the database to see if it should
         // be started on startup.
         isInboundRunning = configurationService.isInboundRunning(componentRouteDto.getId());
         isOutboundRunning = configurationService.isOutboundRunning(componentRouteDto.getId());
     }
-
+    
+    
     public List<String> getRoutes(Exchange exchange) {
         List<Route> allRoutes = exchange.getContext().getRoutes();
 

@@ -4,7 +4,6 @@ services:
   mllp-output-route:
     build: .
     image: mllp-output-route
-    container_name: mllp-output-route
     environment:
       MYSQL_HOST_IP: ${MYSQL_HOST_IP}
       MYSQL_USER_NAME: ${MYSQL_USER_NAME}
@@ -15,6 +14,8 @@ services:
       IGNITE_HOST_IP: ${IGNITE_HOST_IP}
     networks:
       - backend
+    volumes:
+      - ${MLLP_OUTPUT_ROUTE_CONFIG_FILE}:/app/route-config.json
 
 networks:
   backend:

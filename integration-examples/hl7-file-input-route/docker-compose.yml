@@ -4,7 +4,6 @@ services:
   hl7-file-input-route:
     build: .
     image: hl7-file-input-route
-    container_name: hl7-file-input-route
     environment:
       MYSQL_HOST_IP: ${MYSQL_HOST_IP}
       MYSQL_USER_NAME: ${MYSQL_USER_NAME}
@@ -13,8 +12,11 @@ services:
       ACTIVEMQ_USER_NAME: ${ACTIVEMQ_USER_NAME}
       ACTIVEMQ_PASSWORD: ${ACTIVEMQ_PASSWORD}
       IGNITE_HOST_IP: ${IGNITE_HOST_IP}
+      INTEGRATION_CONFIG_FILE: ${HL7_FILE_INPUT_ROUTE_CONFIG_FILE}
     networks:
       - backend
+    volumes:
+      - ${INTEGRATION_CONFIG_FILE}:/app/route-config.json
 
 networks:
   backend:
