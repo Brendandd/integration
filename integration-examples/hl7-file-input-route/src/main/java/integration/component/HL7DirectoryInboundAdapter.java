@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import integration.messaging.component.processingstep.filter.MessageForwardingPolicy;
-import integration.messaging.hl7.component.communicationpoint.directory.BaseHL7InboundDirectoryCommunicationPoint;
+import integration.messaging.hl7.component.adapter.directory.BaseHL7InboundDirectoryAdapter;
 
 /**
  * Reads a file from the configured folder.
@@ -14,13 +14,13 @@ import integration.messaging.hl7.component.communicationpoint.directory.BaseHL7I
  * 
  */
 @Component
-public class HL7DirectoryInboundCommunicationPoint extends BaseHL7InboundDirectoryCommunicationPoint {
+public class HL7DirectoryInboundAdapter extends BaseHL7InboundDirectoryAdapter {
 
     @Autowired
     @Qualifier("forwardAllMessages")
     private MessageForwardingPolicy messageForwardingPolicy;
 
-    public HL7DirectoryInboundCommunicationPoint() {
+    public HL7DirectoryInboundAdapter() {
         super("directory-inbound");
     }
 

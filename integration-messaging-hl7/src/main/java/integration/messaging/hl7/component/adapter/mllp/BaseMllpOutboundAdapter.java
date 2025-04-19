@@ -1,15 +1,15 @@
-package integration.messaging.hl7.component.communicationpoint.mllp;
+package integration.messaging.hl7.component.adapter.mllp;
 
 import org.apache.camel.builder.TemplatedRouteBuilder;
 
-import integration.messaging.component.communicationpoint.BaseOutboundCommunicationPoint;
+import integration.messaging.component.adapter.BaseOutboundCommunicationPoint;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.
  */
-public abstract class BaseMllpOutboundCommunicationPoint extends BaseOutboundCommunicationPoint {
+public abstract class BaseMllpOutboundAdapter extends BaseOutboundCommunicationPoint {
 
-    public BaseMllpOutboundCommunicationPoint(String componentName) {
+    public BaseMllpOutboundAdapter(String componentName) {
         super(componentName);
     }
 

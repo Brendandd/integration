@@ -1,8 +1,8 @@
-package integration.messaging.component.communicationpoint.directory;
+package integration.messaging.component.adapter.directory;
 
 import org.apache.camel.builder.TemplatedRouteBuilder;
 
-import integration.messaging.component.communicationpoint.BaseOutboundCommunicationPoint;
+import integration.messaging.component.adapter.BaseOutboundCommunicationPoint;
 
 /**
  * Base class for all directory output communication points.
@@ -10,9 +10,9 @@ import integration.messaging.component.communicationpoint.BaseOutboundCommunicat
  * @author Brendan Douglas
  *
  */
-public abstract class BaseDirectoryOutboundCommunicationPoint extends BaseOutboundCommunicationPoint {
+public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundCommunicationPoint {
 
-    public BaseDirectoryOutboundCommunicationPoint(String componentName) {
+    public BaseDirectoryOutboundAdapter(String componentName) {
         super(componentName);
     }
 

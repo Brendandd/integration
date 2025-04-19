@@ -1,4 +1,4 @@
-package integration.messaging.component.communicationpoint;
+package integration.messaging.component.adapter;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;

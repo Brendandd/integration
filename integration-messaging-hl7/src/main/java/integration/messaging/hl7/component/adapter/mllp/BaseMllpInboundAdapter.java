@@ -1,11 +1,11 @@
-package integration.messaging.hl7.component.communicationpoint.mllp;
+package integration.messaging.hl7.component.adapter.mllp;
 
 import static org.apache.camel.component.hl7.HL7.ack;
 
 import org.apache.camel.builder.TemplatedRouteBuilder;
 import org.springframework.context.annotation.DependsOn;
 
-import integration.messaging.component.communicationpoint.BaseInboundCommunicationPoint;
+import integration.messaging.component.adapter.BaseInboundCommunicationPoint;
 
 /**
  * Base class for all MLLP/HL7 inbound communication points. This components reads the
@@ -14,9 +14,9 @@ import integration.messaging.component.communicationpoint.BaseInboundCommunicati
  * @author Brendan Douglas
  *
  */
-public abstract class BaseMllpInboundCommunicationPoint extends BaseInboundCommunicationPoint {
+public abstract class BaseMllpInboundAdapter extends BaseInboundCommunicationPoint {
 
-    public BaseMllpInboundCommunicationPoint(String componentName) throws Exception {
+    public BaseMllpInboundAdapter(String componentName) throws Exception {
         super(componentName);
     }
 

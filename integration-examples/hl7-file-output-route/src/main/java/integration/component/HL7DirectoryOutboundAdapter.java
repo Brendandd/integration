@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
-import integration.messaging.hl7.component.communicationpoint.directory.BaseHL7OutboundDirectoryCommunicationPoint;
+import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDirectoryAdapter;
 
 /**
  * Component to write the file.
@@ -16,13 +16,13 @@ import integration.messaging.hl7.component.communicationpoint.directory.BaseHL7O
  * 
  */
 @Component
-public class HL7DirectoryOutboundCommunicationPoint extends BaseHL7OutboundDirectoryCommunicationPoint {
+public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter {
 
     @Autowired
     @Qualifier("acceptAllMessages")
     private MessageAcceptancePolicy messageAcceptancePolicy;
 
-    public HL7DirectoryOutboundCommunicationPoint() {
+    public HL7DirectoryOutboundAdapter() {
         super("directory-outbound");
     }
 

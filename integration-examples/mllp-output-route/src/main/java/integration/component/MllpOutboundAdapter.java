@@ -7,18 +7,18 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
-import integration.messaging.hl7.component.communicationpoint.mllp.BaseMllpOutboundCommunicationPoint;
+import integration.messaging.hl7.component.adapter.mllp.BaseMllpOutboundAdapter;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MllpOutboundCommunicationPoint extends BaseMllpOutboundCommunicationPoint {
+public class MllpOutboundAdapter extends BaseMllpOutboundAdapter {
     private static final String COMPONENT_NAME = "mllp-outbound";
 
     @Autowired
     @Qualifier("acceptAllMessages")
     private MessageAcceptancePolicy messageAcceptancePolicy;
 
-    public MllpOutboundCommunicationPoint() {
+    public MllpOutboundAdapter() {
         super(COMPONENT_NAME);
     }
 

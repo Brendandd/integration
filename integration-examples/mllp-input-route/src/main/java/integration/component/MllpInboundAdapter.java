@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import integration.messaging.component.processingstep.filter.MessageForwardingPolicy;
-import integration.messaging.hl7.component.communicationpoint.mllp.BaseMllpInboundCommunicationPoint;
+import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
 
 /**
  * An MLLP inbound communication point.
@@ -16,14 +16,14 @@ import integration.messaging.hl7.component.communicationpoint.mllp.BaseMllpInbou
  */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MllpInboundCommunicationPoint extends BaseMllpInboundCommunicationPoint {
+public class MllpInboundAdapter extends BaseMllpInboundAdapter {
     private static final String COMPONENT_NAME = "mllp-inbound";
 
     @Autowired
     @Qualifier("forwardAllMessages")
     private MessageForwardingPolicy messageForwardingPolicy;
 
-    public MllpInboundCommunicationPoint() throws Exception {
+    public MllpInboundAdapter() throws Exception {
         super(COMPONENT_NAME);
     }
 

@@ -1,4 +1,4 @@
-package integration.messaging.hl7.component.communicationpoint.mllp;
+package integration.messaging.hl7.component.adapter.mllp;
 
 import org.apache.camel.component.hl7.HL7MLLPNettyDecoderFactory;
 import org.apache.camel.component.hl7.HL7MLLPNettyEncoderFactory;

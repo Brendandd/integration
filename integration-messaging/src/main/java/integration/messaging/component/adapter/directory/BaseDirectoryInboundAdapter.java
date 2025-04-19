@@ -1,4 +1,4 @@
-package integration.messaging.component.communicationpoint.directory;
+package integration.messaging.component.adapter.directory;
 
 import org.apache.camel.builder.TemplatedRouteBuilder;
 import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 
-import integration.messaging.component.communicationpoint.BaseInboundCommunicationPoint;
+import integration.messaging.component.adapter.BaseInboundCommunicationPoint;
 import jakarta.persistence.EntityManagerFactory;
 
 /**
@@ -17,9 +17,9 @@ import jakarta.persistence.EntityManagerFactory;
  * @author Brendan Douglas
  *
  */
-public abstract class BaseDirectoryInboundCommunicationPoint extends BaseInboundCommunicationPoint {
+public abstract class BaseDirectoryInboundAdapter extends BaseInboundCommunicationPoint {
 
-    public BaseDirectoryInboundCommunicationPoint(String componentName) {
+    public BaseDirectoryInboundAdapter(String componentName) {
         super(componentName);
     }
 

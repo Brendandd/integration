@@ -1,4 +1,4 @@
-package integration.messaging.component.communicationpoint;
+package integration.messaging.component.adapter;
 
 import java.util.ArrayList;
 import java.util.List;

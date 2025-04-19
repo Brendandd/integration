@@ -1,4 +1,4 @@
-package integration.messaging.component.communicationpoint;
+package integration.messaging.component.adapter;
 
 import integration.messaging.component.BaseMessagingComponent;
 
