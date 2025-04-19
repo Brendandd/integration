@@ -1,0 +1,18 @@
+services:
+  artemis:
+    build:
+      context: .
+    container_name: artemis
+    environment:
+      - ARTEMIS_USERNAME=admin
+      - ARTEMIS_PASSWORD=admin
+    ports:
+      - "8161:8161"
+      - "61616:61616"
+    networks:
+      - integration-net
+    restart: always
+    
+networks:
+  integration-net:
+    external: true
