@@ -18,7 +18,7 @@ public class DirectoryInboundRoute extends BaseRoute {
     public static final String ROUTE_NAME = "directory-inbound";
 
     @Autowired
-    private HL7DirectoryInboundAdapter directoryInboundCommunicationPoint;
+    private HL7DirectoryInboundAdapter directoryInboundAdapter;
 
     @Autowired
     private DirectoryOutboundRouteConnector directoryOutboundRouteConnector;
@@ -32,11 +32,11 @@ public class DirectoryInboundRoute extends BaseRoute {
     public void configure() throws Exception {
 
         // Associate components to the this route.
-        addComponentToRoute(directoryInboundCommunicationPoint);
+        addComponentToRoute(directoryInboundAdapter);
         addComponentToRoute(directoryOutboundRouteConnector);
 
         // Configure how the components are joined together.
-        addFlow(directoryInboundCommunicationPoint, directoryOutboundRouteConnector);
+        addFlow(directoryInboundAdapter, directoryOutboundRouteConnector);
 
         start();
     }

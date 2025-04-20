@@ -40,7 +40,7 @@ public class MLLPOutboundRoute extends BaseRoute {
     private Hl7MessageTypeFilter filter;
 
     @Autowired
-    private MllpOutboundAdapter outboundCommunicationPoint;
+    private MllpOutboundAdapter mllpOutboundAdapter;
 
     public MLLPOutboundRoute() {
         super(ROUTE_NAME);
@@ -58,14 +58,14 @@ public class MLLPOutboundRoute extends BaseRoute {
         addComponentToRoute(splitter);
         addComponentToRoute(transformation);
         addComponentToRoute(filter);
-        addComponentToRoute(outboundCommunicationPoint);
+        addComponentToRoute(mllpOutboundAdapter);
 
         // Configure how the components are joined together.
         addFlow(fromMllpInboundRouteConnector, transformation, filter);
-        addFlow(fromDirectoryInboundRouteConnector, outboundCommunicationPoint);
+        addFlow(fromDirectoryInboundRouteConnector, mllpOutboundAdapter);
         addFlow(transformation, splitter);
         addFlow(filter, splitter);
-        addFlow(splitter, outboundCommunicationPoint);
+        addFlow(splitter, mllpOutboundAdapter);
 
         // Start the route
         start();

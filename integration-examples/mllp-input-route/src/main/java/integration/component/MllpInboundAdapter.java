@@ -14,7 +14,7 @@ import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
  * 
  * @author Brendan Douglas
  */
-@Component
+@Component("mllpInboundAdapter")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MllpInboundAdapter extends BaseMllpInboundAdapter {
     private static final String COMPONENT_NAME = "mllp-inbound";

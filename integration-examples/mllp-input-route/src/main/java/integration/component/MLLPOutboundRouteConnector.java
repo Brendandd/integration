@@ -14,7 +14,7 @@ import integration.messaging.component.processingstep.filter.MessageAcceptancePo
  * 
  * @author Brendan Douglas
  */
-@Component
+@Component("mllpOutboundRouteConnector")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MLLPOutboundRouteConnector extends BaseRouteOutboundConnector {
 

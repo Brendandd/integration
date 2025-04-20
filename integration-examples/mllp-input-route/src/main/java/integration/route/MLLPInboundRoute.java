@@ -18,7 +18,7 @@ public class MLLPInboundRoute extends BaseRoute {
     public static final String ROUTE_NAME = "mllp-inbound";
 
     @Autowired
-    private MllpInboundAdapter mllpInboundCommunicationPoint;
+    private MllpInboundAdapter mllpInboundAdapter;
 
     @Autowired
     private MLLPOutboundRouteConnector toMllpOutboundRouteConnector;
@@ -32,11 +32,11 @@ public class MLLPInboundRoute extends BaseRoute {
     public void configure() throws Exception {
 
         // Associate components to the this route.
-        addComponentToRoute(mllpInboundCommunicationPoint);
+        addComponentToRoute(mllpInboundAdapter);
         addComponentToRoute(toMllpOutboundRouteConnector);
 
         // Configure how the components are joined together.
-        addFlow(mllpInboundCommunicationPoint, toMllpOutboundRouteConnector);
+        addFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
 
         start();
     }
