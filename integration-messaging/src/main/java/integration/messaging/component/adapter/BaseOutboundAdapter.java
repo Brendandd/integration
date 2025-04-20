@@ -12,8 +12,8 @@ import integration.messaging.component.SourceComponent;
  * @author Brendan Douglas
  *
  */
-public abstract class BaseOutboundCommunicationPoint extends BaseCommunicationPoint implements DestinationComponent {
-    public BaseOutboundCommunicationPoint(String componentName) {
+public abstract class BaseOutboundAdapter extends BaseAdapter implements DestinationComponent {
+    public BaseOutboundAdapter(String componentName) {
         super(componentName);
     }
 

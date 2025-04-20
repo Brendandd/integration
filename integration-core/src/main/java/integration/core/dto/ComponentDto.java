@@ -5,7 +5,7 @@ import integration.core.domain.configuration.ComponentType;
 
 /**
  * 
- * A single component. A component is a communication point or a processing
+ * A single component. A component is an adapter or a processing
  * step.
  * 
  * @author Brendan Douglas

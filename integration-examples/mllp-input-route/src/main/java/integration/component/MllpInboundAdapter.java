@@ -10,7 +10,7 @@ import integration.messaging.component.processingstep.filter.MessageForwardingPo
 import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
 
 /**
- * An MLLP inbound communication point.
+ * An MLLP inbound adapter.
  * 
  * @author Brendan Douglas
  */

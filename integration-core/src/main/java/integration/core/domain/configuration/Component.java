@@ -13,7 +13,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
- * A component which can be a communication point or a procesing step.
+ * A component which can be an adapter point or a procesing step (filter, splitter, transformer etc).
  * 
  * @author Brendan Douglas
  *

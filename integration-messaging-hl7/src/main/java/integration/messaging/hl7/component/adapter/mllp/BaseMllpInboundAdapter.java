@@ -5,7 +5,7 @@ import static org.apache.camel.component.hl7.HL7.ack;
 import org.apache.camel.builder.TemplatedRouteBuilder;
 import org.springframework.context.annotation.DependsOn;
 
-import integration.messaging.component.adapter.BaseInboundCommunicationPoint;
+import integration.messaging.component.adapter.BaseInboundAdapter;
 
 /**
  * Base class for all MLLP/HL7 inbound communication points. This components reads the
@@ -14,7 +14,7 @@ import integration.messaging.component.adapter.BaseInboundCommunicationPoint;
  * @author Brendan Douglas
  *
  */
-public abstract class BaseMllpInboundAdapter extends BaseInboundCommunicationPoint {
+public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
 
     public BaseMllpInboundAdapter(String componentName) throws Exception {
         super(componentName);
@@ -64,7 +64,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundCommunicationPoi
                 
         // Outbound processor for a HL7/MLLP inbound communication point.  This route will either create an event for further processing by other components or filter
         // the message.  No other processing is done here.
-        TemplatedRouteBuilder.builder(camelContext, "inboundCommunicationPointOutboundProcessorTemplate")
+        TemplatedRouteBuilder.builder(camelContext, "inboundAdapterOutboundProcessorTemplate")
             .parameter("isOutboundRunning", isOutboundRunning).parameter("componentPath", identifier.getComponentPath())
             .parameter("componentRouteId", identifier.getComponentRouteId())
             .parameter("contentType", getContentType())

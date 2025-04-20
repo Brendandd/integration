@@ -27,7 +27,7 @@ public class RouteTemplates extends RouteBuilder {
 
         // A route which is called after an inbound communications points outbound processor has been completed.  The result of this route is either a completion event is created
         // or the message is filtered.  An inbound communication point does no message processing other than determining if the message should be filtered or not.
-        routeTemplate("inboundCommunicationPointOutboundProcessorTemplate")
+        routeTemplate("inboundAdapterOutboundProcessorTemplate")
             .templateParameter("isOutboundRunning")
             .templateParameter("componentPath")
             .templateParameter("contentType")

@@ -3,15 +3,15 @@ package integration.messaging.component.adapter;
 import integration.messaging.component.BaseMessagingComponent;
 
 /**
- * Base class for all communication points. 
+ * Base class for all adapters 
  * 
  * 
  * 
  * @author Brendan Douglas
  */
-public abstract class BaseCommunicationPoint extends BaseMessagingComponent {
+public abstract class BaseAdapter extends BaseMessagingComponent {
 
-    public BaseCommunicationPoint(String componentName) {
+    public BaseAdapter(String componentName) {
         super(componentName);
     }
 

@@ -6,18 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 
-import integration.messaging.component.adapter.BaseInboundCommunicationPoint;
+import integration.messaging.component.adapter.BaseInboundAdapter;
 import jakarta.persistence.EntityManagerFactory;
 
 /**
- * Base class for all directory/file input communication points. This components
+ * Base class for all directory/file input adapters. This components
  * reads the file, stores it and writes and event No other processing should be
  * done here.
  * 
  * @author Brendan Douglas
  *
  */
-public abstract class BaseDirectoryInboundAdapter extends BaseInboundCommunicationPoint {
+public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
 
     public BaseDirectoryInboundAdapter(String componentName) {
         super(componentName);
@@ -61,7 +61,7 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundCommunicati
         
         // Outbound processor for a directory/file inbound communication point.  This route will either create an event for further processing by other components or filter
         // the message.  No other processing is done here.
-        TemplatedRouteBuilder.builder(camelContext, "inboundCommunicationPointOutboundProcessorTemplate")
+        TemplatedRouteBuilder.builder(camelContext, "inboundAdapterOutboundProcessorTemplate")
             .parameter("isOutboundRunning", isOutboundRunning).parameter("componentPath", identifier.getComponentPath())
             .parameter("componentRouteId", identifier.getComponentRouteId())
             .parameter("contentType", getContentType())

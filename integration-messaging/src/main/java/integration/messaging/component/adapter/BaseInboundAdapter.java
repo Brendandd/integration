@@ -3,14 +3,14 @@ package integration.messaging.component.adapter;
 import integration.messaging.component.SourceComponent;
 
 /**
- * Base class for all inbound communication points.
+ * Base class for all inbound adapters.
  * 
  * @author Brendan Douglas
  *
  */
-public abstract class BaseInboundCommunicationPoint extends BaseCommunicationPoint implements SourceComponent {
+public abstract class BaseInboundAdapter extends BaseAdapter implements SourceComponent {
 
-    public BaseInboundCommunicationPoint(String componentName) {
+    public BaseInboundAdapter(String componentName) {
         super(componentName);
     }
 
