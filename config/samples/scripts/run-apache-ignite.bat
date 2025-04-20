@@ -5,4 +5,4 @@ docker network inspect integration-net >nul 2>&1 || (
     docker network create integration-net
 )
 
-docker compose -f ../../../apache-ignite/docker-compose.yml up --build
+docker compose -f ../../../apache-ignite/docker-compose.yml up --build -d

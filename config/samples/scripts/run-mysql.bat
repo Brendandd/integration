@@ -6,4 +6,4 @@ docker network inspect integration-net >nul 2>&1 || (
 )
 
 copy ..\mysql\*.sql ..\..\..\mysql\init
-docker compose -f ../../../mysql/docker-compose.yml --env-file ../.env.example up --build
+docker compose -f ../../../mysql/docker-compose.yml --env-file ../.env.example up --build -d
