@@ -1,8 +1,5 @@
 # Dockerfile for MySQL (optional customizations)
 FROM mysql:8.0
 
-# Optional: Copy custom MySQL config
-# COPY ./my.cnf /etc/mysql/conf.d/my.cnf
-
-# Optional: Run other commands like installing tools
-# RUN apt-get update && apt-get install -y nano
+ARG INITIAL_DATA_DIR
+COPY ${INITIAL_DATA_DIR}/ /docker-entrypoint-initdb.d/

@@ -1,0 +1,1 @@
+docker volume rm mysql_mysql-data

@@ -8,13 +8,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: integration
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      MYSQL_USER: ${MYSQL_USER_NAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./init:/docker-entrypoint-initdb.d
+      - ${INIT_DIR}:/docker-entrypoint-initdb.d
     networks:
       - integration-net
     restart: always

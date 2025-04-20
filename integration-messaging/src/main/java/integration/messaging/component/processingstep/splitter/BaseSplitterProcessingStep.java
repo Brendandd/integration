@@ -20,7 +20,8 @@ public abstract class BaseSplitterProcessingStep extends ProcessingStep {
     public void configure() throws Exception {
         super.configure();
 
-        from("direct:process-" + identifier.getComponentPath()).routeId("process-" + identifier.getComponentPath())
+        from("direct:process-" + identifier.getComponentPath())
+            .routeId("process-" + identifier.getComponentPath())
             .routeGroup(identifier.getComponentPath())
             .split().method(getSplitter(), "split")
             .setHeader("contentType", constant(getContentType()))

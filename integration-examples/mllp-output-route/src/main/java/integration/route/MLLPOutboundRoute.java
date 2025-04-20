@@ -8,7 +8,7 @@ import integration.component.MLLPInboundRouteConnector;
 import integration.component.Hl7MessageTypeFilter;
 import integration.component.Hl7Splitter;
 import integration.component.Hl7Transformation;
-import integration.component.MllpOutboundCommunicationPoint;
+import integration.component.MllpOutboundAdapter;
 import integration.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
 
@@ -40,7 +40,7 @@ public class MLLPOutboundRoute extends BaseRoute {
     private Hl7MessageTypeFilter filter;
 
     @Autowired
-    private MllpOutboundCommunicationPoint outboundCommunicationPoint;
+    private MllpOutboundAdapter outboundCommunicationPoint;
 
     public MLLPOutboundRoute() {
         super(ROUTE_NAME);

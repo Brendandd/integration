@@ -1,18 +1,25 @@
+version: '3.8'
+
 services:
   artemis:
     build:
       context: .
     container_name: artemis
     environment:
-      - ARTEMIS_USERNAME=admin
-      - ARTEMIS_PASSWORD=admin
+      ARTEMIS_USERNAME: ${ACTIVEMQ_USER_NAME}
+      ARTEMIS_PASSWORD: ${ACTIVEMQ_PASSWORD}
     ports:
-      - "8161:8161"
-      - "61616:61616"
+      - "8161:8161"   # Web console
+      - "61616:61616" # Core/MQ
+    volumes:
+      - artemis-data:/var/lib/artemis
     networks:
       - integration-net
     restart: always
-    
+
 networks:
   integration-net:
     external: true
+
+volumes:
+  artemis-data:

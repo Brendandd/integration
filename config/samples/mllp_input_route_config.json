@@ -1,0 +1,15 @@
+{
+  "routes": [
+    {
+      "name": "mllp-inbound",
+      "components": [
+        {
+          "name": "mllp-inbound",
+          "properties": {
+            "PORT": "8888"
+          }
+        }
+      ]
+    }
+  ]
+}

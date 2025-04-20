@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import integration.component.DirectoryInboundRouteConnector;
-import integration.component.HL7DirectoryOutboundCommunicationPoint;
+import integration.component.HL7DirectoryOutboundAdapter;
 import integration.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
 
@@ -23,7 +23,7 @@ public class DirectoryOutboundRoute extends BaseRoute {
     private DirectoryInboundRouteConnector directoryInboundRouteConnector;
 
     @Autowired
-    private HL7DirectoryOutboundCommunicationPoint outboundCommunicationPoint;
+    private HL7DirectoryOutboundAdapter outboundCommunicationPoint;
 
     public DirectoryOutboundRoute() {
         super(ROUTE_NAME);

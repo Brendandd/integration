@@ -6,7 +6,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.communicationpoint.BaseRouteOutboundConnector;
+import integration.messaging.component.adapter.BaseRouteOutboundConnector;
 import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
 
 /**
