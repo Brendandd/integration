@@ -1,0 +1,15 @@
+{
+  "routes": [
+    {
+      "name": "directory-outbound",
+      "components": [
+        {
+          "name": "directory-outbound",
+          "properties": {
+            "TARGET_FOLDER": "/app/host-files/out"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -28,6 +28,6 @@ public abstract class BaseHL7InboundDirectoryAdapter extends BaseDirectoryInboun
     public String getContentType() {
         return CONTENT_TYPE;
     }
-
+    
     // TODO complete functionality.
 }

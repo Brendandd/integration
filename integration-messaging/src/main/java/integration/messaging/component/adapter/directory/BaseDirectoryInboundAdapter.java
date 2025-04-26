@@ -5,7 +5,6 @@ import org.apache.camel.Processor;
 import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.DependsOn;
 
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.messaging.component.adapter.BaseInboundAdapter;
@@ -43,7 +42,6 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
     }
 
     @Override
-    @DependsOn("routeTemplates")
     public void configure() throws Exception {
         super.configure();
 

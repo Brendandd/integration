@@ -17,7 +17,8 @@ services:
       - backend
       - integration-net
     volumes:
-      - ${HL7-FILE_OUTPUT_ROUTE_CONFIG_FILE}:/app/route-config.json
+      - ${HL7_FILE_OUTPUT_ROUTE_CONFIG_FILE}:/app/route-config.json
+      - /c/dev/NE/file-out:/app/host-files/out
 
 networks:
   backend:

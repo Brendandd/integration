@@ -1,0 +1,15 @@
+{
+  "routes": [
+    {
+      "name": "directory-inbound",
+      "components": [
+        {
+          "name": "directory-inbound",
+          "properties": {
+            "SOURCE_FOLDER": "/app/host-files/in"
+          }
+        }
+      ]
+    }
+  ]
+}
