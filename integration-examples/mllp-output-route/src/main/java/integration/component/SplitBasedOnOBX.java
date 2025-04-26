@@ -1,10 +1,9 @@
 package integration.component;
 
-import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.processingstep.splitter.SplitterException;
-import integration.messaging.hl7.component.processingstep.splitter.BaseHL7MessageSplitter;
+import integration.messaging.component.handler.splitter.SplitterException;
+import integration.messaging.hl7.component.handler.splitter.BaseHL7MessageSplitter;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
@@ -14,7 +13,7 @@ import integration.messaging.hl7.datamodel.HL7Message;
 public class SplitBasedOnOBX extends BaseHL7MessageSplitter {
 
     @Override
-    public HL7Message[] split(Exchange exchange, HL7Message hl7Message) throws SplitterException {
+    public HL7Message[] split(HL7Message hl7Message) throws SplitterException {
         try {
             int obxCount = hl7Message.getSegmentCount("OBX");
 

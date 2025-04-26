@@ -3,8 +3,8 @@ package integration.route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import integration.component.HL7DirectoryInboundAdapter;
 import integration.component.DirectoryOutboundRouteConnector;
+import integration.component.HL7DirectoryInboundAdapter;
 import integration.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
 
@@ -36,7 +36,7 @@ public class DirectoryInboundRoute extends BaseRoute {
         addComponentToRoute(directoryOutboundRouteConnector);
 
         // Configure how the components are joined together.
-        addFlow(directoryInboundAdapter, directoryOutboundRouteConnector);
+        addDirectFlow(directoryInboundAdapter, directoryOutboundRouteConnector);
 
         start();
     }

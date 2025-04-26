@@ -6,10 +6,10 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
-import integration.messaging.component.processingstep.filter.MessageForwardingPolicy;
-import integration.messaging.component.processingstep.splitter.BaseSplitterProcessingStep;
-import integration.messaging.component.processingstep.splitter.MessageSplitter;
+import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.messaging.component.handler.splitter.BaseSplitterProcessingStep;
+import integration.messaging.component.handler.splitter.MessageSplitter;
 
 /**
  * A message splitter. Duplicates the message based on the number of OBX

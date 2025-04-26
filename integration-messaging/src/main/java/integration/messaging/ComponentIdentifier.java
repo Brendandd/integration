@@ -1,20 +1,21 @@
 package integration.messaging;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 /**
  * The identifier of a component.
  * 
  * @author Brendan Douglas
  */
+@Component
+@Scope("prototype")
 public class ComponentIdentifier {
     private long componentRouteId;
     private long routeId;
     private long componentId;
     private String componentName;
     private String routeName;
-
-    public ComponentIdentifier(String componentName) {
-        this.componentName = componentName;
-    }
 
     public String getComponentName() {
         return componentName;

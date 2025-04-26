@@ -23,7 +23,7 @@ public class DirectoryOutboundRoute extends BaseRoute {
     private DirectoryInboundRouteConnector directoryInboundRouteConnector;
 
     @Autowired
-    private HL7DirectoryOutboundAdapter hl7DirectoryOoutboundAdapter;
+    private HL7DirectoryOutboundAdapter hl7DirectoryOutboundAdapter;
 
     public DirectoryOutboundRoute() {
         super(ROUTE_NAME);
@@ -35,10 +35,10 @@ public class DirectoryOutboundRoute extends BaseRoute {
 
         // Associate components to the this route.
         addComponentToRoute(directoryInboundRouteConnector);
-        addComponentToRoute(hl7DirectoryOoutboundAdapter);
+        addComponentToRoute(hl7DirectoryOutboundAdapter);
 
         // Configure how the components are joined together.
-        addFlow(directoryInboundRouteConnector, hl7DirectoryOoutboundAdapter);
+        addDirectFlow(directoryInboundRouteConnector, hl7DirectoryOutboundAdapter);
 
         // Start the route
         start();

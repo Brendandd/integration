@@ -6,10 +6,10 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
-import integration.messaging.component.processingstep.filter.MessageForwardingPolicy;
-import integration.messaging.component.processingstep.transformation.BaseTransformationProcessingStep;
-import integration.messaging.component.processingstep.transformation.MessageTransformer;
+import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.messaging.component.handler.transformation.BaseTransformationProcessingStep;
+import integration.messaging.component.handler.transformation.MessageTransformer;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)

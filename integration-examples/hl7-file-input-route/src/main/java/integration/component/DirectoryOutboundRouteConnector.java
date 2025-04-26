@@ -6,8 +6,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.adapter.BaseRouteOutboundConnector;
-import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
+import integration.messaging.component.connector.BaseOutboundRouteConnector;
+import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
 
 /**
  * An outbound route connector. Connects this route to another route.
@@ -16,7 +16,7 @@ import integration.messaging.component.processingstep.filter.MessageAcceptancePo
  */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class DirectoryOutboundRouteConnector extends BaseRouteOutboundConnector {
+public class DirectoryOutboundRouteConnector extends BaseOutboundRouteConnector {
 
     @Autowired
     @Qualifier("acceptAllMessages")

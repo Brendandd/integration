@@ -1,51 +1,88 @@
 package integration.messaging.service;
 
 import java.util.List;
-import java.util.Map;
 
-import integration.core.domain.configuration.DirectionEnum;
-import integration.core.domain.messaging.MessageFlowTypeEvent;
+import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.dto.MessageFlowStepDto;
+import integration.messaging.ComponentIdentifier;
+import integration.messaging.component.BaseMessagingComponent;
+import integration.messaging.component.MessageConsumer;
+import integration.messaging.component.adapter.BaseInboundAdapter;
+import integration.messaging.component.connector.BaseInboundRouteConnector;
+import integration.messaging.component.connector.BaseOutboundRouteConnector;
 
 /**
  * Service to store messages/message flows.
  */
+/**
+ * 
+ */
 public interface MessagingFlowService {
-
+   
     /**
-     * Records a message/message flow. This is not the original incoming message so
-     * needs to be linked to the parent.
+     * Records the message received by a message consumer.  The consumers are internal to a single route.
      * 
-     * @param routeId
-     * @param componentId
+     * @param receivingComponentIdentifier
+     * @param parentComponentIdentifier
+     * @return
+     */
+    long recordConsumedMessage(MessageConsumer messageConsumer, long messageFlowStepId, String contentType);
+
+    
+    /**
+     * Records the message received by an inbound route connector which was produced in another route.
+     * 
+     * @param inboundRouteConnector
+     * @param messageFlowStepId
+     * @param contentType
+     * @return
+     */
+    long recordInboundMessageProducedByOtherRoute(BaseInboundRouteConnector inboundRouteConnector, long messageFlowStepId, String contentType);
+
+    
+    /**
+     * Records the message to be consumed by another route.
+     * 
+     * @param outboundRouteConnector
+     * @param messageFlowStepId
+     * @param contentType
+     * @return
+     */
+    long recordOutboundMessageToBeConsumedByOtherRoute(BaseOutboundRouteConnector outboundRouteConnector, long messageFlowStepId, String contentType);
+
+    
+    /**
+     * Records the message received by from an external source.  This only applied to inbound adapters.
+     * 
+     * @param message
+     * @param componentRouteId
+     * @param contentType
+     * @return
+     */
+    long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType);
+
+    
+    /**
+     * Records the message dispatched by a components outbound handler.
+     * 
      * @param messageContent
-     * @param headers
-     * @param parentMessageFlowId
+     * @param messagingComponent
+     * @param parentMessageFlowStepId
+     * @param contentType
      * @return
      */
-    MessageFlowStepDto recordMessageFlow(long componentRouteId, String messageContent, Map<String, Object> headers,
-            Long fromMessageFlowStepId, String contentType, DirectionEnum direction);
+    long recordMessageDispatchedByOutboundHandler(String messageContent, BaseMessagingComponent messagingComponent, long parentMessageFlowStepId, String contentType);
 
+    
     /**
-     * Filters a message.
-     * 
-     * @param routeId
-     * @param componentId
-     * @param parentMessageFlowId
-     * @return
-     */
-    void filterMessage(long messageFlowId, String reason, String filterName);
-
-    void recordMessageFlowStepError(long messageFlowId, String reason);
-
-    /**
-     * Records an event.
+     * Records a message flow event.
      * 
      * @param messageFlow
      */
-    void recordMessageFlowEvent(long messageFlowId, MessageFlowTypeEvent eventType);
-
+    void recordMessageFlowEvent(long messageFlowId, MessageFlowEventType eventType);
+    
+    
     /**
      * Records an ACK.
      * 
@@ -53,8 +90,9 @@ public interface MessagingFlowService {
      * @param componentId
      * @param content
      */
-    MessageFlowStepDto recordAck(long componentRouteId, Map<String, Object> headers, String content, Long fromMessageFlowStepId);
-
+    void recordAck(String ackContent, BaseInboundAdapter inboundAdapter, Long fromMessageFlowStepId, String contentType);
+    
+    
     /**
      * Retrieves a message flow.
      * 
@@ -63,7 +101,31 @@ public interface MessagingFlowService {
      */
     MessageFlowStepDto retrieveMessageFlow(long messageFlowId);
 
-    List<MessageFlowEventDto> getEvents(long componentRouteId, int numberToRead, MessageFlowTypeEvent type);
+    
+    /**
+     * Retrieves the message associated with a message flow id.
+     * 
+     * @param messageFlowId
+     * @return
+     */
+    String retrieveMessageContent(long messageFlowId);
 
+    
+    /**
+     * Gets a list of matching events.
+     * 
+     * @param identifier
+     * @param numberToRead
+     * @param type
+     * @return
+     */
+    List<MessageFlowEventDto> getEvents(ComponentIdentifier identifier, int numberToRead, MessageFlowEventType type);
+    
+    
+    /**
+     * Deletes an event by id.
+     * 
+     * @param eventId
+     */
     void deleteEvent(long eventId);
 }

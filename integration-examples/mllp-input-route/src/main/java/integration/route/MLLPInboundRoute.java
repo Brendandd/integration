@@ -3,8 +3,8 @@ package integration.route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import integration.component.MllpInboundAdapter;
 import integration.component.MLLPOutboundRouteConnector;
+import integration.component.MllpInboundAdapter;
 import integration.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
 
@@ -36,7 +36,7 @@ public class MLLPInboundRoute extends BaseRoute {
         addComponentToRoute(toMllpOutboundRouteConnector);
 
         // Configure how the components are joined together.
-        addFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
+        addDirectFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
 
         start();
     }

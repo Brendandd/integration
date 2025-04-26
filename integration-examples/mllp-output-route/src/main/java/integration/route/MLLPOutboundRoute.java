@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import integration.component.DirectoryInboundRouteConnector;
-import integration.component.MLLPInboundRouteConnector;
 import integration.component.Hl7MessageTypeFilter;
 import integration.component.Hl7Splitter;
 import integration.component.Hl7Transformation;
+import integration.component.MLLPInboundRouteConnector;
 import integration.component.MllpOutboundAdapter;
 import integration.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
@@ -52,7 +52,7 @@ public class MLLPOutboundRoute extends BaseRoute {
     @PostConstruct
     public void configure() throws Exception {
 
-        // Associate components to the this route.
+        // Associate components to this route.
         addComponentToRoute(fromMllpInboundRouteConnector);
         addComponentToRoute(fromDirectoryInboundRouteConnector);
         addComponentToRoute(splitter);
@@ -61,11 +61,14 @@ public class MLLPOutboundRoute extends BaseRoute {
         addComponentToRoute(mllpOutboundAdapter);
 
         // Configure how the components are joined together.
-        addFlow(fromMllpInboundRouteConnector, transformation, filter);
-        addFlow(fromDirectoryInboundRouteConnector, mllpOutboundAdapter);
-        addFlow(transformation, splitter);
-        addFlow(filter, splitter);
-        addFlow(splitter, mllpOutboundAdapter);
+        addInboundFlow(fromMllpInboundRouteConnector, transformation, filter);
+        
+        addDirectFlow(fromDirectoryInboundRouteConnector, mllpOutboundAdapter);
+        
+        addInternalFlow(transformation, splitter);
+        addInternalFlow(filter, splitter);
+        
+        addOutboundFlow(splitter, mllpOutboundAdapter);
 
         // Start the route
         start();

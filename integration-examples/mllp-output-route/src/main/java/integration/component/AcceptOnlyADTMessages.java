@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
-import integration.messaging.component.processingstep.filter.MessageForwardingPolicy;
-import integration.messaging.hl7.component.processingstep.filter.MessageTypeFilter;
+import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.messaging.hl7.component.handler.filter.MessageTypeFilter;
 
 /**
  * A message type filter. Will only accept ADT^A04 messages.

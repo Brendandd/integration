@@ -20,7 +20,7 @@ import jakarta.persistence.Table;
 @Table(name = "message_flow_event")
 public class MessageFlowEvent extends BaseIntegrationDomain {
     private MessageFlowStep messageFlow;
-    private MessageFlowTypeEvent type;
+    private MessageFlowEventType type;
 
     @ManyToOne
     @JoinColumn(name = "message_flow_id")
@@ -34,11 +34,11 @@ public class MessageFlowEvent extends BaseIntegrationDomain {
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    public MessageFlowTypeEvent getType() {
+    public MessageFlowEventType getType() {
         return type;
     }
 
-    public void setType(MessageFlowTypeEvent type) {
+    public void setType(MessageFlowEventType type) {
         this.type = type;
     }
 }

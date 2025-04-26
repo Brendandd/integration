@@ -1,11 +1,13 @@
 package integration.messaging.component.adapter.directory;
 
-import org.apache.camel.builder.TemplatedRouteBuilder;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 
+import integration.core.domain.messaging.MessageFlowEventType;
 import integration.messaging.component.adapter.BaseInboundAdapter;
 import jakarta.persistence.EntityManagerFactory;
 
@@ -45,34 +47,24 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
     public void configure() throws Exception {
         super.configure();
 
-        // Entry point route for directory/file communication points.  Reads the message from the configured location, writes the message details to the database and records
-        // an event.
+        // A route to read a file from the defined location, store the file content, store an event all within a single transaction.
         from(getFromUriString())
-            .routeId(identifier.getComponentPath() + "-inbound")
+            .routeId("mllpInboundMessageHandlerRoute-" + identifier.getComponentPath())
+            .setHeader("contentType", constant(getContentType()))
             .routeGroup(identifier.getComponentPath())
             .autoStartup(isInboundRunning)
-
-            // Store the message and an event in a single transaction.
             .transacted()
-                .setHeader("contentType", simple(getContentType()))
-                .bean(messageProcessor, "storeInboundMessageFlowStep(*," + identifier.getComponentRouteId() + ")")
-                .bean(messageProcessor, "recordInboundProcessingCompleteEvent(*)");
-
-        
-        // Outbound processor for a directory/file inbound communication point.  This route will either create an event for further processing by other components or filter
-        // the message.  No other processing is done here.
-        TemplatedRouteBuilder.builder(camelContext, "inboundAdapterOutboundProcessorTemplate")
-            .parameter("isOutboundRunning", isOutboundRunning).parameter("componentPath", identifier.getComponentPath())
-            .parameter("componentRouteId", identifier.getComponentRouteId())
-            .parameter("contentType", getContentType())
-            .bean("messageForwardingPolicy", getMessageForwardingPolicy())
-            .add();
-
-        
-        // Add the message flow step id to the outbound processing complete topic so it can be picked up by one or more other components.  This is the final
-        // step in directory/file inbound communication points.
-        TemplatedRouteBuilder.builder(camelContext, "addToOutboundProcessingCompleteTopicTemplate")
-            .parameter("componentPath", identifier.getComponentPath())
-            .add();
+            
+                .process(new Processor() {
+                    
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+                        // Store the message received by this inbound adapter.
+                        String messageContent = exchange.getMessage().getBody(String.class);
+                        long messageFlowStepId = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseDirectoryInboundAdapter.this, getContentType());
+                        
+                        messagingFlowService.recordMessageFlowEvent(messageFlowStepId, MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                    }
+                });
     }
 }

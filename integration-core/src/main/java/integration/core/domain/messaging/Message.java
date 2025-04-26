@@ -20,9 +20,14 @@ public class Message extends BaseIntegrationDomain {
     private String content;
     private String headers;
     private String contentType;
+    
+    private Message() {
+        
+    }
 
-    public Message() {
-
+    public Message(String content, String contentType) {
+        this.content = content;
+        this.contentType = contentType;
     }
 
     @Column(name = "content")

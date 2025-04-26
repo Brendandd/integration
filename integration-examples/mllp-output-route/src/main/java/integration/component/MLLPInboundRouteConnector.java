@@ -6,8 +6,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.adapter.BaseRouteInboundConnector;
-import integration.messaging.component.processingstep.filter.MessageForwardingPolicy;
+import integration.messaging.component.connector.BaseInboundRouteConnector;
+import integration.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
  * Joins this route to the MLLP inbound route.
@@ -17,7 +17,7 @@ import integration.messaging.component.processingstep.filter.MessageForwardingPo
  */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MLLPInboundRouteConnector extends BaseRouteInboundConnector {
+public class MLLPInboundRouteConnector extends BaseInboundRouteConnector {
     private static final String COMPONENT_NAME = "MLLP-inbound-route-connector";
 
     @Autowired

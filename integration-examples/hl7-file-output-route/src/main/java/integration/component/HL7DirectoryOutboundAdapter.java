@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.processingstep.filter.MessageAcceptancePolicy;
+import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDirectoryAdapter;
 
 /**
@@ -32,7 +32,7 @@ public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter
     public String getContentType() {
         return CONTENT_TYPE;
     }
-
+    
     @Override
     public MessageAcceptancePolicy getMessageAcceptancePolicy() {
         return messageAcceptancePolicy;

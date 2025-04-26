@@ -51,7 +51,7 @@ public class MessageFlowStep extends BaseIntegrationDomain {
         this.componentRoute = componentRoute;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "message_id")
     public Message getMessage() {
         return message;
@@ -101,7 +101,7 @@ public class MessageFlowStep extends BaseIntegrationDomain {
         this.direction = direction;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "message_flow_group_id")
     public MessageFlowGroup getMessageFlowGroup() {
         return messageFlowGroup;
