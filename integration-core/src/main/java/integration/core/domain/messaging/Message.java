@@ -1,11 +1,13 @@
 package integration.core.domain.messaging;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import integration.core.domain.BaseIntegrationDomain;
-import integration.core.util.Utils;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
@@ -18,8 +20,9 @@ import jakarta.persistence.Table;
 @Table(name = "message")
 public class Message extends BaseIntegrationDomain {
     private String content;
-    private String headers;
     private String contentType;
+    
+    private List<MessageMetaData>metaData = new ArrayList<>();
     
     private Message() {
         
@@ -39,15 +42,7 @@ public class Message extends BaseIntegrationDomain {
         this.content = content;
     }
 
-    @Column(name = "headers")
-    public String getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(String headers) {
-        this.headers = headers;
-    }
-
+    
     @Override
     public String toString() {
         return content;
@@ -57,58 +52,19 @@ public class Message extends BaseIntegrationDomain {
     public String getContentType() {
         return contentType;
     }
-
+    
+    
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
 
-    /**
-     * Adds a header to this message.
-     * 
-     * @param key
-     * @param value
-     */
-    public void addHeader(String key, String value) {
-        Map<String, Object> headers = Utils.convertFromJSON(this.headers);
-        headers.put(key, value);
-
-        setHeaders(Utils.convertToJSON(headers));
+    
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
+    public List<MessageMetaData> getMetaData() {
+        return metaData;
     }
-
-    /**
-     * Removes a header from this message.
-     * 
-     * @param key
-     */
-    public void removeHeader(String key) {
-        Map<String, Object> headers = Utils.convertFromJSON(this.headers);
-
-        if (headers.containsKey(key)) {
-            headers.remove(key);
-            setHeaders(Utils.convertToJSON(headers));
-        }
-    }
-
-    /**
-     * Gets a header from this message if it exists. Null if it doesn't exist.
-     * 
-     * @param key
-     */
-    public String getHeader(String key) {
-        Map<String, Object> headers = Utils.convertFromJSON(this.headers);
-
-        return (String) headers.get(key);
-    }
-
-    /**
-     * Checks to see if a header exists on this message.
-     * 
-     * @param key
-     * @return
-     */
-    public boolean doesHeaderExist(String key) {
-        Map<String, Object> headers = Utils.convertFromJSON(this.headers);
-
-        return headers.containsKey(key);
+    
+    public void setMetaData(List<MessageMetaData> metaData) {
+        this.metaData = metaData;
     }
 }
