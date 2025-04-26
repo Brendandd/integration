@@ -159,3 +159,15 @@ CREATE TABLE `shedlock` (
   `locked_by` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `message_flow_group_metadata` (
+  `id` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `key` varchar(100) DEFAULT NULL,
+  `value` varchar(100) DEFAULT NULL,
+  `message_flow_group_id` int DEFAULT NULL,
+  `created_date` datetime DEFAULT NULL,
+  `created_by_user_id` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

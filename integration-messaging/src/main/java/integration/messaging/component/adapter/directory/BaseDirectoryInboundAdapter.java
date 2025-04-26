@@ -1,5 +1,8 @@
 package integration.messaging.component.adapter.directory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
@@ -19,7 +22,8 @@ import jakarta.persistence.EntityManagerFactory;
  *
  */
 public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
-
+    private static final String CAMEL_FILE_NAME = "CamelFileName";
+    
     public BaseDirectoryInboundAdapter(String componentName) {
         super(componentName);
     }
@@ -59,7 +63,13 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
                     public void process(Exchange exchange) throws Exception {
                         // Store the message received by this inbound adapter.
                         String messageContent = exchange.getMessage().getBody(String.class);
-                        long messageFlowStepId = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseDirectoryInboundAdapter.this, getContentType());
+                        
+                        // Store the incoming file name header.
+                        Map<String,String>metaData = new HashMap<>();
+                        String incomingFilename = (String)exchange.getMessage().getHeader("CAMEL_FILE_NAME");
+                        metaData.put(CAMEL_FILE_NAME, incomingFilename);
+                        
+                        long messageFlowStepId = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData);
                         
                         messagingFlowService.recordMessageFlowEvent(messageFlowStepId, MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }

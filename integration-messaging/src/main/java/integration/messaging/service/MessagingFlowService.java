@@ -1,6 +1,7 @@
 package integration.messaging.service;
 
 import java.util.List;
+import java.util.Map;
 
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowEventDto;
@@ -61,6 +62,18 @@ public interface MessagingFlowService {
      * @return
      */
     long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType);
+    
+    
+    /**
+     * Records the message received by from an external source.  This only applied to inbound adapters.
+     * 
+     * @param messageContent
+     * @param inboundAdapter
+     * @param contentType
+     * @param headers
+     * @return
+     */
+    long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType, Map<String,String>metadata);
 
     
     /**

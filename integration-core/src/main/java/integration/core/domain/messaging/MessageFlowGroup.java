@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 @Table(name = "message_flow_group")
 public class MessageFlowGroup extends BaseIntegrationDomain {
     private List<MessageFlowStep> messageFlowSteps = new ArrayList<>();
+    private List<MessageFlowGroupMetaData>metaData = new ArrayList<>();
 
     @OneToMany(mappedBy = "messageFlowGroup", cascade = CascadeType.ALL)
     public List<MessageFlowStep> getMessageFlowSteps() {
@@ -38,5 +39,21 @@ public class MessageFlowGroup extends BaseIntegrationDomain {
         this.messageFlowSteps.add(messageFlowStep);
 
         messageFlowStep.setMessageFlowGroup(this);
+    }
+
+    @OneToMany(mappedBy = "messageFlowGroup", cascade = CascadeType.ALL)
+    public List<MessageFlowGroupMetaData> getMetaData() {
+        return metaData;
+    }
+    
+    public void setMetaData(List<MessageFlowGroupMetaData> metaData) {
+        this.metaData = metaData;
+    }
+    
+    public void addMetaData(String key, String value) {
+        MessageFlowGroupMetaData metaData = new MessageFlowGroupMetaData(key, value);
+        metaData.setMessageFlowGroup(this);
+        
+        this.metaData.add(metaData);
     }
 }

@@ -2,6 +2,7 @@ package integration.messaging.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -77,7 +78,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * @param from
      * @return
      */
-    private MessageFlowStep createMessageFlowStep(Message message, BaseMessagingComponent component, Long parentMessageFlowStepId, DirectionEnum direction) {
+    private MessageFlowStep createMessageFlowStep(Message message, BaseMessagingComponent component, Long parentMessageFlowStepId, DirectionEnum direction, Map<String,String>metaData) {
         if (component == null) {
             throw new RuntimeException("Component must not be null");
         }
@@ -116,8 +117,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         if (parentMessageFlowStep != null) {
             messageFlowStep.setFromMessageFlowStep(parentMessageFlowStep);
         }
-        
-        
+
         MessageFlowGroup group = null;
         
         // If the parent is null this is the original message so a new group needs creating.
@@ -128,7 +128,16 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         }
         
         group.addMessageFlowStep(messageFlowStep);
-
+        
+        // Add or replace metadata stored against the group.
+        if (metaData != null) {
+            for (Map.Entry<String, String> entry : metaData.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                group.addMetaData(key, value);
+            }
+        }
+        
         return messageFlowStepRepository.save(messageFlowStep);
     }
 
@@ -207,7 +216,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     public long recordConsumedMessage(MessageConsumer messageConsumer, long messageFlowStepId, String contentType) {
         Message message = retrieveMessage(messageFlowStepId);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, (BaseMessagingComponent) messageConsumer, messageFlowStepId, DirectionEnum.INBOUND);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, (BaseMessagingComponent) messageConsumer, messageFlowStepId, DirectionEnum.INBOUND, null);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
         return messageFlowStep.getId();
@@ -218,7 +227,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     public long recordInboundMessageProducedByOtherRoute(BaseInboundRouteConnector inboundRouteConnector, long messageFlowStepId,String contentType) {
         Message message = retrieveMessage(messageFlowStepId);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundRouteConnector, messageFlowStepId, DirectionEnum.INBOUND);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundRouteConnector, messageFlowStepId, DirectionEnum.INBOUND, null);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
         return messageFlowStep.getId();
@@ -229,7 +238,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     public long recordOutboundMessageToBeConsumedByOtherRoute(BaseOutboundRouteConnector outboundRouteConnector, long messageFlowStepId,String contentType) {
         Message message = retrieveMessage(messageFlowStepId);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, outboundRouteConnector, messageFlowStepId, DirectionEnum.OUTBOUND);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, outboundRouteConnector, messageFlowStepId, DirectionEnum.OUTBOUND, null);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
         return messageFlowStep.getId();
@@ -249,7 +258,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             outboundMessage = new Message(messageContent, contentType);
         }
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(outboundMessage, messagingComponent, messageFlowStepId, DirectionEnum.OUTBOUND);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(outboundMessage, messagingComponent, messageFlowStepId, DirectionEnum.OUTBOUND, null);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
         return messageFlowStep.getId();
@@ -273,7 +282,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         
         // Create message object and associate it to a message flow.
         Message message = new Message(ackContent, contentType);
-        createMessageFlowStep(message, inboundAdapter, fromMessageFlowStepId, DirectionEnum.OUTBOUND);
+        createMessageFlowStep(message, inboundAdapter, fromMessageFlowStepId, DirectionEnum.OUTBOUND, null);
     }
 
     
@@ -281,9 +290,20 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     public long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType) {
         Message message = new Message(messageContent, contentType);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, DirectionEnum.INBOUND);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, DirectionEnum.INBOUND, null);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
         return messageFlowStep.getId();
+    }
+    
+    
+    @Override
+    public long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType, Map<String,String>metadata) {
+        Message message = new Message(messageContent, contentType);
+        
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, DirectionEnum.INBOUND, metadata);
+        messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
+
+        return messageFlowStep.getId();        
     }
 }
