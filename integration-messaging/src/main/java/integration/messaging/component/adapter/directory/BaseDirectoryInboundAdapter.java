@@ -69,7 +69,7 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
                         
                         // Store the incoming file name header.
                         Map<String,String>metaData = new HashMap<>();
-                        String incomingFilename = (String)exchange.getMessage().getHeader("CAMEL_FILE_NAME");
+                        String incomingFilename = (String)exchange.getMessage().getHeader(CAMEL_FILE_NAME);
                         metaData.put(CAMEL_FILE_NAME, incomingFilename);
                         
                         long messageFlowStepId = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData);

@@ -7,7 +7,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
 import integration.messaging.component.handler.filter.AcceptAllMessages;
@@ -100,28 +99,5 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                         messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
-
-        
-        // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
-            .routeGroup(identifier.getComponentPath())
-            .transacted()
-                .process(new Processor() {
-    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        // Delete the event.
-                        Long eventId = exchange.getMessage().getBody(Long.class);
-                        messagingFlowService.deleteEvent(eventId);
-                        
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        String messageContent = messagingFlowService.retrieveMessageContent(messageFlowId);
-                        
-                        exchange.getMessage().setBody(messageContent);   
-                    }
-                })
-                .to(getToUriString());
     }
 }

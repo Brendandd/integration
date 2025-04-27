@@ -3,9 +3,12 @@ package integration.messaging.hl7.component.adapter.mllp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
 import integration.messaging.component.adapter.BaseOutboundAdapter;
@@ -71,5 +74,27 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     @Override
     public void configure() throws Exception {
         super.configure();
+        
+        // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
+        from("direct:handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
+            .routeId("handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
+            .routeGroup(identifier.getComponentPath())
+            .transacted()
+                .process(new Processor() {
+    
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+                        // Delete the event.
+                        Long eventId = exchange.getMessage().getBody(Long.class);
+                        messagingFlowService.deleteEvent(eventId);
+                        
+                        // Set the message flow step id as the exchange message body so it can be added to the queue.
+                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                        String messageContent = messagingFlowService.retrieveMessageContent(messageFlowId);
+                        
+                        exchange.getMessage().setBody(messageContent);   
+                    }
+                })
+                .to(getToUriString());
     }
 }

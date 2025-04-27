@@ -19,6 +19,7 @@ import integration.core.domain.messaging.MessageFlowEvent;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowGroup;
 import integration.core.domain.messaging.MessageFlowStep;
+import integration.core.domain.messaging.MessageMetaData;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.dto.MessageFlowStepDto;
 import integration.core.dto.mapper.MessageFlowEventMapper;
@@ -103,6 +104,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         // If the message was not supplied then create it from the parent message flow id if that was supplied.
         if (message == null && parentMessageFlowStepId != null) {           
             message = parentMessageFlowStep.getMessage();
+            message.setMetaData(parentMessageFlowStep.getMessage().getMetaData());  // Copy the metadata to the new message.
         }
 
         
@@ -129,12 +131,12 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         
         group.addMessageFlowStep(messageFlowStep);
         
-        // Add or replace metadata stored against the group.
+        // Add or replace metadata stored against the message.
         if (metaData != null) {
             for (Map.Entry<String, String> entry : metaData.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                group.addMetaData(key, value);
+                message.addMetaData(key, value);
             }
         }
         
@@ -272,6 +274,38 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     }
 
     
+    /**
+     * Returns the specified message meta data value.
+     * 
+     * @param key
+     * @param messageFlowStepId
+     * @return
+     */
+    @Override
+    public String retrieveMessageMetaData(String key, Long messageFlowStepId) {
+        Optional<MessageFlowStep> messageFlowStepOptional = messageFlowStepRepository.findById(messageFlowStepId);
+        
+        if (messageFlowStepOptional.isEmpty()) {
+            throw new RuntimeException("Message flow step id is not found");
+        }
+        
+        MessageFlowStep messageFlowStep = messageFlowStepOptional.get();
+        
+        List<MessageMetaData>metaData = messageFlowStep.getMessage().getMetaData();
+        
+        logger.info("*****BRENDAN *****.  supplied key: " + key);
+        
+        for (MessageMetaData metaDataItem : metaData) {
+            if (metaDataItem.getKey().equals(key)) {
+                logger.info("*****BRENDAN *****.  key in list: " + metaDataItem.getKey());
+                
+                return metaDataItem.getValue();
+            }
+        }
+        
+        return null;
+    }
+
     @Override
     public void recordAck(String ackContent, BaseInboundAdapter inboundAdapter, Long fromMessageFlowStepId, String contentType) {
         Optional<MessageFlowStep> fromMessageFlowStep = messageFlowStepRepository.findById(fromMessageFlowStepId);

@@ -141,4 +141,14 @@ public interface MessagingFlowService {
      * @param eventId
      */
     void deleteEvent(long eventId);
+    
+    
+    /**
+     * Returns meta data from the message associated with the current message flow step.
+     * 
+     * @param key
+     * @param messageFlowStepId
+     * @return
+     */
+    String retrieveMessageMetaData(String key, Long messageFlowStepId);
 }

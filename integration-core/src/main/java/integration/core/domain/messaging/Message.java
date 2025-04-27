@@ -52,7 +52,7 @@ public class Message extends BaseIntegrationDomain {
     public String getContentType() {
         return contentType;
     }
-    
+
     
     public void setContentType(String contentType) {
         this.contentType = contentType;
@@ -63,8 +63,17 @@ public class Message extends BaseIntegrationDomain {
     public List<MessageMetaData> getMetaData() {
         return metaData;
     }
+
     
     public void setMetaData(List<MessageMetaData> metaData) {
         this.metaData = metaData;
+    }
+
+    
+    public void addMetaData(String key, String value) {
+        MessageMetaData metaData = new MessageMetaData(key, value);
+        metaData.setMessage(this);
+        
+        this.metaData.add(metaData);
     }
 }
