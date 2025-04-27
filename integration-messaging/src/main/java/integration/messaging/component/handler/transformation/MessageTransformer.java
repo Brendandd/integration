@@ -1,5 +1,10 @@
 package integration.messaging.component.handler.transformation;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import integration.core.dto.MessageFlowStepDto;
+import integration.messaging.service.MetaDataService;
+
 /**
  * Interface for all transformers.
  * 
@@ -7,14 +12,18 @@ package integration.messaging.component.handler.transformation;
  *
  */
 public abstract class MessageTransformer {
+    
+    @Autowired
+    protected MetaDataService metaDataService;
+    
 
-    public String transform(String messageBody) throws TransformationException {
+    public String transform(MessageFlowStepDto messageFlowStep) throws TransformationException {
         try {
-            return transformMessage(messageBody);
+            return transformMessage(messageFlowStep);
         } catch (Exception e) {
             throw new TransformationException("Error transforming the message", e);
         }
     }
 
-    public abstract String transformMessage(String messageBody) throws TransformationException, Exception;
+    public abstract String transformMessage(MessageFlowStepDto messageFlowStep) throws TransformationException, Exception;
 }

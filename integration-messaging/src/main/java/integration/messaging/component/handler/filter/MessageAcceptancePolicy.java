@@ -1,5 +1,9 @@
 package integration.messaging.component.handler.filter;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import integration.messaging.service.MetaDataService;
+
 /**
  * A message filter.
  * 
@@ -7,10 +11,7 @@ package integration.messaging.component.handler.filter;
  *
  */
 public abstract class MessageAcceptancePolicy extends MessageFlowPolicy {
-    public static final String ACCEPT_MESSAGE = "ACCEPT_MESSAGE";
-
-    @Override
-    public String getHeader() {
-        return ACCEPT_MESSAGE;
-    }
+    
+    @Autowired
+    protected MetaDataService metaDataService;
 }

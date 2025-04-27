@@ -1,5 +1,7 @@
 package integration.messaging.component.handler.splitter;
 
+import integration.core.dto.MessageFlowStepDto;
+
 /**
  * Interface for all splitters. A splitter will duplicate a mesage. Each message
  * will be returned as part of the array.
@@ -9,10 +11,9 @@ package integration.messaging.component.handler.splitter;
  */
 public abstract class MessageSplitter {
 
-    public String[] split(String messageBody) throws SplitterException {
+    public String[] split(MessageFlowStepDto messageFlowStep) throws SplitterException {
         try {
-            String[] splitMessages = splitMessage(messageBody);
-     //       exchange.getMessage().setHeader("splitCount", splitMessages.length);
+            String[] splitMessages = splitMessage(messageFlowStep);
 
             return splitMessages;
         } catch (Exception e) {
@@ -20,5 +21,5 @@ public abstract class MessageSplitter {
         }
     }
 
-    public abstract String[] splitMessage(String messageBody) throws SplitterException;
+    public abstract String[] splitMessage(MessageFlowStepDto messageFlowStep) throws SplitterException;
 }

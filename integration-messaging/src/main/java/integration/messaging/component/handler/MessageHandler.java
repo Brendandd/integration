@@ -5,15 +5,14 @@ import java.util.List;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
-import integration.messaging.component.handler.filter.AcceptAllMessages;
-import integration.messaging.component.handler.filter.ForwardAllMessages;
-import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
-import integration.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.messaging.service.MetaDataService;
 
 /**
  * Base class for all message handlders. A message handler is a component which is not an inbound or outbound adapter.
@@ -28,7 +27,10 @@ import integration.messaging.component.handler.filter.MessageForwardingPolicy;
 public abstract class MessageHandler extends BaseMessagingComponent implements MessageConsumer, MessageProducer {
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
     protected List<MessageProducer> messageProducers = new ArrayList<>();
-
+    
+    @Autowired
+    protected MetaDataService metaDataService;
+    
     public MessageHandler(String componentName) {
         super(componentName);
     }
@@ -52,24 +54,6 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
     }
 
     
-    /**
-     * The default message acceptance policy for message processors.  Subclasses can provide their own policy.
-     */
-    @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
-        return new AcceptAllMessages();
-    }
-
-    
-    /**
-     * The default messageForwarding policy for message processors.  Subclasses can provide their own policy.  
-     */
-    @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() {
-        return new ForwardAllMessages();
-    }
-
-
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -89,9 +73,9 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                         public void process(Exchange exchange) throws Exception {
                             // Replace the message flow id with the actual message from the database.
                             Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                            String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
-                            
-                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageContent);
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+ 
+                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
                             if (acceptMessage) {
                                 // Record the content received by this component.
                                 long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(MessageHandler.this, parentMessageFlowStepId, getContentType());

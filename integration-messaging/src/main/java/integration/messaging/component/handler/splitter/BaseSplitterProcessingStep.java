@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.handler.MessageHandler;
 
@@ -46,17 +47,18 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
-                        String[] splitMessages = getSplitter().split(messageContent);
+                        String[] splitMessages = getSplitter().split(messageFlowStepDto);
                                   
                         for (int i = 0; i < splitMessages.length; i++) {
                                                
-                            boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageContent);
+                            boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                                                               
                             // Apply the message forwarding rules and either write an event for further processing or filter the message.
                             if (forwardMessage) {
-                                long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageContent, BaseSplitterProcessingStep.this,parentMessageFlowStepId, getContentType());
+                                long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseSplitterProcessingStep.this,parentMessageFlowStepId, getContentType());
+                                
                                 messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
                                 // filter message.

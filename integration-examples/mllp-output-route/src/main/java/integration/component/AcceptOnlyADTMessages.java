@@ -28,14 +28,4 @@ public class AcceptOnlyADTMessages extends MessageTypeFilter {
     public String[] getAllowedMessageTypes() {
         return new String[] { "ADT^A04" };
     }
-
-    @Override
-    public String getFilterReason() {
-        return "Only ADT messages are accepted. The message type is: " + messageType;
-    }
-
-    @Override
-    public String getName() {
-        return "Accept ADT Message Only Filter";
-    }
 }

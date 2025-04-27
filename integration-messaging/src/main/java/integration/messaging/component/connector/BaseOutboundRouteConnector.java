@@ -9,10 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
-import integration.messaging.component.handler.filter.AcceptAllMessages;
-import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
 
 /**
  * Outbound route connector. Sends messages to other routes.
@@ -46,14 +45,6 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
     }
 
     
-    /**
-     * The default message acceptance policy for outbound route connectors.  Subclasses can provide their own policy.
-     */
-    @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
-        return new AcceptAllMessages();
-    }
-
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -74,10 +65,10 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                         public void process(Exchange exchange) throws Exception {
                             // Retrieve the inbound message.
                             long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                            String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                             
                             // Determine if the message should be accepted by this route connector.
-                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageContent);
+                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
                             
                             if (acceptMessage) {
                                 // Record the content received by this component.
@@ -107,9 +98,9 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                     public void process(Exchange exchange) throws Exception {               
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                
-                        long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageContent, BaseOutboundRouteConnector.this, parentMessageFlowStepId, getContentType());
+                        long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseOutboundRouteConnector.this, parentMessageFlowStepId, getContentType());
                         
                         messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }

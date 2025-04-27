@@ -2,6 +2,8 @@ package integration.messaging.component.handler.filter;
 
 import org.springframework.stereotype.Component;
 
+import integration.core.dto.MessageFlowStepDto;
+
 /**
  * A message filter which accepts all messages (does not filter). This is the default behaviour.
  * 
@@ -12,17 +14,7 @@ import org.springframework.stereotype.Component;
 public class AcceptAllMessages extends MessageAcceptancePolicy {
 
     @Override
-    public boolean applyPolicy(String messageContent) throws FilterException {
+    public boolean applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
         return true;
-    }
-
-    @Override
-    public String getFilterReason() {
-        return "";
-    }
-
-    @Override
-    public String getName() {
-        return "Accept All Messages";
     }
 }

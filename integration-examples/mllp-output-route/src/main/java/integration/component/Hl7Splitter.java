@@ -20,6 +20,8 @@ import integration.messaging.component.handler.splitter.MessageSplitter;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Hl7Splitter extends BaseSplitterProcessingStep {
+    private static final String CONTENT_TYPE = "HL7";
+    private static final String COMPONENT_NAME = "hl7-splitter";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -33,13 +35,9 @@ public class Hl7Splitter extends BaseSplitterProcessingStep {
     @Qualifier("splitOnOXBSegments")
     private MessageSplitter messageSplitter;
 
-    private static final String COMPONENT_NAME = "hl7-splitter";
-
     public Hl7Splitter() {
         super(COMPONENT_NAME);
     }
-
-    private static final String CONTENT_TYPE = "HL7";
 
     @Override
     public MessageSplitter getSplitter() {

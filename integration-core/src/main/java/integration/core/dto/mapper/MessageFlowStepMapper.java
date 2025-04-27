@@ -14,9 +14,10 @@ public class MessageFlowStepMapper extends BaseMapper<MessageFlowStepDto, Messag
     public MessageFlowStepDto doMapping(MessageFlowStep source) {
         MessageFlowStepDto destination = new MessageFlowStepDto();
 
+        MessageMapper messageMapper = new MessageMapper();
+        
         destination.setId(source.getId());
-        destination.setMessageContent(source.getMessage().getContent());
-        destination.setMessageFlowId(source.getMessageFlowGroup().getId());
+        destination.setMessage(messageMapper.doMapping(source.getMessage()));
 
         return destination;
     }

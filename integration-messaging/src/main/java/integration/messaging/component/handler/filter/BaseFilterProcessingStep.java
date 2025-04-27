@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.handler.MessageHandler;
 
@@ -42,13 +43,13 @@ public abstract class BaseFilterProcessingStep extends MessageHandler {
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
-                                                                                          
-                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageContent);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                                               
+                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                                                       
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (forwardMessage) {
-                            long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageContent, BaseFilterProcessingStep.this,parentMessageFlowStepId, getContentType());
+                            long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseFilterProcessingStep.this,parentMessageFlowStepId, getContentType());
                             messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {
                             // filter message.

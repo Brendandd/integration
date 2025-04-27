@@ -148,9 +148,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * Retrieves a message flowDto by id.
      */
     @Override
-    public MessageFlowStepDto retrieveMessageFlow(long messageFlowId) {
-        logger.info("Brendan.  Id in retrieveMessageFlow: " + messageFlowId);
-        
+    public MessageFlowStepDto retrieveMessageFlow(long messageFlowId) {       
         Optional<MessageFlowStep> messageFlow = messageFlowStepRepository.findById(messageFlowId);
 
         // The message flow must exist.
@@ -162,7 +160,8 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
         return mapper.doMapping(messageFlow.get());
     }
-
+    
+    
     private MessageFlowStep findMessageFlowById(long messageFlowId) {
         Optional<MessageFlowStep> messageFlow = messageFlowStepRepository.findById(messageFlowId);
 
@@ -264,13 +263,6 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
         return messageFlowStep.getId();
-    }
-
-    
-    @Override
-    public String retrieveMessageContent(long messageFlowId) {
-        Optional<MessageFlowStep> messageFlowStep = messageFlowStepRepository.findById(messageFlowId);
-        return messageFlowStep.get().getMessage().getContent();
     }
 
     

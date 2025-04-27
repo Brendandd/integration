@@ -35,7 +35,7 @@ public class MLLPInboundRoute extends BaseRoute {
         addComponentToRoute(mllpInboundAdapter);
         addComponentToRoute(toMllpOutboundRouteConnector);
 
-        // Configure how the components are joined together.
+        // Add a direct flow which is am inbound component directly to an outbound component.
         addDirectFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
 
         start();

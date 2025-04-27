@@ -7,10 +7,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
-import integration.messaging.component.handler.filter.AcceptAllMessages;
-import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
 
 /**
  * Base class for all outbound adapters.
@@ -35,14 +34,6 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     }
     
     public abstract String getToUriString();
-    
-    /**
-     * The default message acceptance policy for message processors.  Subclasses can provide their own policy.
-     */
-    @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
-        return new AcceptAllMessages();
-    }
 
     
     @Override
@@ -64,9 +55,9 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                         public void process(Exchange exchange) throws Exception {
                             // Record the outbound message.
                             Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                            String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                        
-                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageContent);
+                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
                             if (acceptMessage) {
                                 // Record the content received by this component.
                                 long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
@@ -93,9 +84,9 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                     @Override
                     public void process(Exchange exchange) throws Exception {                       
                         Long parentMessageFlowStepId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
-                        String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);  
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
-                        long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageContent, BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
+                        long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
                         messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });

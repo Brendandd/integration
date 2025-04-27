@@ -8,6 +8,7 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
@@ -90,9 +91,9 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
                         
                         // Set the message flow step id as the exchange message body so it can be added to the queue.
                         Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        String messageContent = messagingFlowService.retrieveMessageContent(messageFlowId);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
                         
-                        exchange.getMessage().setBody(messageContent);   
+                        exchange.getMessage().setBody(messageFlowStepDto.getMessageContent());   
                     }
                 })
                 .to(getToUriString());

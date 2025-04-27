@@ -3,7 +3,7 @@ package integration.messaging.component.adapter.directory;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
-import integration.messaging.component.BaseMessagingComponent;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.adapter.BaseOutboundAdapter;
 
 /**
@@ -61,15 +61,14 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
                         messagingFlowService.deleteEvent(eventId);
                         
                         // Get the message content
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        String messageContent = messagingFlowService.retrieveMessageContent(messageFlowId);
+                        Long messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
                         
                         String fileName = generateFilename(exchange, messageFlowId);
-                        getLogger().info("********BRENDAN *****: " + fileName);
-                        
+                       
                         exchange.getMessage().setHeader(CAMEL_FILE_NAME, fileName);
 
-                        exchange.getMessage().setBody(messageContent);   
+                        exchange.getMessage().setBody(messageFlowStepDto.getMessageContent());   
                     }
                 })
                 .to(getToUriString());

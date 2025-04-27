@@ -1,6 +1,8 @@
 package integration.messaging.hl7.component.handler.filter;
 
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.handler.filter.FilterException;
+import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
@@ -9,15 +11,17 @@ import integration.messaging.hl7.datamodel.HL7Message;
  * 
  * @author Brendan Douglas
  */
-public abstract class MessageTypeFilter extends BaseHL7MessageAcceptancePolicy {
+public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
     public abstract String[] getAllowedMessageTypes();
 
     protected String messageType = null;
 
     @Override
-    public boolean applyPolicy(HL7Message source) throws FilterException {
+    public boolean applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
 
         try {
+            HL7Message source = new HL7Message(messageFlowStep.getMessage().getContent());
+            
             String incomingMessageType = source.getMessageTypeField().value();
             messageType = incomingMessageType;
 

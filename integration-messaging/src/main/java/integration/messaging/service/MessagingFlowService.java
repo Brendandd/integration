@@ -116,15 +116,6 @@ public interface MessagingFlowService {
 
     
     /**
-     * Retrieves the message associated with a message flow id.
-     * 
-     * @param messageFlowId
-     * @return
-     */
-    String retrieveMessageContent(long messageFlowId);
-
-    
-    /**
      * Gets a list of matching events.
      * 
      * @param identifier

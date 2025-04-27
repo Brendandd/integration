@@ -62,13 +62,11 @@ public class MLLPOutboundRoute extends BaseRoute {
 
         // Configure how the components are joined together.
         addInboundFlow(fromMllpInboundRouteConnector, transformation, filter);
-        
-        addDirectFlow(fromDirectoryInboundRouteConnector, mllpOutboundAdapter);
-        
         addInternalFlow(transformation, splitter);
         addInternalFlow(filter, splitter);
-        
         addOutboundFlow(splitter, mllpOutboundAdapter);
+        
+        addDirectFlow(fromDirectoryInboundRouteConnector, mllpOutboundAdapter);
 
         // Start the route
         start();

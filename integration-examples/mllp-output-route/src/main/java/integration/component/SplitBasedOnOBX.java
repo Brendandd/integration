@@ -2,25 +2,28 @@ package integration.component;
 
 import org.springframework.stereotype.Component;
 
+import integration.core.dto.MessageFlowStepDto;
+import integration.messaging.component.handler.splitter.MessageSplitter;
 import integration.messaging.component.handler.splitter.SplitterException;
-import integration.messaging.hl7.component.handler.splitter.BaseHL7MessageSplitter;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
  * OBX segment splitter logic.
  */
 @Component("splitOnOXBSegments")
-public class SplitBasedOnOBX extends BaseHL7MessageSplitter {
+public class SplitBasedOnOBX extends MessageSplitter {
 
     @Override
-    public HL7Message[] split(HL7Message hl7Message) throws SplitterException {
+    public String[] splitMessage(MessageFlowStepDto messageFlowStep) throws SplitterException {
         try {
+            HL7Message hl7Message = new HL7Message(messageFlowStep.getMessage().getContent());
+            
             int obxCount = hl7Message.getSegmentCount("OBX");
 
-            HL7Message[] messageFlowArray = new HL7Message[obxCount];
+            String[] messageFlowArray = new String[obxCount];
 
             for (int i = 0; i < obxCount; i++) {
-                messageFlowArray[i] = hl7Message;
+                messageFlowArray[i] = hl7Message.toString();
             }
 
             return messageFlowArray;

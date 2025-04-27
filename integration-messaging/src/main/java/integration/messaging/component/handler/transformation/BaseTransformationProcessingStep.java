@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.handler.MessageHandler;
 
@@ -50,12 +51,14 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        String messageContent = messagingFlowService.retrieveMessageContent(parentMessageFlowStepId);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
-                        String transformedContent = getTransformer().transform(messageContent);
+                        String transformedContent = getTransformer().transform(messageFlowStepDto);
                         
-                                                                  
-                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(transformedContent);
+                        // Need to update the message content before applying the policy.
+                        messageFlowStepDto.getMessage().setContent(transformedContent);
+                                                     
+                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                                                        
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (forwardMessage) {

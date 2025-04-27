@@ -14,6 +14,8 @@ import integration.messaging.component.handler.transformation.MessageTransformer
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Hl7Transformation extends BaseTransformationProcessingStep {
+    private static final String CONTENT_TYPE = "HL7";
+    private static final String COMPONENT_NAME = "hl7-transformation";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -27,14 +29,10 @@ public class Hl7Transformation extends BaseTransformationProcessingStep {
     @Qualifier("changeVersionTo2.5")
     private MessageTransformer messageTransformer;
 
-    private static final String COMPONENT_NAME = "hl7-transformation";
-
     public Hl7Transformation() {
         super(COMPONENT_NAME);
     }
-
-    private static final String CONTENT_TYPE = "HL7";
-
+    
     @Override
     public MessageTransformer getTransformer() {
         return messageTransformer;

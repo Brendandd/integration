@@ -19,6 +19,8 @@ import integration.messaging.component.handler.filter.MessageForwardingPolicy;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
+    private static final String CONTENT_TYPE = "HL7";
+    private static final String COMPONENT_NAME = "hl7-filter";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -28,13 +30,9 @@ public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
     @Qualifier("acceptADT^A04")
     private MessageAcceptancePolicy messageAcceptancePolicy;
 
-    private static final String COMPONENT_NAME = "hl7-filter";
-
     public Hl7MessageTypeFilter() {
         super(COMPONENT_NAME);
     }
-
-    private static final String CONTENT_TYPE = "HL7";
 
     @Override
     public String getContentType() {
