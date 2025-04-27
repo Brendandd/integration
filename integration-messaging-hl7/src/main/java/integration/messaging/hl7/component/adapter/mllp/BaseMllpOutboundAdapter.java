@@ -16,14 +16,12 @@ import integration.messaging.component.adapter.BaseOutboundAdapter;
 public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpOutboundAdapter.class);
     
-    
+    private static final String CONTENT_TYPE = "HL7";
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
 
     public BaseMllpOutboundAdapter(String componentName) {
         super(componentName);
     }
-
-    private static final String CONTENT_TYPE = "HL7";
 
     @Override
     public void addMessageProducer(MessageProducer messageProducer) {
@@ -38,11 +36,15 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
         return LOGGER;
     }
 
+    
     @Override
-    public String getOptions() {
-        return "?sync=true&encoders=#hl7encoder&decoders=#hl7decoder";
+    protected void setDefaultURIOptions() {
+        addURIOption("sync", "true");
+        addURIOption("encoders", "#hl7encoder");
+        addURIOption("decoders", "#hl7decoder");  
     }
 
+    
     public String getTargetHost() {
         return componentProperties.get("TARGET_HOST");
     }
@@ -51,12 +53,12 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     public String getTargetPort() {
         return componentProperties.get("TARGET_PORT");
     }
-    
+
     
     @Override
     public String getToUriString() {
         String target = getTargetHost() + ":" + getTargetPort();
-        return "netty:tcp://" + target + getOptions();
+        return "netty:tcp://" + target + constructOptions();
     }
     
     
@@ -64,7 +66,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     public String getContentType() {
         return CONTENT_TYPE;
     }
-    
+
     
     @Override
     public void configure() throws Exception {

@@ -17,10 +17,10 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     public String getDestinationFolder() {
         return componentProperties.get("TARGET_FOLDER");
     }
-
+    
     @Override
     public String getToUriString() {
-        return "file:" + getDestinationFolder();
+        return "file:" + getDestinationFolder() + constructOptions();
     }
     
     @Override

@@ -2,7 +2,6 @@ package integration.messaging.component.adapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -120,15 +119,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                         Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
                         String messageContent = messagingFlowService.retrieveMessageContent(messageFlowId);
                         
-                        exchange.getMessage().setBody(messageContent);
-                        
-                        Map<String, Object> headers = exchange.getIn().getHeaders();
-                        System.out.println("---- Headers ----");
-                        for (Map.Entry<String, Object> entry : headers.entrySet()) {
-                            getLogger().info("********HEADER key: " + entry.getKey() + ", value: " + entry.getValue());
-                        }
-                        
-                        
+                        exchange.getMessage().setBody(messageContent);   
                     }
                 })
                 .to(getToUriString());

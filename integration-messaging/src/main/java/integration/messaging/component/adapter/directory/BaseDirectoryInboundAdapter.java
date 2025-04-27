@@ -34,17 +34,20 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
     public String getSourceFolder() {
         return componentProperties.get("SOURCE_FOLDER");
     }
-
+    
+    
     @Override
     public String getFromUriString() {
-        return "file:" + getSourceFolder() + "?idempotent=true&idempotentRepository=#jpaStore" + getOptions();
+        return "file:" + getSourceFolder() + constructOptions();
     }
 
+    
     @Bean
     protected JpaMessageIdRepository jpaStore() {
         return new JpaMessageIdRepository(emf, "FileRepo");
     }
 
+    
     @Override
     public void configure() throws Exception {
         super.configure();

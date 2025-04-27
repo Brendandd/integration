@@ -25,15 +25,16 @@ public class HL7DirectoryInboundAdapter extends BaseHL7InboundDirectoryAdapter {
     
     public HL7DirectoryInboundAdapter() {
         super("directory-inbound");
+        
+        // Add some URI options.
+        addURIOption("idempotent", "true");
+        addURIOption("idempotentRepository", "#jpaStore");
+        addURIOption("move", "processed");
+        addURIOption("noop", "false");
     }
     
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
-    }
-    
-    @Override
-    public String getOptions() {
-        return "&delete=true";
-    }
+    }    
 }

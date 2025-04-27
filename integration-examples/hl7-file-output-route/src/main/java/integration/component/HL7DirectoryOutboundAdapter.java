@@ -24,11 +24,11 @@ public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter
     @Autowired
     @Qualifier("acceptAllMessages")
     private MessageAcceptancePolicy messageAcceptancePolicy;
-
+       
     public HL7DirectoryOutboundAdapter() {
         super("directory-outbound");
     }
-
+    
     private static final String CONTENT_TYPE = "HL7";
 
     @Override

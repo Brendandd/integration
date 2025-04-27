@@ -43,14 +43,18 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     @Override
     public String getFromUriString() {
         String target = getHost() + ":" + getPort();
-        return "netty:tcp://" + target + getOptions();
+        return "netty:tcp://" + target +  constructOptions();
     }
 
+    
     @Override
-    public String getOptions() {
-        return "?sync=true&encoders=#hl7encoder&decoders=#hl7decoder";
+    protected void setDefaultURIOptions() {
+        addURIOption("sync", "true");
+        addURIOption("encoders", "#hl7encoder");
+        addURIOption("decoders", "#hl7decoder");  
     }
 
+    
     @Override
     public String getContentType() {
         return CONTENT_TYPE;
@@ -100,3 +104,4 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                 });
     }        
 }
+

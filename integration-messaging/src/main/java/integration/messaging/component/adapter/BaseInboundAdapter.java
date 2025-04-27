@@ -45,8 +45,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     @Override
     public void configure() throws Exception {
         super.configure();
-        
-    
+                
         // Entry point for an inbound adapters outbound message handling. 
         from("direct:outboundMessageHandling-" + identifier.getComponentPath())
             .routeId("outboundMessageHandling-" + identifier.getComponentPath())
