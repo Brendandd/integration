@@ -12,9 +12,17 @@ import integration.core.dto.MessageFlowStepDto;
  */
 @Component("acceptAllMessages")
 public class AcceptAllMessages extends MessageAcceptancePolicy {
+    private static final String NAME = "Accept All Messages";
 
     @Override
     public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
         return new MessageFlowPolicyResult(true);
     }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
+    
+    
 }

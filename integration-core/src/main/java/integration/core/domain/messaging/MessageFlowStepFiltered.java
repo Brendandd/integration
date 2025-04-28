@@ -4,7 +4,7 @@ import integration.core.domain.BaseIntegrationDomain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 /**
@@ -16,34 +16,35 @@ import jakarta.persistence.Table;
 @Table(name = "message_flow_step_filtered")
 public class MessageFlowStepFiltered extends BaseIntegrationDomain {
     private MessageFlowStep messageFlowStep;
-    private String description;
-    private String filterName;
+    private String reason;
+    private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "message_flow_step_id")
+    @OneToOne
+    @JoinColumn(name = "message_flow_step_id", nullable =  false)
     public MessageFlowStep getMessageFlowStep() {
         return messageFlowStep;
     }
 
     public void setMessageFlowStep(MessageFlowStep messageFlowStep) {
         this.messageFlowStep = messageFlowStep;
+        messageFlowStep.setFilteredStep(this);
     }
 
-    @Column(name = "description")
-    public String getDescription() {
-        return description;
+    @Column(name = "reason")
+    public String getReason() {
+        return reason;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
-    @Column(name = "filter_name")
-    public String getFilterName() {
-        return filterName;
+    @Column(name = "name")
+    public String getName() {
+        return name;
     }
 
-    public void setFilterName(String filterName) {
-        this.filterName = filterName;
+    public void setName(String name) {
+        this.name = name;
     }
 }

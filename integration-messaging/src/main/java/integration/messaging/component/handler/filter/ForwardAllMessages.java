@@ -12,9 +12,15 @@ import integration.core.dto.MessageFlowStepDto;
  */
 @Component("forwardAllMessages")
 public class ForwardAllMessages extends MessageForwardingPolicy {
+    private static final String NAME = "Forward All Messages";
 
     @Override
     public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
         return new MessageFlowPolicyResult(true);
+    }
+    
+    @Override
+    public String getName() {
+        return NAME;
     }
 }

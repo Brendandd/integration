@@ -13,6 +13,7 @@ import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.adapter.BaseInboundAdapter;
 import integration.messaging.component.connector.BaseInboundRouteConnector;
 import integration.messaging.component.connector.BaseOutboundRouteConnector;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Service to store messages/message flows.
@@ -33,12 +34,14 @@ public interface MessagingFlowService {
 
     
     /**
+     * Records the message as filtered.
+     * 
      * @param messageConsumer
      * @param messageFlowStepId
      * @param contentType
      * @return
      */
-    MessageFlowStepDto recordMessageFiltered(MessageConsumer messageConsumer, long messageFlowStepId, String contentType);
+    MessageFlowStepDto recordMessageFiltered(MessageConsumer messageConsumer, long messageFlowStepId, MessageFlowPolicyResult policyResult);
 
     
     /**

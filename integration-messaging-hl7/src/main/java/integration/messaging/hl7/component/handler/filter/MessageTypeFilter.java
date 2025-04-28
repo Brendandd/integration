@@ -16,6 +16,9 @@ public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
     public abstract String[] getAllowedMessageTypes();
 
     protected String messageType = null;
+    
+    protected abstract String getFilteredReason();
+    
 
     @Override
     public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
@@ -35,6 +38,6 @@ public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
             throw new FilterException("Error filtering the message", e);
         }
 
-        return new MessageFlowPolicyResult(false, "The message isn't one of the allowed types");
+        return new MessageFlowPolicyResult(false, getName(), getFilteredReason());
     }
 }

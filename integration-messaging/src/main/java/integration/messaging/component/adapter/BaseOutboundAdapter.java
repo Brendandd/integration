@@ -66,7 +66,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                                 // Record an event so the message can be forwarded to other components for processing.
                                 messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                messagingFlowService.recordMessageFiltered(BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
+                                messagingFlowService.recordMessageFiltered(BaseOutboundAdapter.this, parentMessageFlowStepId, result);
                             }
                         }
                     });

@@ -19,6 +19,7 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowGroup;
 import integration.core.domain.messaging.MessageFlowStep;
 import integration.core.domain.messaging.MessageFlowStepActionType;
+import integration.core.domain.messaging.MessageFlowStepFiltered;
 import integration.core.domain.messaging.MessageMetaData;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.dto.MessageFlowStepDto;
@@ -36,6 +37,7 @@ import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.adapter.BaseInboundAdapter;
 import integration.messaging.component.connector.BaseInboundRouteConnector;
 import integration.messaging.component.connector.BaseOutboundRouteConnector;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 import integration.messaging.service.MessagingFlowService;
 
 @Service
@@ -222,10 +224,18 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     
     
     @Override
-    public MessageFlowStepDto recordMessageFiltered(MessageConsumer messageConsumer, long messageFlowStepId, String contentType) {
+    public MessageFlowStepDto recordMessageFiltered(MessageConsumer messageConsumer, long messageFlowStepId, MessageFlowPolicyResult policyResult) {
         Message message = retrieveMessage(messageFlowStepId);
         
+       
         MessageFlowStep messageFlowStep = createMessageFlowStep(message, (BaseMessagingComponent) messageConsumer, messageFlowStepId, null, MessageFlowStepActionType.FILTERED);
+       
+        // Create the filter object.
+        MessageFlowStepFiltered filter = new MessageFlowStepFiltered();
+        filter.setName(policyResult.getFilterName());
+        filter.setReason(policyResult.getFilterReason());
+        filter.setMessageFlowStep(messageFlowStep);
+        
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
         
         MessageFlowStepMapper mapper = new MessageFlowStepMapper();

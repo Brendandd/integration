@@ -121,20 +121,11 @@ CREATE TABLE `message_flow_step` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=851 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `message_flow_step_error` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `message_flow_step_id` int DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 CREATE TABLE `message_flow_step_filtered` (
   `id` int NOT NULL AUTO_INCREMENT,
   `message_flow_step_id` int DEFAULT NULL,
-  `filter_name` varchar(45) DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `name` varchar(45) DEFAULT NULL,
+  `reason` varchar(100) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)

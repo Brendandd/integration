@@ -29,7 +29,6 @@ public class MessageFlowStep extends BaseIntegrationDomain {
     private MessageFlowGroup messageFlowGroup;
 
     private MessageFlowStepFiltered filteredStep;
-    private MessageFlowStepError errorStep;
 
     public MessageFlowStep() {
 
@@ -84,15 +83,7 @@ public class MessageFlowStep extends BaseIntegrationDomain {
     public void setFilteredStep(MessageFlowStepFiltered filteredStep) {
         this.filteredStep = filteredStep;
     }
-
-    @OneToOne(mappedBy = "messageFlowStep", optional = true, cascade = CascadeType.ALL)
-    public MessageFlowStepError getErrorStep() {
-        return errorStep;
-    }
-
-    public void setErrorStep(MessageFlowStepError errorStep) {
-        this.errorStep = errorStep;
-    }
+    
     
     @Column(name="action")
     @Enumerated(EnumType.STRING)

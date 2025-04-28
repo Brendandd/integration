@@ -2,15 +2,17 @@ package integration.messaging.component.handler.filter;
 
 public class MessageFlowPolicyResult {
     private boolean success;
-    private String failureReason;
+    private String filterReason;
+    private String filterName;
     
     public MessageFlowPolicyResult(boolean success) {
         this.success = success;
     }
     
-    public MessageFlowPolicyResult(boolean success, String failureReason) {
+    public MessageFlowPolicyResult(boolean success, String filterName, String filterReason) {
         this.success = success;
-        this.failureReason = failureReason;
+        this.filterReason = filterReason;
+        this.filterName = filterName;
     }
 
     public boolean isSuccess() {
@@ -18,7 +20,11 @@ public class MessageFlowPolicyResult {
     }
 
     
-    public String getFailureReason() {
-        return failureReason;
+    public String getFilterReason() {
+        return filterReason;
+    }
+
+    public String getFilterName() {
+        return filterName;
     }
 }

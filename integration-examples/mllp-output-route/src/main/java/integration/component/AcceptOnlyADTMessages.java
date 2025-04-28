@@ -15,6 +15,7 @@ import integration.messaging.hl7.component.handler.filter.MessageTypeFilter;
  */
 @Component("acceptADT^A04")
 public class AcceptOnlyADTMessages extends MessageTypeFilter {
+    private static final String NAME = "Accept ADT^A04 Only";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -27,5 +28,15 @@ public class AcceptOnlyADTMessages extends MessageTypeFilter {
     @Override
     public String[] getAllowedMessageTypes() {
         return new String[] { "ADT^A04" };
+    }
+    
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    protected String getFilteredReason() {
+        return "The message was not an ADT^A04";
     }
 }

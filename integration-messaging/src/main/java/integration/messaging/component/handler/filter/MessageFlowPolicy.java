@@ -11,4 +11,6 @@ public abstract class MessageFlowPolicy {
     protected MetaDataService metaDataService;
     
     public abstract MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException;
+    
+    public abstract String getName();
 }
