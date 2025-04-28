@@ -1,7 +1,7 @@
 FROM vromero/activemq-artemis
 
 # Optionally copy in configs
-# COPY ./broker-config/broker.xml /var/lib/artemis/etc/
+ COPY ./broker.xml /var/lib/artemis/etc/
 
 # Or run custom scripts
 # RUN echo "custom setup" >> /var/lib/artemis/README.txt
