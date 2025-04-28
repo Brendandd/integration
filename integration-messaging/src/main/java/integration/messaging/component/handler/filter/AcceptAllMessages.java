@@ -14,7 +14,7 @@ import integration.core.dto.MessageFlowStepDto;
 public class AcceptAllMessages extends MessageAcceptancePolicy {
 
     @Override
-    public boolean applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
-        return true;
+    public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
+        return new MessageFlowPolicyResult(true);
     }
 }

@@ -12,6 +12,7 @@ import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 import integration.messaging.service.MetaDataService;
 
 /**
@@ -75,8 +76,8 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                             Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                             MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
  
-                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
-                            if (acceptMessage) {
+                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
+                            if (result.isSuccess()) {
                                 // Record the content received by this component.
                                 long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(MessageHandler.this, parentMessageFlowStepId, getContentType());
                             

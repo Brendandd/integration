@@ -14,7 +14,7 @@ import integration.core.dto.MessageFlowStepDto;
 public class ForwardAllMessages extends MessageForwardingPolicy {
 
     @Override
-    public boolean applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
-        return true;
+    public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
+        return new MessageFlowPolicyResult(true);
     }
 }

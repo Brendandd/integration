@@ -10,6 +10,7 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Base class for all outbound adapters.
@@ -57,8 +58,8 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                             Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                             MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                        
-                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
-                            if (acceptMessage) {
+                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
+                            if (result.isSuccess()) {
                                 // Record the content received by this component.
                                 long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
                             

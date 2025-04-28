@@ -9,6 +9,7 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.handler.MessageHandler;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Base class for all transformation processing steps.
@@ -58,10 +59,10 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                         // Need to update the message content before applying the policy.
                         messageFlowStepDto.getMessage().setContent(transformedContent);
                                                      
-                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                                                        
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                        if (forwardMessage) {
+                        if (result.isSuccess()) {
                             long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(transformedContent, BaseTransformationProcessingStep.this,parentMessageFlowStepId, getContentType());
                             messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {

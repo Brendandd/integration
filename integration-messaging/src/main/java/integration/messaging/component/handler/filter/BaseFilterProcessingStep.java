@@ -45,10 +45,10 @@ public abstract class BaseFilterProcessingStep extends MessageHandler {
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                         MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                
-                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                                                       
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                        if (forwardMessage) {
+                        if (result.isSuccess()) {
                             long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseFilterProcessingStep.this,parentMessageFlowStepId, getContentType());
                             messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {

@@ -2,6 +2,7 @@ package integration.messaging.component.adapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -11,6 +12,7 @@ import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Base class for all inbound adapters.
@@ -62,10 +64,10 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                         MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                
-                        boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                   
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                        if (forwardMessage) {
+                        if (result.isSuccess()) {
                             long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseInboundAdapter.this, parentMessageFlowStepId, getContentType());
                             messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {

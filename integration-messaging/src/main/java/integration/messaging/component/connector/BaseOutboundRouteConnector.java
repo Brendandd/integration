@@ -12,6 +12,7 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.MessageConsumer;
 import integration.messaging.component.MessageProducer;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Outbound route connector. Sends messages to other routes.
@@ -68,9 +69,9 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                             MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                             
                             // Determine if the message should be accepted by this route connector.
-                            boolean acceptMessage = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
                             
-                            if (acceptMessage) {
+                            if (result.isSuccess()) {
                                 // Record the content received by this component.
                                 long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(BaseOutboundRouteConnector.this, parentMessageFlowStepId, getContentType());
                             

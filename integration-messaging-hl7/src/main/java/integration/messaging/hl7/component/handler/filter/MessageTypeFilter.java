@@ -3,6 +3,7 @@ package integration.messaging.hl7.component.handler.filter;
 import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.handler.filter.FilterException;
 import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
@@ -17,8 +18,8 @@ public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
     protected String messageType = null;
 
     @Override
-    public boolean applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
-
+    public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
+        
         try {
             HL7Message source = new HL7Message(messageFlowStep.getMessage().getContent());
             
@@ -27,13 +28,13 @@ public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
 
             for (String messageType : getAllowedMessageTypes()) {
                 if (incomingMessageType.equals(messageType)) {
-                    return true;
+                    return new MessageFlowPolicyResult(true);
                 }
             }
         } catch (Exception e) {
             throw new FilterException("Error filtering the message", e);
         }
 
-        return false;
+        return new MessageFlowPolicyResult(false, "The message isn't one of the allowed types");
     }
 }

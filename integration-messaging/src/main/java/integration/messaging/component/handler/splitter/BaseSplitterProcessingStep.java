@@ -9,6 +9,7 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.BaseMessagingComponent;
 import integration.messaging.component.handler.MessageHandler;
+import integration.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Base class for splitting a message into 1 or more messages. A splitter is
@@ -53,10 +54,10 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                                   
                         for (int i = 0; i < splitMessages.length; i++) {
                                                
-                            boolean forwardMessage = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
                                                                               
                             // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                            if (forwardMessage) {
+                            if (result.isSuccess()) {
                                 long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseSplitterProcessingStep.this,parentMessageFlowStepId, getContentType());
                                 
                                 messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
