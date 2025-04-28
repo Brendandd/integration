@@ -33,6 +33,15 @@ public interface MessagingFlowService {
 
     
     /**
+     * @param messageConsumer
+     * @param messageFlowStepId
+     * @param contentType
+     * @return
+     */
+    MessageFlowStepDto recordMessageFiltered(MessageConsumer messageConsumer, long messageFlowStepId, String contentType);
+
+    
+    /**
      * Records the message received by an inbound route connector which was produced in another route.
      * 
      * @param inboundRouteConnector

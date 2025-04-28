@@ -83,7 +83,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                                 // Record an event so the message can be forwarded to other components for processing.
                                 messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                // TODO filter the message
+                                messagingFlowService.recordMessageFiltered(MessageHandler.this, parentMessageFlowStepId, getContentType());
                             }
                         }
                     });

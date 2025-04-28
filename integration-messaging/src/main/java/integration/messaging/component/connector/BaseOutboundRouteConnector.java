@@ -78,7 +78,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                                 // Record an event so the message can be forwarded to other components for processing.
                                 messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);
                             } else {
-                                // TODO filter the message
+                                messagingFlowService.recordMessageFiltered(BaseOutboundRouteConnector.this, parentMessageFlowStepId, getContentType());
                             }
                         }
                     });

@@ -219,6 +219,18 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         MessageFlowStepMapper mapper = new MessageFlowStepMapper();
         return mapper.doMapping(messageFlowStep);
     }
+    
+    
+    @Override
+    public MessageFlowStepDto recordMessageFiltered(MessageConsumer messageConsumer, long messageFlowStepId, String contentType) {
+        Message message = retrieveMessage(messageFlowStepId);
+        
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, (BaseMessagingComponent) messageConsumer, messageFlowStepId, null, MessageFlowStepActionType.FILTERED);
+        messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
+        
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);
+    }
 
     
     @Override
