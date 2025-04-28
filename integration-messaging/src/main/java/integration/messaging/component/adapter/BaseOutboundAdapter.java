@@ -56,15 +56,15 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                         public void process(Exchange exchange) throws Exception {
                             // Record the outbound message.
                             Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                            MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                        
-                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowStepDto);
                             if (result.isSuccess()) {
                                 // Record the content received by this component.
-                                long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
+                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageAccepted(BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
                             
                                 // Record an event so the message can be forwarded to other components for processing.
-                                messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
                                 // TODO filter the message
                             }
@@ -85,10 +85,10 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                     @Override
                     public void process(Exchange exchange) throws Exception {                       
                         Long parentMessageFlowStepId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                        MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
-                        long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
-                        messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordOutboundMessageHandlerComplete(parentMessageFlowStepDto.getMessageContent(), BaseOutboundAdapter.this, parentMessageFlowStepId, getContentType());
+                        messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }

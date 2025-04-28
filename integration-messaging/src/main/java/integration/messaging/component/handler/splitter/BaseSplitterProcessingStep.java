@@ -29,7 +29,7 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
     }
 
     public abstract MessageSplitter getSplitter();
-
+    
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -48,19 +48,19 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                        MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
-                        String[] splitMessages = getSplitter().split(messageFlowStepDto);
+                        String[] splitMessages = getSplitter().split(parentMessageFlowStepDto);
                                   
                         for (int i = 0; i < splitMessages.length; i++) {
                                                
-                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowStepDto);
                                                                               
                             // Apply the message forwarding rules and either write an event for further processing or filter the message.
                             if (result.isSuccess()) {
-                                long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseSplitterProcessingStep.this,parentMessageFlowStepId, getContentType());
+                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordOutboundMessageHandlerComplete(parentMessageFlowStepDto.getMessageContent(), BaseSplitterProcessingStep.this,parentMessageFlowStepId, getContentType());
                                 
-                                messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
                                 // filter message.
                             }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.ComponentIdentifier;
@@ -28,7 +29,7 @@ public interface MessagingFlowService {
      * @param parentComponentIdentifier
      * @return
      */
-    long recordConsumedMessage(MessageConsumer messageConsumer, long messageFlowStepId, String contentType);
+    MessageFlowStepDto recordMessageAccepted(MessageConsumer messageConsumer, long messageFlowStepId, String contentType);
 
     
     /**
@@ -39,7 +40,7 @@ public interface MessagingFlowService {
      * @param contentType
      * @return
      */
-    long recordInboundMessageProducedByOtherRoute(BaseInboundRouteConnector inboundRouteConnector, long messageFlowStepId, String contentType);
+    MessageFlowStepDto recordInboundMessageProducedByOtherRoute(BaseInboundRouteConnector inboundRouteConnector, long messageFlowStepId, String contentType);
 
     
     /**
@@ -50,7 +51,7 @@ public interface MessagingFlowService {
      * @param contentType
      * @return
      */
-    long recordOutboundMessageToBeConsumedByOtherRoute(BaseOutboundRouteConnector outboundRouteConnector, long messageFlowStepId, String contentType);
+    MessageFlowStepDto recordOutboundMessageToBeConsumedByOtherRoute(BaseOutboundRouteConnector outboundRouteConnector, long messageFlowStepId, String contentType,MessageFlowStepActionType action);
 
     
     /**
@@ -61,7 +62,7 @@ public interface MessagingFlowService {
      * @param contentType
      * @return
      */
-    long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType);
+    MessageFlowStepDto recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType);
     
     
     /**
@@ -73,7 +74,7 @@ public interface MessagingFlowService {
      * @param headers
      * @return
      */
-    long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType, Map<String,String>metadata);
+    MessageFlowStepDto recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType, Map<String,String>metadata);
 
     
     /**
@@ -85,7 +86,7 @@ public interface MessagingFlowService {
      * @param contentType
      * @return
      */
-    long recordMessageDispatchedByOutboundHandler(String messageContent, BaseMessagingComponent messagingComponent, long parentMessageFlowStepId, String contentType);
+    MessageFlowStepDto recordOutboundMessageHandlerComplete(String messageContent, BaseMessagingComponent messagingComponent, long parentMessageFlowStepId, String contentType);
 
     
     /**

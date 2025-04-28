@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.adapter.BaseInboundAdapter;
 import jakarta.persistence.EntityManagerFactory;
 
@@ -72,9 +73,9 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
                         String incomingFilename = (String)exchange.getMessage().getHeader(CAMEL_FILE_NAME);
                         metaData.put(CAMEL_FILE_NAME, incomingFilename);
                         
-                        long messageFlowStepId = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData);
                         
-                        messagingFlowService.recordMessageFlowEvent(messageFlowStepId, MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }

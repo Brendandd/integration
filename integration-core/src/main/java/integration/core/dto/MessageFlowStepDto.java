@@ -8,7 +8,6 @@ package integration.core.dto;
 public class MessageFlowStepDto extends BaseDto {
     private static final long serialVersionUID = -7900743785077406998L;
 
-    private long id;
     private MessageDto message;
 
     
@@ -21,17 +20,6 @@ public class MessageFlowStepDto extends BaseDto {
         this.message = message;
     }
 
-    
-    public long id() {
-        return id;
-    }
-    
-    
-    @Override
-    public void setId(long id) {
-        this.id = id;
-    }
-    
     public String getMessageContent() {
         return message.getContent();
     }

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.MessageFlowStepDto;
 import integration.messaging.component.adapter.BaseInboundAdapter;
 
 /**
@@ -81,10 +82,10 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                     public void process(Exchange exchange) throws Exception {
                         // Store the message received by this inbound adapter.
                         String messageContent = exchange.getMessage().getBody(String.class);
-                        long messageFlowStepId = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseMllpInboundAdapter.this, CONTENT_TYPE);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseMllpInboundAdapter.this, CONTENT_TYPE);
                         
                         // Set the message flow step id as as a header so it can be used later.
-                        exchange.getMessage().setHeader(MESSAGE_FLOW_STEP_ID, messageFlowStepId);
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_STEP_ID, messageFlowStepDto.getId());
                     }
                 })
                 .transform(ack())

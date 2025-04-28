@@ -1,13 +1,9 @@
 package integration.core.domain.messaging;
 
-import org.hibernate.type.TrueFalseConverter;
-
 import integration.core.domain.BaseIntegrationDomain;
 import integration.core.domain.configuration.ComponentRoute;
-import integration.core.domain.configuration.DirectionEnum;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,9 +24,7 @@ public class MessageFlowStep extends BaseIntegrationDomain {
     private ComponentRoute componentRoute;
     private Message message;
     private MessageFlowStep fromMessageFlowStep;
-    private boolean filtered;
-    private boolean error;
-    private DirectionEnum direction;
+    private MessageFlowStepActionType action;
 
     private MessageFlowGroup messageFlowGroup;
 
@@ -71,36 +65,7 @@ public class MessageFlowStep extends BaseIntegrationDomain {
         this.fromMessageFlowStep = fromMessageFlowStep;
     }
 
-    @Convert(converter = TrueFalseConverter.class)
-    @Column(name = "filtered")
-    public boolean isFiltered() {
-        return filtered;
-    }
-
-    public void setFiltered(boolean filtered) {
-        this.filtered = filtered;
-    }
-
-    @Convert(converter = TrueFalseConverter.class)
-    @Column(name = "error")
-    public boolean isError() {
-        return error;
-    }
-
-    public void setError(boolean error) {
-        this.error = error;
-    }
-
-    @Column(name = "direction")
-    @Enumerated(EnumType.STRING)
-    public DirectionEnum getDirection() {
-        return direction;
-    }
-
-    public void setDirection(DirectionEnum direction) {
-        this.direction = direction;
-    }
-
+    
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "message_flow_group_id")
     public MessageFlowGroup getMessageFlowGroup() {
@@ -128,25 +93,14 @@ public class MessageFlowStep extends BaseIntegrationDomain {
     public void setErrorStep(MessageFlowStepError errorStep) {
         this.errorStep = errorStep;
     }
-
-    public void filterMessage(String reason, String filterName) {
-        this.setFiltered(true);
-
-        MessageFlowStepFiltered filtered = new MessageFlowStepFiltered();
-        filtered.setMessageFlowStep(this);
-        filtered.setDescription(reason);
-        filtered.setFilterName(filterName);
-
-        setFilteredStep(filtered);
+    
+    @Column(name="action")
+    @Enumerated(EnumType.STRING)
+    public MessageFlowStepActionType getAction() {
+        return action;
     }
 
-    public void errorMessage(String reason) {
-        this.setError(true);
-
-        MessageFlowStepError error = new MessageFlowStepError();
-        error.setMessageFlowStep(this);
-        error.setDescription(reason);
-
-        setErrorStep(error);
+    public void setAction(MessageFlowStepActionType action) {
+        this.action = action;
     }
 }

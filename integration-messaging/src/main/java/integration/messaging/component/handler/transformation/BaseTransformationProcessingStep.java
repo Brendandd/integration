@@ -33,7 +33,7 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
      * @return
      */
     public abstract MessageTransformer getTransformer();
-
+    
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -52,19 +52,19 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                        MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
-                        String transformedContent = getTransformer().transform(messageFlowStepDto);
+                        String transformedContent = getTransformer().transform(parentMessageFlowStepDto);
                         
                         // Need to update the message content before applying the policy.
-                        messageFlowStepDto.getMessage().setContent(transformedContent);
+                        parentMessageFlowStepDto.getMessage().setContent(transformedContent);
                                                      
-                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowStepDto);
                                                                        
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
-                            long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(transformedContent, BaseTransformationProcessingStep.this,parentMessageFlowStepId, getContentType());
-                            messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordOutboundMessageHandlerComplete(transformedContent, BaseTransformationProcessingStep.this,parentMessageFlowStepId, getContentType());
+                            messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {
                             // filter message.
                         }

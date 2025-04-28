@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import integration.core.domain.configuration.ComponentRoute;
-import integration.core.domain.configuration.DirectionEnum;
 import integration.core.domain.messaging.Message;
 import integration.core.domain.messaging.MessageFlowEvent;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowGroup;
 import integration.core.domain.messaging.MessageFlowStep;
+import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.domain.messaging.MessageMetaData;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.dto.MessageFlowStepDto;
@@ -79,13 +79,9 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * @param from
      * @return
      */
-    private MessageFlowStep createMessageFlowStep(Message message, BaseMessagingComponent component, Long parentMessageFlowStepId, DirectionEnum direction, Map<String,String>metaData) {
+    private MessageFlowStep createMessageFlowStep(Message message, BaseMessagingComponent component, Long parentMessageFlowStepId, Map<String,String>metaData, MessageFlowStepActionType action) {
         if (component == null) {
             throw new RuntimeException("Component must not be null");
-        }
-               
-        if (direction == null) {
-            throw new RuntimeException("Direction must not be null");
         }
         
         if (message == null && parentMessageFlowStepId == null) {
@@ -113,7 +109,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         MessageFlowStep messageFlowStep = new MessageFlowStep();
         messageFlowStep.setComponentRoute(componentRouteOptional.get());
         messageFlowStep.setMessage(message);
-        messageFlowStep.setDirection(direction);
+        messageFlowStep.setAction(action);
 
         // Associate the new message flow step with its parent.
         if (parentMessageFlowStep != null) {
@@ -214,40 +210,43 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
-    public long recordConsumedMessage(MessageConsumer messageConsumer, long messageFlowStepId, String contentType) {
+    public MessageFlowStepDto recordMessageAccepted(MessageConsumer messageConsumer, long messageFlowStepId, String contentType) {
         Message message = retrieveMessage(messageFlowStepId);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, (BaseMessagingComponent) messageConsumer, messageFlowStepId, DirectionEnum.INBOUND, null);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, (BaseMessagingComponent) messageConsumer, messageFlowStepId, null, MessageFlowStepActionType.ACCEPTED);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
-
-        return messageFlowStep.getId();
+        
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);
     }
 
     
     @Override
-    public long recordInboundMessageProducedByOtherRoute(BaseInboundRouteConnector inboundRouteConnector, long messageFlowStepId,String contentType) {
+    public MessageFlowStepDto recordInboundMessageProducedByOtherRoute(BaseInboundRouteConnector inboundRouteConnector, long messageFlowStepId,String contentType) {
         Message message = retrieveMessage(messageFlowStepId);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundRouteConnector, messageFlowStepId, DirectionEnum.INBOUND, null);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundRouteConnector, messageFlowStepId, null, MessageFlowStepActionType.ACCEPTED);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
-        return messageFlowStep.getId();
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);
     }
 
     
     @Override
-    public long recordOutboundMessageToBeConsumedByOtherRoute(BaseOutboundRouteConnector outboundRouteConnector, long messageFlowStepId,String contentType) {
+    public MessageFlowStepDto recordOutboundMessageToBeConsumedByOtherRoute(BaseOutboundRouteConnector outboundRouteConnector, long messageFlowStepId,String contentType, MessageFlowStepActionType action) {
         Message message = retrieveMessage(messageFlowStepId);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, outboundRouteConnector, messageFlowStepId, DirectionEnum.OUTBOUND, null);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, outboundRouteConnector, messageFlowStepId, null, action);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
-        return messageFlowStep.getId();
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);
     }
 
     
     @Override
-    public long recordMessageDispatchedByOutboundHandler(String messageContent, BaseMessagingComponent messagingComponent,long messageFlowStepId, String contentType) {
+    public MessageFlowStepDto recordOutboundMessageHandlerComplete(String messageContent, BaseMessagingComponent messagingComponent,long messageFlowStepId, String contentType) {
         Message parentMessage = retrieveMessage(messageFlowStepId);
         
         // For a message dispatched by an outbound message handler we need to see if it is different from the inbound message.  If it is then create a new message object.
@@ -259,10 +258,11 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             outboundMessage = new Message(messageContent, contentType);
         }
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(outboundMessage, messagingComponent, messageFlowStepId, DirectionEnum.OUTBOUND, null);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(outboundMessage, messagingComponent, messageFlowStepId, null, MessageFlowStepActionType.OUTBOUND_MESSAGE_HANDLING_COMPLETE);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
-        return messageFlowStep.getId();
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);
     }
 
     
@@ -284,13 +284,9 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         MessageFlowStep messageFlowStep = messageFlowStepOptional.get();
         
         List<MessageMetaData>metaData = messageFlowStep.getMessage().getMetaData();
-        
-        logger.info("*****BRENDAN *****.  supplied key: " + key);
-        
+               
         for (MessageMetaData metaDataItem : metaData) {
-            if (metaDataItem.getKey().equals(key)) {
-                logger.info("*****BRENDAN *****.  key in list: " + metaDataItem.getKey());
-                
+            if (metaDataItem.getKey().equals(key)) {                
                 return metaDataItem.getValue();
             }
         }
@@ -308,28 +304,30 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         
         // Create message object and associate it to a message flow.
         Message message = new Message(ackContent, contentType);
-        createMessageFlowStep(message, inboundAdapter, fromMessageFlowStepId, DirectionEnum.OUTBOUND, null);
+        createMessageFlowStep(message, inboundAdapter, fromMessageFlowStepId, null, MessageFlowStepActionType.ACK_SENT);
     }
 
     
     @Override
-    public long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType) {
+    public MessageFlowStepDto recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType) {
         Message message = new Message(messageContent, contentType);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, DirectionEnum.INBOUND, null);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, null, MessageFlowStepActionType.RECEIVED_BY_INBOUND_ADAPTER);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
-        return messageFlowStep.getId();
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);
     }
     
     
     @Override
-    public long recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType, Map<String,String>metadata) {
+    public MessageFlowStepDto recordMessageReceivedFromExternalSource(String messageContent, BaseInboundAdapter inboundAdapter, String contentType, Map<String,String>metadata) {
         Message message = new Message(messageContent, contentType);
         
-        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, DirectionEnum.INBOUND, metadata);
+        MessageFlowStep messageFlowStep = createMessageFlowStep(message, inboundAdapter, null, metadata, MessageFlowStepActionType.RECEIVED_BY_INBOUND_ADAPTER);
         messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
 
-        return messageFlowStep.getId();        
+        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        return mapper.doMapping(messageFlowStep);       
     }
 }

@@ -53,16 +53,15 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
             messageProducer.addMessageConsumer(this);
         }
     }
-
     
     @Override
     public void configure() throws Exception {
         super.configure();
-               
+
         // Creates one or more routes based on this components source components.  Each route reads from a topic. This is the entry point for outbound route connectors.
         for (MessageProducer messageProducer : messageProducers) {
             String componentPath = messageProducer.getIdentifier().getComponentPath();
-            
+  
             from("jms:VirtualTopic." + componentPath + "::Consumer." + identifier.getComponentPath() + ".VirtualTopic." + componentPath + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("messageReceiver-" + identifier.getComponentPath() + "-" + componentPath)
                 .routeGroup(identifier.getComponentPath())
@@ -74,15 +73,15 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                         public void process(Exchange exchange) throws Exception {
                             // Replace the message flow id with the actual message from the database.
                             Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                            MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
  
-                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(messageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowStepDto);
                             if (result.isSuccess()) {
                                 // Record the content received by this component.
-                                long newMessageFlowStepId = messagingFlowService.recordConsumedMessage(MessageHandler.this, parentMessageFlowStepId, getContentType());
+                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageAccepted(MessageHandler.this, parentMessageFlowStepId, getContentType());
                             
                                 // Record an event so the message can be forwarded to other components for processing.
-                                messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
                                 // TODO filter the message
                             }

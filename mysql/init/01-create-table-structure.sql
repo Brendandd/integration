@@ -115,9 +115,7 @@ CREATE TABLE `message_flow_step` (
   `message_flow_group_id` int DEFAULT NULL,
   `message_id` int DEFAULT NULL,
   `from_message_flow_step_id` int DEFAULT NULL,
-  `direction` varchar(45) DEFAULT NULL,
-  `filtered` varchar(1) DEFAULT NULL,
-  `error` varchar(1) DEFAULT NULL,
+  `action` varchar(100) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)

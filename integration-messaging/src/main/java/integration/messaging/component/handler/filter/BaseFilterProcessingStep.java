@@ -25,6 +25,7 @@ public abstract class BaseFilterProcessingStep extends MessageHandler {
         return LOGGER;
     }
 
+    
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -43,14 +44,14 @@ public abstract class BaseFilterProcessingStep extends MessageHandler {
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                        MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                                                
-                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(messageFlowStepDto);
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowStepDto);
                                                                       
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
-                            long newMessageFlowStepId = messagingFlowService.recordMessageDispatchedByOutboundHandler(messageFlowStepDto.getMessageContent(), BaseFilterProcessingStep.this,parentMessageFlowStepId, getContentType());
-                            messagingFlowService.recordMessageFlowEvent(newMessageFlowStepId, MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordOutboundMessageHandlerComplete(parentMessageFlowStepDto.getMessageContent(), BaseFilterProcessingStep.this,parentMessageFlowStepId, getContentType());
+                            messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {
                             // filter message.
                         }
