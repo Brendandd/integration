@@ -39,7 +39,8 @@ public class ConfigurationRestController {
     @GetMapping(value = "/route/{routeName}")
     @ResponseStatus(HttpStatus.OK)
     public RouteDto getRouteByName(@PathVariable("routeName") String routeName) throws ConfigurationException {
-        return configurationService.getRouteByName(routeName);
+     //   return configurationService.getRouteByName(routeName);
+        return null;
     }
 
     @GetMapping(value = "/route/{routeName}/status")

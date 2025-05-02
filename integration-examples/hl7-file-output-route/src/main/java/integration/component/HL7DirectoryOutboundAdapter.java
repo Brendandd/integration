@@ -6,7 +6,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDirectoryAdapter;
 
 /**
@@ -20,15 +20,12 @@ import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDire
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter {
+    private static final String COMPONENT_NAME = "To-Sydney-Hospital-Directory-Outbound-Adapter";
 
     @Autowired
     @Qualifier("acceptAllMessages")
     private MessageAcceptancePolicy messageAcceptancePolicy;
        
-    public HL7DirectoryOutboundAdapter() {
-        super("directory-outbound");
-    }
-    
     private static final String CONTENT_TYPE = "HL7";
 
     @Override
@@ -39,5 +36,10 @@ public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter
     @Override
     public MessageAcceptancePolicy getMessageAcceptancePolicy() {
         return messageAcceptancePolicy;
+    }
+    
+    @Override
+    public String getName() {
+        return COMPONENT_NAME;
     }
 }

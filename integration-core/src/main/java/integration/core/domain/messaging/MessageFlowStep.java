@@ -1,7 +1,7 @@
 package integration.core.domain.messaging;
 
 import integration.core.domain.BaseIntegrationDomain;
-import integration.core.domain.configuration.ComponentRoute;
+import integration.core.domain.configuration.IntegrationComponent;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,7 +21,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "message_flow_step")
 public class MessageFlowStep extends BaseIntegrationDomain {
-    private ComponentRoute componentRoute;
+    private IntegrationComponent component;
     private Message message;
     private MessageFlowStep fromMessageFlowStep;
     private MessageFlowStepActionType action;
@@ -35,13 +35,13 @@ public class MessageFlowStep extends BaseIntegrationDomain {
     }
 
     @ManyToOne
-    @JoinColumn(name = "component_route_id")
-    public ComponentRoute getComponentRoute() {
-        return componentRoute;
+    @JoinColumn(name = "component_id")
+    public IntegrationComponent getComponent() {
+        return component;
     }
 
-    public void setComponentRoute(ComponentRoute componentRoute) {
-        this.componentRoute = componentRoute;
+    public void setComponent(IntegrationComponent component) {
+        this.component = component;
     }
 
     @ManyToOne(cascade = CascadeType.ALL)

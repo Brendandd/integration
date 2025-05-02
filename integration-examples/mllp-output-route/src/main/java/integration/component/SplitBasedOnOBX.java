@@ -3,8 +3,8 @@ package integration.component;
 import org.springframework.stereotype.Component;
 
 import integration.core.dto.MessageFlowStepDto;
-import integration.messaging.component.handler.splitter.MessageSplitter;
-import integration.messaging.component.handler.splitter.SplitterException;
+import integration.core.messaging.component.handler.splitter.MessageSplitter;
+import integration.core.messaging.component.handler.splitter.SplitterException;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**

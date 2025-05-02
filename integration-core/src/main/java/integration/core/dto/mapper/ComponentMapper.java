@@ -1,6 +1,6 @@
 package integration.core.dto.mapper;
 
-import integration.core.domain.configuration.Component;
+import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.dto.ComponentDto;
 
 /**
@@ -8,16 +8,15 @@ import integration.core.dto.ComponentDto;
  * 
  * @author Brendan Douglas
  */
-public class ComponentMapper extends BaseMapper<ComponentDto, Component> {
+public class ComponentMapper extends BaseMapper<ComponentDto, IntegrationComponent> {
 
     @Override
-    public ComponentDto doMapping(Component source) {
+    public ComponentDto doMapping(IntegrationComponent source) {
         ComponentDto destination = new ComponentDto();
-        destination.setCategory(source.getCategory());
-        destination.setDescription(source.getDescription());
         destination.setId(source.getId());
         destination.setName(source.getName());
         destination.setType(source.getType());
+        destination.setCategory(source.getCategory());
 
         return destination;
     }

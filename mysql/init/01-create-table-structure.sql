@@ -19,48 +19,20 @@ CREATE TABLE `camel_messageprocessed_seq` (
 
 CREATE TABLE `component` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
-  `component_type_id` varchar(45) DEFAULT NULL,
-  `component_category_id` int DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `communication_point_id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `component_category` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) DEFAULT NULL,
-  `description` varchar(45) DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `component_route` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `component_id` int DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `type` varchar(45) DEFAULT NULL,
+  `category` varchar(45) DEFAULT NULL,
+  `owner` varchar(45) DEFAULT NULL,
   `route_id` int DEFAULT NULL,
   `inbound_state` varchar(45) DEFAULT NULL,
   `outbound_state` varchar(45) DEFAULT NULL,
-  `external_system_id` int DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `communication_point_id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='  ';
+SELECT * FROM integration.component;
 
-CREATE TABLE `component_type` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) DEFAULT NULL,
-  `description` varchar(45) DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `event` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -72,20 +44,10 @@ CREATE TABLE `event` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `external_system` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) DEFAULT NULL,
-  `description` varchar(45) DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 CREATE TABLE `message` (
   `id` int NOT NULL AUTO_INCREMENT,
   `content` blob,
   `content_type` varchar(45) DEFAULT NULL,
-  `headers` blob,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -111,7 +73,7 @@ CREATE TABLE `message_flow_group` (
 
 CREATE TABLE `message_flow_step` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `component_route_id` int DEFAULT NULL,
+  `component_id` int DEFAULT NULL,
   `message_flow_group_id` int DEFAULT NULL,
   `message_id` int DEFAULT NULL,
   `from_message_flow_step_id` int DEFAULT NULL,
@@ -134,7 +96,6 @@ CREATE TABLE `message_flow_step_filtered` (
 CREATE TABLE `route` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(45) DEFAULT NULL,
-  `description` varchar(45) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),

@@ -3,25 +3,33 @@ package integration.route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import integration.component.MLLPOutboundRouteConnector;
-import integration.component.MllpInboundAdapter;
-import integration.messaging.BaseRoute;
+import integration.component.FromAdelaideHospitalMLLPInboundAdapter;
+import integration.component.Hl7MessageTypeFilter;
+import integration.component.OutboundRouteConnector;
+import integration.core.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
 
 /**
- * A route.
+ * An example route which accepts messages from an inbound MLLP adapter and passes them directly to an outbound route connector.  This route
+ * does not know what other routes (if any) are expecting to receive messages from the route connector.
+ * 
+ * In the MLLPOutboundRoute module there are 2 routes which have been configured to receive messages from this route.
+ * 
  * 
  * @author Brendan Douglas
  */
 @Component
 public class MLLPInboundRoute extends BaseRoute {
-    public static final String ROUTE_NAME = "mllp-inbound";
+    public static final String ROUTE_NAME = "Inbound-MLLP-from-Adelaide-Hospital";
 
     @Autowired
-    private MllpInboundAdapter mllpInboundAdapter;
+    private FromAdelaideHospitalMLLPInboundAdapter mllpInboundAdapter;
 
     @Autowired
-    private MLLPOutboundRouteConnector toMllpOutboundRouteConnector;
+    private OutboundRouteConnector toMllpOutboundRouteConnector;
+    
+    @Autowired
+    private Hl7MessageTypeFilter adtFilter;
 
     public MLLPInboundRoute() {
         super(ROUTE_NAME);
@@ -34,9 +42,11 @@ public class MLLPInboundRoute extends BaseRoute {
         // Associate components to the this route.
         addComponentToRoute(mllpInboundAdapter);
         addComponentToRoute(toMllpOutboundRouteConnector);
+        addComponentToRoute(adtFilter);
 
         // Add a direct flow which is am inbound component directly to an outbound component.
-        addDirectFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
+        addInboundFlow(mllpInboundAdapter, adtFilter);
+        addOutboundFlow(adtFilter, toMllpOutboundRouteConnector);
 
         start();
     }

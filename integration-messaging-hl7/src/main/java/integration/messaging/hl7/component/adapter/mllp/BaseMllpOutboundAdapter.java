@@ -8,11 +8,13 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import integration.core.domain.configuration.ComponentCategory;
+import integration.core.domain.configuration.ComponentType;
 import integration.core.dto.MessageFlowStepDto;
-import integration.messaging.component.BaseMessagingComponent;
-import integration.messaging.component.MessageConsumer;
-import integration.messaging.component.MessageProducer;
-import integration.messaging.component.adapter.BaseOutboundAdapter;
+import integration.core.messaging.component.BaseMessagingComponent;
+import integration.core.messaging.component.MessageConsumer;
+import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.
@@ -22,10 +24,6 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     
     private static final String CONTENT_TYPE = "HL7";
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
-
-    public BaseMllpOutboundAdapter(String componentName) {
-        super(componentName);
-    }
 
     @Override
     public void addMessageProducer(MessageProducer messageProducer) {
@@ -38,6 +36,16 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+    
+    @Override
+    public ComponentType getType() {
+        return ComponentType.OUTBOUND_MLLP_ADAPTER;
+    }
+
+    @Override
+    public ComponentCategory getCategory() {
+        return ComponentCategory.OUTBOUND_ADAPTER;
     }
 
     
@@ -77,9 +85,9 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
         super.configure();
         
         // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
-            .routeGroup(identifier.getComponentPath())
+        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
+            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
+            .routeGroup(getComponentPath())
             .transacted()
                 .process(new Processor() {
     

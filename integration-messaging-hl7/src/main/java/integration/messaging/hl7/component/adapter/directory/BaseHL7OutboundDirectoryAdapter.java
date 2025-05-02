@@ -3,17 +3,13 @@ package integration.messaging.hl7.component.adapter.directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.messaging.component.adapter.directory.BaseDirectoryOutboundAdapter;
+import integration.core.messaging.component.adapter.directory.BaseDirectoryOutboundAdapter;
 
 /**
  * 
  */
 public abstract class BaseHL7OutboundDirectoryAdapter extends BaseDirectoryOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseHL7InboundDirectoryAdapter.class);
-
-    public BaseHL7OutboundDirectoryAdapter(String componentName) {
-        super(componentName);
-    }
 
     private static final String CONTENT_TYPE = "HL7";
 

@@ -189,7 +189,6 @@
     <!-- Submodules -->
     <modules>
         <module>integration-core</module>
-        <module>integration-messaging</module>
         <module>integration-messaging-hl7</module>
         <module>integration-examples</module>
         <module>integration-rest</module>

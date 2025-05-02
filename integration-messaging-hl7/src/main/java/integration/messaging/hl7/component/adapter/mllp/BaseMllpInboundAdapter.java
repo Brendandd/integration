@@ -7,9 +7,12 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import integration.core.domain.configuration.ComponentCategory;
+import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
-import integration.messaging.component.adapter.BaseInboundAdapter;
+import integration.core.messaging.component.adapter.BaseInboundAdapter;
 
 /**
  * Base class for all MLLP/HL7 inbound communication points. This components reads the
@@ -20,10 +23,6 @@ import integration.messaging.component.adapter.BaseInboundAdapter;
  */
 public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpInboundAdapter.class);
-
-    public BaseMllpInboundAdapter(String componentName) throws Exception {
-        super(componentName);
-    }
 
     private static final String CONTENT_TYPE = "HL7";
     
@@ -61,6 +60,16 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
         return CONTENT_TYPE;
     }
     
+    @Override
+    public ComponentType getType() {
+        return ComponentType.INBOUND_MLLP_ADAPTER;
+    }
+
+    @Override
+    public ComponentCategory getCategory() {
+        return ComponentCategory.INBOUND_ADAPTER;
+    }
+    
     
     @Override
     public void configure() throws Exception {
@@ -70,9 +79,9 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
         // A route to receive a HL7 message via MLLP, store the message, store an event and generate and send the ACK all
         // within a single transaction.  This is the initial entry point for a HL7 message.
         from(getFromUriString())
-            .routeId("mllpInboundMessageHandlerRoute-" + identifier.getComponentPath())
+            .routeId("mllpInboundMessageHandlerRoute-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
-            .routeGroup(identifier.getComponentPath())
+            .routeGroup(getComponentPath())
             .autoStartup(isInboundRunning)
             .transacted()
             
@@ -80,12 +89,13 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
+                        
                         // Store the message received by this inbound adapter.
-                        String messageContent = exchange.getMessage().getBody(String.class);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageReceivedFromExternalSource(messageContent, BaseMllpInboundAdapter.this, CONTENT_TYPE);
+                        String inboundMessageContent = exchange.getMessage().getBody(String.class);
+                        MessageFlowStepDto inboundMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(inboundMessageContent, BaseMllpInboundAdapter.this, getContentType(), null, MessageFlowStepActionType.MESSAGE_RECEIVED_FROM_OUTSIDE_ENGINE);
                         
                         // Set the message flow step id as as a header so it can be used later.
-                        exchange.getMessage().setHeader(MESSAGE_FLOW_STEP_ID, messageFlowStepDto.getId());
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_STEP_ID, inboundMessageFlowStepDto.getId());
                     }
                 })
                 .transform(ack())
@@ -93,14 +103,14 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        long messageFlowStepId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+                        long inboundMessageFlowStepId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
                         
                         // Store the ACK
                         String ackContent = exchange.getMessage().getBody(String.class);
-                        messagingFlowService.recordAck(ackContent, BaseMllpInboundAdapter.this, messageFlowStepId, "HL7 ACK");
-                        
+                        messagingFlowService.recordMessageFlowStep(ackContent, BaseMllpInboundAdapter.this, inboundMessageFlowStepId, "HL7 ACK", null, MessageFlowStepActionType.ACKNOWLEDGMENT_SENT);
+                                                
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
-                        messagingFlowService.recordMessageFlowEvent(messageFlowStepId, MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(inboundMessageFlowStepId,getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }        

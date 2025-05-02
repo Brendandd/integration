@@ -6,10 +6,10 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
-import integration.messaging.component.handler.filter.MessageForwardingPolicy;
-import integration.messaging.component.handler.splitter.BaseSplitterProcessingStep;
-import integration.messaging.component.handler.splitter.MessageSplitter;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.core.messaging.component.handler.splitter.BaseSplitterProcessingStep;
+import integration.core.messaging.component.handler.splitter.MessageSplitter;
 
 /**
  * A message splitter. Duplicates the message based on the number of OBX
@@ -21,7 +21,7 @@ import integration.messaging.component.handler.splitter.MessageSplitter;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Hl7Splitter extends BaseSplitterProcessingStep {
     private static final String CONTENT_TYPE = "HL7";
-    private static final String COMPONENT_NAME = "hl7-splitter";
+    private static final String COMPONENT_NAME = "Split-Based-on-OBX-Segment";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -34,10 +34,6 @@ public class Hl7Splitter extends BaseSplitterProcessingStep {
     @Autowired
     @Qualifier("splitOnOXBSegments")
     private MessageSplitter messageSplitter;
-
-    public Hl7Splitter() {
-        super(COMPONENT_NAME);
-    }
 
     @Override
     public MessageSplitter getSplitter() {
@@ -57,5 +53,10 @@ public class Hl7Splitter extends BaseSplitterProcessingStep {
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
+    }
+    
+    @Override
+    public String getName() {
+        return COMPONENT_NAME;
     }
 }
