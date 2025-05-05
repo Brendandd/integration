@@ -2,7 +2,7 @@ package integration.component;
 
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.handler.transformation.TransformationException;
+import integration.core.messaging.component.handler.transformation.TransformationException;
 import integration.messaging.hl7.component.handler.transformation.ChangeMessageVersionTransformer;
 
 /**

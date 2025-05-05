@@ -1,10 +1,10 @@
 {
   "routes": [
     {
-      "name": "directory-outbound",
+      "name": "Outbound-Directory-to-Sydney-Hospital",
       "components": [
         {
-          "name": "directory-outbound",
+          "name": "To-Sydney-Hospital-Directory-Outbound-Adapter",
           "properties": {
             "TARGET_FOLDER": "/app/host-files/out"
           }

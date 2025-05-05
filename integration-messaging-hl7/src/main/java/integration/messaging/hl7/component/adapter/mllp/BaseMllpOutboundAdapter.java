@@ -8,11 +8,14 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import integration.core.domain.configuration.ComponentCategory;
+import integration.core.domain.configuration.ComponentType;
 import integration.core.dto.MessageFlowStepDto;
-import integration.messaging.component.BaseMessagingComponent;
-import integration.messaging.component.MessageConsumer;
-import integration.messaging.component.MessageProducer;
-import integration.messaging.component.adapter.BaseOutboundAdapter;
+import integration.core.exception.EventProcessingException;
+import integration.core.messaging.component.BaseMessagingComponent;
+import integration.core.messaging.component.MessageConsumer;
+import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.
@@ -22,10 +25,6 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     
     private static final String CONTENT_TYPE = "HL7";
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
-
-    public BaseMllpOutboundAdapter(String componentName) {
-        super(componentName);
-    }
 
     @Override
     public void addMessageProducer(MessageProducer messageProducer) {
@@ -38,6 +37,16 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+    
+    @Override
+    public ComponentType getType() {
+        return ComponentType.OUTBOUND_MLLP_ADAPTER;
+    }
+
+    @Override
+    public ComponentCategory getCategory() {
+        return ComponentCategory.OUTBOUND_ADAPTER;
     }
 
     
@@ -64,38 +73,45 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
         String target = getTargetHost() + ":" + getTargetPort();
         return "netty:tcp://" + target + constructOptions();
     }
-    
+
     
     @Override
     public String getContentType() {
         return CONTENT_TYPE;
     }
-
+    
     
     @Override
     public void configure() throws Exception {
         super.configure();
-        
+
         // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + identifier.getComponentPath())
-            .routeGroup(identifier.getComponentPath())
+        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
+            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
+            .routeGroup(getComponentPath())
             .transacted()
                 .process(new Processor() {
     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        // Delete the event.
-                        Long eventId = exchange.getMessage().getBody(Long.class);
-                        messagingFlowService.deleteEvent(eventId);
+                        Long eventId = null;
+                        Long messageFlowId = null;
                         
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
-                        
-                        exchange.getMessage().setBody(messageFlowStepDto.getMessageContent());   
+                        try {
+                            // Delete the event.
+                            eventId = exchange.getMessage().getBody(Long.class);
+                            messagingFlowService.deleteEvent(eventId);
+                            
+                            // Retrieve the message flow so the content can be sent.
+                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
+                            
+                            // Send the message via MLLP
+                            producerTemplate.sendBody(getToUriString(), messageFlowStepDto.getMessageContent());
+                        } catch(Exception e) {
+                            throw new EventProcessingException("Error sending message via MLLP", eventId, messageFlowId, getComponentPath(), e);
+                        }
                     }
-                })
-                .to(getToUriString());
+                });
     }
 }

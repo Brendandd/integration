@@ -5,17 +5,17 @@ import org.springframework.stereotype.Component;
 
 import integration.component.DirectoryOutboundRouteConnector;
 import integration.component.HL7DirectoryInboundAdapter;
-import integration.messaging.BaseRoute;
+import integration.core.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
 
 /**
- * A route to accept a HL7 message from a directory.
+ * An example route which reads a file from a directory and adds it directly to an outbound route connector.
  * 
  * @author Brendan Douglas
  */
 @Component
 public class DirectoryInboundRoute extends BaseRoute {
-    public static final String ROUTE_NAME = "directory-inbound";
+    public static final String ROUTE_NAME = "Inbound-Directory-from-Adelaide-Hospital";
 
     @Autowired
     private HL7DirectoryInboundAdapter directoryInboundAdapter;
@@ -29,15 +29,9 @@ public class DirectoryInboundRoute extends BaseRoute {
 
     @Override
     @PostConstruct
-    public void configure() throws Exception {
-
-        // Associate components to the this route.
-        addComponentToRoute(directoryInboundAdapter);
-        addComponentToRoute(directoryOutboundRouteConnector);
-
-        // Configure how the components are joined together.
+    public void configureRoute() throws Exception {
         addDirectFlow(directoryInboundAdapter, directoryOutboundRouteConnector);
 
-        start();
+        applyConfiguration();
     }
 }

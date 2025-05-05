@@ -6,11 +6,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.connector.BaseInboundRouteConnector;
-import integration.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.core.messaging.component.connector.BaseInboundRouteConnector;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
- * Joins this route to the directory inbound route.
+ * Receives messages from the configured route.
  * 
  * @author Brendan Douglas
  * 
@@ -18,15 +18,11 @@ import integration.messaging.component.handler.filter.MessageForwardingPolicy;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DirectoryInboundRouteConnector extends BaseInboundRouteConnector {
-    private static final String COMPONENT_NAME = "directory-inbound-route-connector";
+    private static final String COMPONENT_NAME = "From-Adelaide-Hospital-Directory-Route-Connector";
 
     @Autowired
     @Qualifier("forwardAllMessages")
     private MessageForwardingPolicy messageForwardingPolicy;
-
-    public DirectoryInboundRouteConnector() {
-        super(COMPONENT_NAME);
-    }
 
     @Override
     public String getContentType() {
@@ -34,12 +30,17 @@ public class DirectoryInboundRouteConnector extends BaseInboundRouteConnector {
     }
 
     @Override
-    public String getName() {
-        return "directoryRouteConnector";
+    public String getConnectorName() {
+        return "directoryRouteConnector"; // receives messages from an outbound connector which sets the same name.
     }
 
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
+    }
+    
+    @Override
+    public String getName() {
+        return COMPONENT_NAME;
     }
 }

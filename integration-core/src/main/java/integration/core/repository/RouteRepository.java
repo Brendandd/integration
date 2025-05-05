@@ -6,14 +6,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import integration.core.domain.configuration.Route;
+import integration.core.domain.configuration.IntegrationRoute;
 
 @Repository
-public interface RouteRepository extends CrudRepository<Route, Long> {
+public interface RouteRepository extends CrudRepository<IntegrationRoute, Long> {
 
-    @Query(name = "getByName", value = "select r from Route r where r.name = ?1")
-    Route getByName(String name);
+    @Query(name = "getByName", value = "select r from IntegrationRoute r where r.name = ?1 and r.owner = ?2")
+    IntegrationRoute getByName(String name, String owner);
 
-    @Query(name = "getAllRoutes", value = "select r from Route r")
-    List<Route> getAllRoutes();
+    @Query(name = "getAllRoutes", value = "select r from IntegrationRoute r")
+    List<IntegrationRoute> getAllRoutes();
 }

@@ -6,9 +6,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.messaging.component.handler.filter.BaseFilterProcessingStep;
-import integration.messaging.component.handler.filter.MessageAcceptancePolicy;
-import integration.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.core.messaging.component.handler.filter.BaseFilterProcessingStep;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
  * HL7 message type filter compoment.
@@ -20,7 +20,7 @@ import integration.messaging.component.handler.filter.MessageForwardingPolicy;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
     private static final String CONTENT_TYPE = "HL7";
-    private static final String COMPONENT_NAME = "hl7-filter";
+    private static final String COMPONENT_NAME = "Allow-only-ADT-A04";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -29,10 +29,6 @@ public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
     @Autowired
     @Qualifier("acceptADT^A04")
     private MessageAcceptancePolicy messageAcceptancePolicy;
-
-    public Hl7MessageTypeFilter() {
-        super(COMPONENT_NAME);
-    }
 
     @Override
     public String getContentType() {
@@ -47,5 +43,10 @@ public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
+    }
+    
+    @Override
+    public String getName() {
+        return COMPONENT_NAME;
     }
 }

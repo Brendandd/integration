@@ -12,55 +12,41 @@ public class RouteDto extends BaseDto {
     private static final long serialVersionUID = 7968596607654658242L;
 
     private String name;
-    private String description;
+    private String owner;
 
-    private List<ComponentRouteDto> components = new ArrayList<>();
+    private List<ComponentDto> components = new ArrayList<>();
 
     public String getName() {
         return name;
     }
-
+    
+    
     public void setName(String name) {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<ComponentRouteDto> getComponents() {
+    
+    public List<ComponentDto> getComponents() {
         return components;
     }
-
-    public void setComponents(List<ComponentRouteDto> components) {
+    
+    
+    public void setComponents(List<ComponentDto> components) {
         this.components = components;
     }
-
-    public void addComponent(ComponentRouteDto component) {
+    
+    
+    public void addComponent(ComponentDto component) {
         this.components.add(component);
     }
 
-    public boolean hasComponent(String name) {
-        for (ComponentRouteDto componentRoute : this.getComponents()) {
-            if (componentRoute.getComponent().getName().equals(name)) {
-                return true;
-            }
-        }
 
-        return false;
+    public String getOwner() {
+        return owner;
     }
 
-    public ComponentDto getComponent(String name) {
-        for (ComponentRouteDto componentRoute : this.getComponents()) {
-            if (componentRoute.getComponent().getName().equals(name)) {
-                return componentRoute.getComponent();
-            }
-        }
 
-        return null;
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }

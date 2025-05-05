@@ -1,5 +1,7 @@
 package integration.core.domain.messaging;
 
+import java.util.Date;
+
 import integration.core.domain.BaseIntegrationDomain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /**
  * 
@@ -21,6 +25,10 @@ import jakarta.persistence.Table;
 public class MessageFlowEvent extends BaseIntegrationDomain {
     private MessageFlowStep messageFlow;
     private MessageFlowEventType type;
+    private String componentPath;
+    private String owner;
+    private Date retryAfter;
+    private int retryCount;
 
     @ManyToOne
     @JoinColumn(name = "message_flow_id")
@@ -41,4 +49,41 @@ public class MessageFlowEvent extends BaseIntegrationDomain {
     public void setType(MessageFlowEventType type) {
         this.type = type;
     }
+
+    @Column(name = "owner")
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    @Column(name = "component_path")
+    public String getComponentPath() {
+        return componentPath;
+    }
+
+    public void setComponentPath(String componentPath) {
+        this.componentPath = componentPath;
+    }
+
+    @Column(name = "retry_after")
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getRetryAfter() {
+        return retryAfter;
+    }
+    
+    public void setRetryAfter(Date retryAfter) {
+        this.retryAfter = retryAfter;
+    }
+
+    @Column(name = "retry_count")
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    } 
 }

@@ -1,16 +1,28 @@
 {
   "routes": [
     {
-	  "name": "mllp-outbound",
-	  "components": [
-		{
-		  "name": "mllp-outbound", 
-		  "properties": {
-			"TARGET_HOST": "host.docker.internal",
-			"TARGET_PORT": "1111"
-		  }
-		}
-	  ]
-	}
+      "name": "Outbound-MLLP-to-Sydney-Hospital",
+      "components": [
+        {
+          "name": "To-Sydney-Hospital-MLLP-Outbound-Adapter",
+          "properties": {
+            "TARGET_HOST": "host.docker.internal",
+            "TARGET_PORT": "1111"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Outbound-MLLP-to-Melbourne-Hospital",
+      "components": [
+        {
+          "name": "To-Melbourne-Hospital-MLLP-Outbound-Adapter",
+          "properties": {
+            "TARGET_HOST": "host.docker.internal",
+            "TARGET_PORT": "2222"
+          }
+        }
+      ]
+    }
   ]
 }

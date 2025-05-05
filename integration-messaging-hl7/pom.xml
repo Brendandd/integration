@@ -34,10 +34,10 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-hl7</artifactId>
         </dependency>
-
+        
         <dependency>
             <groupId>integration</groupId>
-            <artifactId>integration-messaging</artifactId>
+            <artifactId>integration-core</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         

@@ -1,6 +1,6 @@
 package integration.core.dto.mapper;
 
-import integration.core.domain.configuration.Route;
+import integration.core.domain.configuration.IntegrationRoute;
 import integration.core.dto.RouteDto;
 
 /**
@@ -8,15 +8,15 @@ import integration.core.dto.RouteDto;
  * 
  * @author Brendan Douglas
  */
-public class RouteMapper extends BaseMapper<RouteDto, Route> {
+public class RouteMapper extends BaseMapper<RouteDto, IntegrationRoute> {
 
     @Override
-    public RouteDto doMapping(Route source) {
+    public RouteDto doMapping(IntegrationRoute source) {
         RouteDto destination = new RouteDto();
 
-        destination.setDescription(source.getDescription());
         destination.setId(source.getId());
         destination.setName(source.getName());
+        destination.setOwner(source.getOwner());
 
         return destination;
     }

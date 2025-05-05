@@ -110,7 +110,7 @@
                 <artifactId>camel-hl7</artifactId>
                 <version>${apache.camel.version}</version>
             </dependency>
-
+            
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
@@ -127,6 +127,12 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-netty</artifactId>
                 <version>${apache.camel.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-timer-starter</artifactId>
+                 <version>${apache.camel.version}</version>
             </dependency>
             
         </dependencies>
@@ -189,7 +195,6 @@
     <!-- Submodules -->
     <modules>
         <module>integration-core</module>
-        <module>integration-messaging</module>
         <module>integration-messaging-hl7</module>
         <module>integration-examples</module>
         <module>integration-rest</module>
