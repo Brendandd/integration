@@ -9,6 +9,7 @@ import org.apache.camel.Processor;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
+import integration.core.exception.EventProcessingException;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
@@ -49,7 +50,6 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
             .routeId("outboundMessageHandling-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(isInboundRunning)
             
                 .process(new Processor() {
                     
@@ -79,17 +79,24 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
                 .process(new Processor() {
     
                     @Override
-                    public void process(Exchange exchange) throws Exception {
-                        // Delete the event.
-                        Long eventId = exchange.getMessage().getBody(Long.class);
-                        messagingFlowService.deleteEvent(eventId);
+                    public void process(Exchange exchange) throws Exception {  
+                        Long eventId = null;
+                        Long messageFlowId = null;
                         
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        exchange.getMessage().setBody(messageFlowId);
+                        try {
+                            // Delete the event.
+                            eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
+                            messagingFlowService.deleteEvent(eventId);
+                        
+                            // Set the message flow step id as the exchange message body so it can be added to the queue.
+                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                            
+                            producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowId);
+                        } catch(Exception e) {
+                            throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
+                        }
                     }
-                })
-            .to("jms:topic:VirtualTopic." + getComponentPath());
+                });
     }
 }
 

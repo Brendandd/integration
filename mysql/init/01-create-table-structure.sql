@@ -30,8 +30,8 @@ CREATE TABLE `component` (
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `communication_point_id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='  ';
-SELECT * FROM integration.component;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 CREATE TABLE `event` (
@@ -52,24 +52,29 @@ CREATE TABLE `message` (
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `message_id_UNIQUE` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+SELECT * FROM integration.component;
 
 CREATE TABLE `message_flow_event` (
   `id` int NOT NULL AUTO_INCREMENT,
   `type` varchar(45) DEFAULT NULL,
   `event_date_time` datetime DEFAULT NULL,
   `message_flow_id` int DEFAULT NULL,
+  `component_path` varchar(200) DEFAULT NULL,
+  `owner` varchar(45) DEFAULT NULL,
+  `retry_count` int DEFAULT NULL,
+  `retry_after` datetime DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=817 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=225 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `message_flow_group` (
   `id` int NOT NULL AUTO_INCREMENT,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `message_flow_step` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -81,7 +86,8 @@ CREATE TABLE `message_flow_step` (
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=851 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=260 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 CREATE TABLE `message_flow_step_filtered` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -96,11 +102,13 @@ CREATE TABLE `message_flow_step_filtered` (
 CREATE TABLE `route` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(45) DEFAULT NULL,
+  `owner` varchar(45) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `shedlock` (
   `name` varchar(64) NOT NULL,

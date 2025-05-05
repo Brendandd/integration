@@ -3,6 +3,7 @@ package integration.core.messaging.component;
 import java.util.Map;
 
 import integration.core.domain.configuration.ComponentCategory;
+import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
 import integration.core.messaging.BaseRoute;
 
@@ -27,13 +28,13 @@ public interface MessagingComponent {
     
     public void setConfiguration(Map<String, String> configuration);
     
-    public void setInboundRunning(boolean isRunning);
-    
-    public void setOutboundRunning(boolean isRunning);
-    
-    public boolean isInboundRunning();
-    
-    public boolean isOutboundRunning();
-        
+    public ComponentState getInboundState();
+
+    public void setInboundState(ComponentState inboundState);
+
+    public ComponentState getOutboundState();
+
+    public void setOutboundState(ComponentState outboundState);
+            
     public String getOwner();
 }

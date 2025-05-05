@@ -1,5 +1,7 @@
 package integration.core.dto;
 
+import integration.core.domain.messaging.MessageFlowEventType;
+
 /**
  * A message flow event.
  * 
@@ -12,6 +14,7 @@ public class MessageFlowEventDto extends BaseDto {
     private long messageFlowId;
     private String owner;
     private String componentPath;
+    private MessageFlowEventType type;
 
     public long getMessageFlowId() {
         return messageFlowId;
@@ -35,5 +38,13 @@ public class MessageFlowEventDto extends BaseDto {
 
     public void setComponentPath(String componentPath) {
         this.componentPath = componentPath;
+    }
+
+    public MessageFlowEventType getType() {
+        return type;
+    }
+
+    public void setType(MessageFlowEventType type) {
+        this.type = type;
     }
 }

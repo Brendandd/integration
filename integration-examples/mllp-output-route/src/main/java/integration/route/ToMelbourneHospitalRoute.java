@@ -43,17 +43,10 @@ public class ToMelbourneHospitalRoute extends BaseRoute {
     
     @Override
     @PostConstruct
-    public void configure() throws Exception {
-        // Associate components to this route.
-        addComponentToRoute(fromAdelaideHospitalInboundRouteConnector);
-        addComponentToRoute(filter);
-        addComponentToRoute(mllpOutboundAdapter);
-
-        // Configure how the components are joined together.
+    public void configureRoute() throws Exception {
         addInboundFlow(fromAdelaideHospitalInboundRouteConnector, filter);
         addOutboundFlow(filter, mllpOutboundAdapter);
         
-        // Start the route
-        start();
+        applyConfiguration();
     }
 }

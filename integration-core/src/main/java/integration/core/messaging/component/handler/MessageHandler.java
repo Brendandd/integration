@@ -7,6 +7,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
@@ -62,7 +63,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("messageReceiver-" + getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
-                .autoStartup(isInboundRunning)
+                .autoStartup(inboundState == ComponentState.RUNNING)
                 .transacted()
                     .process(new Processor() {
                     

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ComponentCategory;
+import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
@@ -82,7 +83,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
             .routeId("mllpInboundMessageHandlerRoute-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(isInboundRunning)
+            .autoStartup(inboundState == ComponentState.RUNNING)
             .transacted()
             
                 .process(new Processor() {

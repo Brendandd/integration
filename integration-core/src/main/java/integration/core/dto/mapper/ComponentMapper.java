@@ -17,6 +17,9 @@ public class ComponentMapper extends BaseMapper<ComponentDto, IntegrationCompone
         destination.setName(source.getName());
         destination.setType(source.getType());
         destination.setCategory(source.getCategory());
+        destination.setOwner(source.getOwner());
+        destination.setInboundState(source.getInboundState());
+        destination.setOutboundState(source.getOutboundState());
 
         return destination;
     }

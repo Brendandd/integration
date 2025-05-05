@@ -40,17 +40,10 @@ public class DirectoryOutboundRoute extends BaseRoute {
 
     @Override
     @PostConstruct
-    public void configure() throws Exception {
-
-        // Associate components to the this route.
-        addComponentToRoute(directoryInboundRouteConnector);
-        addComponentToRoute(hl7DirectoryOutboundAdapter);
-
-        // Configure how the components are joined together.
+    public void configureRoute() throws Exception {
         addDirectFlow(directoryInboundRouteConnector, hl7DirectoryOutboundAdapter);
         addDirectFlow(fromAdelaideHospitalInboundRouteConnector, hl7DirectoryOutboundAdapter);
 
-        // Start the route
-        start();
+        applyConfiguration();
     }
 }

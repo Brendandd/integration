@@ -12,6 +12,7 @@ public class RouteDto extends BaseDto {
     private static final long serialVersionUID = 7968596607654658242L;
 
     private String name;
+    private String owner;
 
     private List<ComponentDto> components = new ArrayList<>();
 
@@ -39,4 +40,13 @@ public class RouteDto extends BaseDto {
         this.components.add(component);
     }
 
+
+    public String getOwner() {
+        return owner;
+    }
+
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 }

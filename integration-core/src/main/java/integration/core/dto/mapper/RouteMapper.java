@@ -16,6 +16,7 @@ public class RouteMapper extends BaseMapper<RouteDto, IntegrationRoute> {
 
         destination.setId(source.getId());
         destination.setName(source.getName());
+        destination.setOwner(source.getOwner());
 
         return destination;
     }

@@ -30,11 +30,11 @@ public abstract class BaseRoute {
 
     @Autowired
     protected ConfigurationService configurationService;
-    
+        
     protected long identifier;
 
     protected String name;
-
+    
     private List<MessagingComponent> components = new ArrayList<>();
 
     public BaseRoute(String name) {
@@ -130,33 +130,28 @@ public abstract class BaseRoute {
 
     
     private void addFlow(MessageProducer producer, MessageConsumer ... consumers) {
+        if (!this.components.contains(producer)) {
+            components.add(producer);
+        }
+        
         for (MessageConsumer consumer : consumers) {
+            if (!this.components.contains(consumer)) {
+                components.add(consumer);
+            }
+            
             producer.addMessageConsumer(consumer);
         } 
     }
 
     
-    /**
-     * Associates a component with this route.
-     * 
-     * @param component
-     * @throws Exception
-     */
-    public void addComponentToRoute(MessagingComponent component) throws Exception {
-        components.add(component);
-    }
-    
-    
-    public abstract void configure() throws Exception;
+    public abstract void configureRoute() throws Exception;
 
-    public void start() throws Exception {
-        
+    public void applyConfiguration() throws Exception { 
         configurationService.configureRoute(this, components);
 
         for (MessagingComponent component : components) {
             camelContext.addRoutes((RoutesBuilder)component);
         }
-        camelContext.start();
     }
 
     

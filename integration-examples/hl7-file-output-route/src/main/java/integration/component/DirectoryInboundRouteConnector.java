@@ -32,7 +32,7 @@ public class DirectoryInboundRouteConnector extends BaseInboundRouteConnector {
 
     @Override
     public String getConnectorName() {
-        return "AdelaideHospitalDirectoryRoute"; // Sends to an inbound connector with the same name.
+        return "directoryRouteConnector"; // Sends to an inbound connector with the same name.
     }
 
     @Override

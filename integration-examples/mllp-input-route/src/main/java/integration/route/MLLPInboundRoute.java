@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import integration.component.FromAdelaideHospitalMLLPInboundAdapter;
-import integration.component.Hl7MessageTypeFilter;
 import integration.component.OutboundRouteConnector;
 import integration.core.messaging.BaseRoute;
 import jakarta.annotation.PostConstruct;
@@ -28,26 +27,15 @@ public class MLLPInboundRoute extends BaseRoute {
     @Autowired
     private OutboundRouteConnector toMllpOutboundRouteConnector;
     
-    @Autowired
-    private Hl7MessageTypeFilter adtFilter;
-
     public MLLPInboundRoute() {
         super(ROUTE_NAME);
     }
 
     @Override
     @PostConstruct
-    public void configure() throws Exception {
-
-        // Associate components to the this route.
-        addComponentToRoute(mllpInboundAdapter);
-        addComponentToRoute(toMllpOutboundRouteConnector);
-        addComponentToRoute(adtFilter);
-
-        // Add a direct flow which is am inbound component directly to an outbound component.
-        addInboundFlow(mllpInboundAdapter, adtFilter);
-        addOutboundFlow(adtFilter, toMllpOutboundRouteConnector);
-
-        start();
+    public void configureRoute() throws Exception {
+        addDirectFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
+        
+        applyConfiguration();
     }
 }

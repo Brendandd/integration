@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
 import integration.core.dto.MessageFlowStepDto;
+import integration.core.exception.EventProcessingException;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
@@ -72,18 +73,18 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
         String target = getTargetHost() + ":" + getTargetPort();
         return "netty:tcp://" + target + constructOptions();
     }
-    
+
     
     @Override
     public String getContentType() {
         return CONTENT_TYPE;
     }
-
+    
     
     @Override
     public void configure() throws Exception {
         super.configure();
-        
+
         // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
         from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
             .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
@@ -93,17 +94,24 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        // Delete the event.
-                        Long eventId = exchange.getMessage().getBody(Long.class);
-                        messagingFlowService.deleteEvent(eventId);
+                        Long eventId = null;
+                        Long messageFlowId = null;
                         
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
-                        
-                        exchange.getMessage().setBody(messageFlowStepDto.getMessageContent());   
+                        try {
+                            // Delete the event.
+                            eventId = exchange.getMessage().getBody(Long.class);
+                            messagingFlowService.deleteEvent(eventId);
+                            
+                            // Retrieve the message flow so the content can be sent.
+                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
+                            
+                            // Send the message via MLLP
+                            producerTemplate.sendBody(getToUriString(), messageFlowStepDto.getMessageContent());
+                        } catch(Exception e) {
+                            throw new EventProcessingException("Error sending message via MLLP", eventId, messageFlowId, getComponentPath(), e);
+                        }
                     }
-                })
-                .to(getToUriString());
+                });
     }
 }

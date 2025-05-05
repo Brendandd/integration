@@ -36,12 +36,12 @@ public class ConfigurationRestController {
         return configurationService.getAllRoutes();
     }
 
-    @GetMapping(value = "/route/{routeName}")
-    @ResponseStatus(HttpStatus.OK)
-    public RouteDto getRouteByName(@PathVariable("routeName") String routeName) throws ConfigurationException {
-     //   return configurationService.getRouteByName(routeName);
-        return null;
-    }
+//    @GetMapping(value = "/route/{routeName}")
+//    @ResponseStatus(HttpStatus.OK)
+//    public RouteDto getRouteByName(@PathVariable("routeName") String routeName) throws ConfigurationException {
+//        return configurationService.ge.getRouteByName(routeName);
+//        return null;
+//    }
 
     @GetMapping(value = "/route/{routeName}/status")
     @ResponseStatus(HttpStatus.OK)

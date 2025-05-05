@@ -34,7 +34,7 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-hl7</artifactId>
         </dependency>
-
+        
         <dependency>
             <groupId>integration</groupId>
             <artifactId>integration-core</artifactId>

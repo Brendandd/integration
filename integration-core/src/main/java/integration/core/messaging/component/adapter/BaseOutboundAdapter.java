@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
+import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
@@ -43,7 +44,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("messageReceiver-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
-                .autoStartup(isInboundRunning)
+                .autoStartup(inboundState == ComponentState.RUNNING)
                 .transacted()
                     .process(new Processor() {
                     
@@ -68,18 +69,17 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
         }
 
         
-        // Entry point for a outbound route connector outbound message handling. 
+        // Entry point for a outbound route connectors outbound message handling. 
         from("direct:outboundMessageHandling-" + getComponentPath())
             .routeId("outboundMessageHandling-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(isInboundRunning)
 
                 .process(new Processor() {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {                       
-                        Long parentMessageFlowStepId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+                        Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                         
                         MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundAdapter.this, parentMessageFlowStepId, null, MessageFlowStepActionType.MESSAGE_DISPATCHED_TO_OUTSIDE_ENGINE);
                         messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 

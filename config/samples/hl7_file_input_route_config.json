@@ -1,7 +1,7 @@
 {
   "routes": [
     {
-      "name": "directory-inbound",
+      "name": "Inbound-Directory-from-Adelaide-Hospital",
       "components": [
         {
           "name": "directory-inbound",

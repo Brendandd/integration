@@ -13,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationRoute;
+import integration.core.dto.ComponentDto;
 import integration.core.dto.RouteDto;
+import integration.core.dto.mapper.ComponentMapper;
 import integration.core.dto.mapper.RouteMapper;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.BaseRoute;
@@ -59,50 +61,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         throw new ConfigurationException("Route not found.  Route name: " + name);
     }
-
-    
-    /**
-     * Is this component running.
-     */
-    @Override
-    public boolean isInboundRunning(long componentId) throws ConfigurationException {
-        IntegrationComponent component = getComponent(componentId);
-
-        return component.getInboundState() == ComponentState.RUNNING;
-    }
     
     
-    /**
-     * Is this component stopped.
-     */
-    @Override
-    public boolean isInboundStopped(long componentId) throws ConfigurationException {
-        IntegrationComponent component = getComponent(componentId);
+    
 
-        return component.getInboundState() == ComponentState.STOPPED;
-    }
     
     
-    /**
-     * Is this component running.
-     */
-    @Override
-    public boolean isOutboundRunning(long componentId) throws ConfigurationException {
-        IntegrationComponent component = getComponent(componentId);
-
-        return component.getOutboundState() == ComponentState.RUNNING;
-    }
-
-    /**
-     * Is this component stopped.
-     */
-    @Override
-    public boolean isOutboundStopped(long componentId) throws ConfigurationException {
-        IntegrationComponent component = getComponent(componentId);
-
-        return component.getOutboundState() == ComponentState.STOPPED;
-    }
-
     @Override
     public List<RouteDto> getAllRoutes() throws ConfigurationException {
         List<IntegrationRoute> routes = routeRepository.getAllRoutes();
@@ -122,58 +86,61 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
     
     
-    public IntegrationComponent getComponent(long componentId) throws ConfigurationException {
+    @Override
+    public ComponentDto getComponent(long componentId) throws ConfigurationException {
         Optional<IntegrationComponent> componentOptional = componentRepository.findById(componentId);
 
         if (componentOptional == null) {
             throw new ConfigurationException("Component does not exist: " + componentId);
         }
         
-        return componentOptional.get();
+        ComponentMapper mapper = new ComponentMapper();
+        
+        return mapper.doMapping(componentOptional.get());
     }
 
     
     @Override
-    public void configureRoute(BaseRoute baseRoute, List<MessagingComponent> components) {   
+    public void configureRoute(BaseRoute integrationRoute, List<MessagingComponent> components) {   
         String owner = env.getProperty("owner");       
         
-        IntegrationRoute route = routeRepository.getByName(baseRoute.getName(), owner);
+        IntegrationRoute route = routeRepository.getByName(integrationRoute.getName(), owner);
               
         // Create a new route if the route doesn't exist in the current module.
         if (route == null) {
             route = new IntegrationRoute();
-            route.setName(baseRoute.getName());
+            route.setName(integrationRoute.getName());
             route.setCreatedUserId(owner);
             route.setOwner(owner);
             route = routeRepository.save(route);
         }
         
         // Set the route id
-        baseRoute.setIdentifier(route.getId());
+        integrationRoute.setIdentifier(route.getId());
 
         for (MessagingComponent component : components) {
             
             // If the component already exists then ignore and is the same type and category then it is probably just being configured part of another route which is fine.
-            integration.core.domain.configuration.IntegrationComponent c = componentRepository.getByNameAndRoute(component.getName(),baseRoute.getName(), owner);
+            IntegrationComponent integrationComponent = componentRepository.getByNameAndRoute(component.getName(),integrationRoute.getName(), owner);
                            
-            if (c == null) { // Doesn't exist so create a new component
-                c = new integration.core.domain.configuration.IntegrationComponent();
-                c.setCategory(component.getCategory());
-                c.setName(component.getName());
-                c.setType(component.getType());
-                c.setCreatedUserId(owner);
-                c = componentRepository.save(c);
-                c.setInboundState(ComponentState.RUNNING);
-                c.setOutboundState(ComponentState.RUNNING);
-                c.setOwner(owner);
-                c.setRoute(route);
+            if (integrationComponent == null) { // Doesn't exist so create a new component
+                integrationComponent = new IntegrationComponent();
+                integrationComponent.setCategory(component.getCategory());
+                integrationComponent.setName(component.getName());
+                integrationComponent.setType(component.getType());
+                integrationComponent.setCreatedUserId(owner);
+                integrationComponent = componentRepository.save(integrationComponent);
+                integrationComponent.setInboundState(ComponentState.RUNNING);
+                integrationComponent.setOutboundState(ComponentState.RUNNING);
+                integrationComponent.setOwner(owner);
+                integrationComponent.setRoute(route);
             } 
             
-            component.setIdentifier(c.getId()); 
-            component.setRoute(baseRoute);
+            component.setIdentifier(integrationComponent.getId()); 
+            component.setRoute(integrationRoute);
                    
-            component.setInboundRunning(c.getInboundState() == ComponentState.RUNNING);
-            component.setOutboundRunning(c.getOutboundState() == ComponentState.RUNNING);
+            component.setInboundState(integrationComponent.getInboundState());
+            component.setOutboundState(integrationComponent.getOutboundState());
             component.setConfiguration(configLoader.getConfiguration(route.getName(),component.getName()));
         }
     }

@@ -9,10 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ComponentCategory;
+import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
+import integration.core.exception.EventProcessingException;
+import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -59,7 +62,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
             .routeId("messageReceiver-" + getComponentPath() + "-" + getName())
             .routeGroup(getComponentPath())
-            .autoStartup(isInboundRunning)
+            .autoStartup(inboundState == ComponentState.RUNNING)
         .transacted()
             .process(new Processor() {
                 
@@ -78,7 +81,6 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
             .routeId("outboundMessageHandling-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(isInboundRunning)
             
                 .process(new Processor() {
                     
@@ -106,19 +108,26 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
             .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
             .routeGroup(getComponentPath())
             .transacted()
-                .process(new Processor() {
-    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
+            .process(new Processor() {
+
+                @Override
+                public void process(Exchange exchange) throws Exception {   
+                    Long eventId = null;
+                    Long messageFlowId = null;
+                    
+                    try {
                         // Delete the event.
-                        Long eventId = exchange.getMessage().getBody(Long.class);
+                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
                         messagingFlowService.deleteEvent(eventId);
-                        
+                    
                         // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
-                        exchange.getMessage().setBody(messageFlowId);
+                        messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+                        
+                        producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowId);
+                    } catch(Exception e) {
+                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
                     }
-                })
-            .to("jms:topic:VirtualTopic." + getComponentPath());
+                }
+            });
     }
 }

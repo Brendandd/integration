@@ -1,17 +1,24 @@
 package integration.core.messaging.component;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.ComponentDto;
+import integration.core.dto.MessageFlowEventDto;
+import integration.core.exception.EventProcessingException;
 import integration.core.messaging.BaseRoute;
 import integration.core.service.ConfigurationService;
 import integration.core.service.MessagingFlowService;
@@ -35,35 +42,30 @@ import integration.core.service.MessagingFlowService;
  */
 public abstract class BaseMessagingComponent extends RouteBuilder implements MessagingComponent {   
     public static final String MESSAGE_FLOW_STEP_ID = "messageFlowStepId";
+    public static final String EVENT_ID = "eventId";
     
     protected long identifier;
     protected BaseRoute route;
     protected String owner;
     
-    @Autowired
-    protected CamelContext camelContext;
-    
-    @Autowired
-    protected Ignite ignite;
+    protected ComponentState inboundState;
+    protected ComponentState outboundState;
     
     @Autowired
     protected ConfigurationService configurationService;
 
-    protected boolean isInboundRunning;
-    protected boolean isOutboundRunning;
 
     @Autowired
     protected MessagingFlowService messagingFlowService;
-
-    @Autowired
-    protected ProducerTemplate producerTemplate;
     
     protected Map<String,String>componentProperties;
     
     @Autowired
     private Environment env;
     
-    
+    @Autowired
+    protected ProducerTemplate producerTemplate;
+
     /**
      * The content type handled by this component.
      * 
@@ -73,6 +75,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     public abstract Logger getLogger();
+    
+    @Autowired
+    protected Ignite ignite;
     
     
     /**
@@ -99,39 +104,113 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     @Override
     public void configure() throws Exception {
         
+        // Sets the event as failed.
+        onException(EventProcessingException.class)
+        .process(exchange -> {
+            Long eventId = exchange.getIn().getHeader(BaseMessagingComponent.EVENT_ID, Long.class);
+            messagingFlowService.setEventFailed(eventId);
+        });
+        
+     
         // A route to add the message flow step id to the inbound message handling complete queue.
         from("direct:addToInboundMessageHandlingCompleteQueue-" + getComponentPath())
             .routeId("addToInboundMessageHandlingCompleteQueue-" + getComponentPath())
-            .routeGroup(getComponentPath())
+            .routeGroup(getComponentPath())   
             .transacted()
                 .process(new Processor() {
     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        // Delete the event.
-                        Long eventId =  exchange.getMessage().getBody(Long.class);
-                        messagingFlowService.deleteEvent(eventId);
+                        Long eventId = null;
+                        Long messageFlowId = null;
                         
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        exchange.getMessage().setBody(messageFlowId);
+                        try {
+                            // Delete the event.
+                            eventId = exchange.getMessage().getBody(Long.class);
+                            messagingFlowService.deleteEvent(eventId);
+                            
+                            // Get the message flow step id.
+                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+    
+                            // Add the message to the queue
+                            producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getComponentPath(), messageFlowId);
+                        } catch (Exception e) {
+                            throw new EventProcessingException("Error adding the message flow id to the queue", eventId, messageFlowId, getComponentPath(), e);
+                        }
                     }
-                })
-            .to("jms:queue:inboundMessageHandlingComplete-" + getComponentPath());
+                });
 
-        
         
         // A route which reads from the components internal message handling complete queue.  This is the entry point for a components outbound message handling.
         from("jms:queue:inboundMessageHandlingComplete-" + getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
             .routeId("inboundMessageHandlingComplete-" + getComponentPath())
-            .autoStartup(isOutboundRunning)
+            .autoStartup(outboundState == ComponentState.RUNNING)
             .routeGroup(getComponentPath())
             .setHeader("contentType", constant(getContentType()))
-            .transacted()
-           // All components must provide an outboudMessageHandling route.
-           .to("direct:outboundMessageHandling-" + getComponentPath());
-    }
+            .transacted()            
+                // All components must provide an outboudMessageHandling route.
+                .to("direct:outboundMessageHandling-" + getComponentPath());
 
+        
+        
+        // Event processor routes.
+        from("timer://eventProcessorTimer-" + getComponentPath() + "?fixedRate=true&period=100&delay=2000")
+        .routeId("eventProcessorTimer-" + getComponentPath())
+        .process(exchange -> {
+            String owner = env.getProperty("owner");
+            IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
+            Lock lock = cache.lock(getComponentPath());
+
+            lock.lock(); // Lock acquired
+
+            try {
+                List<MessageFlowEventDto> events = messagingFlowService.getEventsForComponent(owner, 400, getComponentPath());
+
+                for (MessageFlowEventDto event : events) {
+                    Exchange subExchange = exchange.copy();
+
+                    subExchange.getIn().setHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID, event.getMessageFlowId());
+                    subExchange.getIn().setHeader("eventId", event.getId());
+                    subExchange.getIn().setBody(event.getId());
+                    
+                    String uri;
+                    if (event.getType() == MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE) {
+                        uri = "addToInboundMessageHandlingCompleteQueue" + "-" + event.getComponentPath();
+                    } else if (event.getType() == MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE) {
+                        uri = "handleOutboundMessageHandlingCompleteEvent" + "-" + event.getComponentPath();
+                    } else {
+                        continue; // skip unknown types
+                    }
+
+                    exchange.getContext().createProducerTemplate().send("direct:" + uri, subExchange);
+                }
+
+            } finally {
+                lock.unlock(); // Release lock after all events processed
+            }
+        });
+    
+    
+        // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
+        from("timer://stateTimer-" + getComponentPath() + "?fixedRate=true&period=100&delay=2000")
+        .routeId("stateTimer-" + getComponentPath())
+        .process(exchange -> {
+            String owner = env.getProperty("owner");
+
+                ComponentDto component = configurationService.getComponent(identifier);
+                
+                // Process inbound state change
+                if (component.getInboundState() != inboundState) {
+                    //TODO Stop/start the camel route
+                }
+                
+                // Process outbound state change
+                if (component.getOutboundState() != outboundState) {
+                  //TODO Stop/start the camel route
+                }
+        });
+     }
+    
     
     @Override
     public BaseRoute getRoute() {
@@ -149,39 +228,38 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     public Map<String, String> getConfiguration() {
         return componentProperties;
     }
-
-
+    
+    
     @Override
     public void setConfiguration(Map<String, String> componentProperties) {
         this.componentProperties = componentProperties; 
     }
 
-
-    @Override
-    public boolean isInboundRunning() {
-        return isInboundRunning;
-    }
-
-
-    @Override
-    public boolean isOutboundRunning() {
-        return isOutboundRunning;
-    }
-
-
-    @Override
-    public void setInboundRunning(boolean isRunning) {
-        this.isInboundRunning = isRunning;
-        
-    }
-
-
-    @Override
-    public void setOutboundRunning(boolean isRunning) {
-        this.isOutboundRunning = isRunning;
-    }
-
     
+    @Override
+    public ComponentState getInboundState() {
+        return inboundState;
+    }
+
+
+    @Override
+    public void setInboundState(ComponentState inboundState) {
+        this.inboundState = inboundState;
+    }
+
+
+    @Override
+    public ComponentState getOutboundState() {
+        return outboundState;
+    }
+
+
+    @Override
+    public void setOutboundState(ComponentState outboundState) {
+        this.outboundState = outboundState;
+    }
+
+
     @Override
     public String getOwner() {
         return env.getProperty("owner");

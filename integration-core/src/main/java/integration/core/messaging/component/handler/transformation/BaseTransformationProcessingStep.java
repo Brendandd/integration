@@ -10,6 +10,7 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
+import integration.core.exception.EventProcessingException;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.handler.MessageHandler;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -54,7 +55,6 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
             .routeId("outboundMessageHandling-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(isInboundRunning)
             
                 .process(new Processor() {
                     
@@ -87,19 +87,26 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
             .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
             .routeGroup(getComponentPath())
             .transacted()
-                .process(new Processor() {
-    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
+            .process(new Processor() {
+
+                @Override
+                public void process(Exchange exchange) throws Exception {    
+                    Long eventId = null;
+                    Long messageFlowId = null;
+                    
+                    try {
                         // Delete the event.
-                        Long eventId = exchange.getMessage().getBody(Long.class);
+                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
                         messagingFlowService.deleteEvent(eventId);
-                        
+                    
                         // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        Long messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        exchange.getMessage().setBody(messageFlowId);
+                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                        
+                        producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowId);
+                    } catch(Exception e) {
+                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
                     }
-                })
-            .to("jms:topic:VirtualTopic." + getComponentPath());
+                }
+            });
     }
 }

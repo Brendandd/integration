@@ -98,7 +98,21 @@ public interface MessagingFlowService {
      * @param type
      * @return
      */
-    List<MessageFlowEventDto> getEvents(String owner, int numberToRead, MessageFlowEventType type);
+    List<MessageFlowEventDto> getEventsForComponent(String owner, int numberToRead, String componentPath);
+    
+    
+    /**
+     * Gets a list of matching events.
+     * 
+     * @param identifier
+     * @param numberToRead
+     * @param type
+     * @return
+     */
+    List<MessageFlowEventDto> getEvents(String owner, String componentPath);
+    
+    
+    void setEventFailed(long eventId);
     
     
     /**

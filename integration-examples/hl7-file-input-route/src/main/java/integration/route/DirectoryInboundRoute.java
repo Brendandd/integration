@@ -29,15 +29,9 @@ public class DirectoryInboundRoute extends BaseRoute {
 
     @Override
     @PostConstruct
-    public void configure() throws Exception {
-
-        // Associate components to the this route.
-        addComponentToRoute(directoryInboundAdapter);
-        addComponentToRoute(directoryOutboundRouteConnector);
-
-        // Configure how the components are joined together.
+    public void configureRoute() throws Exception {
         addDirectFlow(directoryInboundAdapter, directoryOutboundRouteConnector);
 
-        start();
+        applyConfiguration();
     }
 }

@@ -27,6 +27,11 @@
             <artifactId>integration-messaging-hl7</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        
+                <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-timer-starter</artifactId>
+        </dependency>
     </dependencies>
 	
 

@@ -1,6 +1,8 @@
 package integration.core.service.impl;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -103,12 +105,28 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
-    public List<MessageFlowEventDto> getEvents(String owner, int numberToRead, MessageFlowEventType type) {
+    public List<MessageFlowEventDto> getEventsForComponent(String owner, int numberToRead, String componentPath) {
         MessageFlowEventMapper mapper = new MessageFlowEventMapper();
 
         List<MessageFlowEventDto> eventDtos = new ArrayList<>();
 
-        List<MessageFlowEvent> events = eventRepository.getEvents(owner, type, numberToRead);
+        List<MessageFlowEvent> events = eventRepository.getEvents(owner, componentPath, numberToRead);
+
+        for (MessageFlowEvent event : events) {
+            eventDtos.add(mapper.doMapping(event));
+        }
+        
+        return eventDtos;
+    }
+
+    
+    @Override
+    public List<MessageFlowEventDto> getEvents(String owner, String componentPath) {
+        MessageFlowEventMapper mapper = new MessageFlowEventMapper();
+
+        List<MessageFlowEventDto> eventDtos = new ArrayList<>();
+
+        List<MessageFlowEvent> events = eventRepository.getEvents(owner, componentPath);
 
         for (MessageFlowEvent event : events) {
             eventDtos.add(mapper.doMapping(event));
@@ -311,5 +329,31 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         
         MessageFlowStepMapper mapper = new MessageFlowStepMapper();
         return mapper.doMapping(savedStep);
+    }
+
+    
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void setEventFailed(long eventId) {
+        Optional<MessageFlowEvent> eventOptional =  eventRepository.findById(eventId);
+        
+        MessageFlowEvent event = eventOptional.get();
+        
+        int retryCount = event.getRetryCount();
+        event.setRetryCount(++retryCount);
+        
+        Calendar calendar = Calendar.getInstance();
+        
+        if (event.getRetryAfter() == null) {
+            calendar.setTime(new Date());
+        }
+        
+
+        int delaySeconds = 30 * retryCount;
+        calendar.add(Calendar.SECOND, delaySeconds);
+        
+        event.setRetryAfter(calendar.getTime());
+        
+        eventRepository.save(event);   
     }
 }
