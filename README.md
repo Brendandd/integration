@@ -10,7 +10,7 @@ These instructions will help you set up a local development environment.
 
 ### Prerequisites
 
-- **Docker**:
+- **Docker**
 - **Java (JDK 17 or higher)**: Required for building the application.
 - **Maven**: Required for building the Java project locally.
 
@@ -18,7 +18,7 @@ These instructions will help you set up a local development environment.
 
 ## 🚀 Installation
 
-From the ** integration ** folder
+From the **integration** folder
 
 ```
 mvn clean install
@@ -26,7 +26,7 @@ mvn clean install
 
 Then, navigate to the **integration/config/samples/scripts** folder and run the following:
 
-###First, run these services:
+### First, run these services:
 
 ```
 run-apache-activemq-artemis
