@@ -3,16 +3,11 @@ package integration.messaging.hl7.component.adapter.mllp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
-import integration.core.dto.MessageFlowStepDto;
-import integration.core.exception.EventProcessingException;
-import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.adapter.BaseOutboundAdapter;
@@ -69,7 +64,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    public String getToUriString() {
+    public String getMessageForwardingUriString() {
         String target = getTargetHost() + ":" + getTargetPort();
         return "netty:tcp://" + target + constructOptions();
     }
@@ -84,34 +79,5 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     @Override
     public void configure() throws Exception {
         super.configure();
-
-        // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(new Processor() {
-    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        Long eventId = null;
-                        Long messageFlowId = null;
-                        
-                        try {
-                            // Delete the event.
-                            eventId = exchange.getMessage().getBody(Long.class);
-                            messagingFlowService.deleteEvent(eventId);
-                            
-                            // Retrieve the message flow so the content can be sent.
-                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
-                            
-                            // Send the message via MLLP
-                            producerTemplate.sendBody(getToUriString(), messageFlowStepDto.getMessageContent());
-                        } catch(Exception e) {
-                            throw new EventProcessingException("Error sending message via MLLP", eventId, messageFlowId, getComponentPath(), e);
-                        }
-                    }
-                });
     }
 }

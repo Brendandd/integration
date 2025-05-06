@@ -1,8 +1,11 @@
-package integration.core.messaging.component.handler.filter;
+package integration.core.messaging.component.handler.filter.common;
 
 import org.springframework.stereotype.Component;
 
 import integration.core.dto.MessageFlowStepDto;
+import integration.core.messaging.component.handler.filter.FilterException;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * A message filter which filters all messages.

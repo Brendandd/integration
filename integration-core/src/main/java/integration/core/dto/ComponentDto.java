@@ -20,6 +20,8 @@ public class ComponentDto extends BaseDto {
     private String owner;
     private ComponentState inboundState;
     private ComponentState outboundState;
+    
+    private RouteDto route;
   
     public String getName() {
         return name;
@@ -78,5 +80,15 @@ public class ComponentDto extends BaseDto {
 
     public void setOutboundState(ComponentState outboundState) {
         this.outboundState = outboundState;
+    }
+
+
+    public RouteDto getRoute() {
+        return route;
+    }
+
+
+    public void setRoute(RouteDto route) {
+        this.route = route;
     } 
 }

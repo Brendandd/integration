@@ -6,14 +6,18 @@ import javax.naming.ConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import integration.core.dto.ComponentDto;
 import integration.core.dto.RouteDto;
 import integration.core.service.ConfigurationService;
+import integration.core.service.impl.StatusChangeResponse;
 
 /**
  * A rest controller for route configuration.
@@ -30,22 +34,121 @@ public class ConfigurationRestController {
     @Autowired
     protected ConfigurationService configurationService;
 
+    
+    /**
+     * Get all routes.
+     * 
+     * @return
+     * @throws ConfigurationException
+     */
     @GetMapping(value = "/routes")
     @ResponseStatus(HttpStatus.OK)
     public List<RouteDto> getAllRoutes() throws ConfigurationException {
         return configurationService.getAllRoutes();
     }
 
-//    @GetMapping(value = "/route/{routeName}")
-//    @ResponseStatus(HttpStatus.OK)
-//    public RouteDto getRouteByName(@PathVariable("routeName") String routeName) throws ConfigurationException {
-//        return configurationService.ge.getRouteByName(routeName);
-//        return null;
-//    }
-
-    @GetMapping(value = "/route/{routeName}/status")
+    
+    /**
+     * Gets a single route by id.
+     * 
+     * @param routeName
+     * @return
+     * @throws ConfigurationException
+     */
+    @GetMapping(value = "/route/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RouteDto getRouteStatus(@PathVariable("routeName") String routeName) throws ConfigurationException {
-        throw new UnsupportedOperationException("This method has not yet been implemented.");
+    public RouteDto getRoute(@PathVariable("id") long id) throws ConfigurationException {
+        return configurationService.getRoute(id);
+    }
+
+    
+    /**
+     * Get all components.
+     * 
+     * @return
+     * @throws ConfigurationException
+     */
+    @GetMapping(value = "/components")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ComponentDto> getComponents() throws ConfigurationException {
+        return configurationService.getAllComponents();
+    }
+
+    
+    /**
+     * Gets a single component by id.
+     * 
+     * @param routeName
+     * @return
+     * @throws ConfigurationException
+     */
+    @GetMapping(value = "/component/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ComponentDto getComponent(@PathVariable("id") long id) throws ConfigurationException {
+        return configurationService.getComponent(id);
+    }
+
+    
+    /**
+     * Stops the components inbound handler so it cannot accept messages.
+     * 
+     * @param id
+     * @return
+     * @throws ConfigurationException
+     */
+    @PostMapping(value = "/component/{id}/stop/inbound")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<StatusChangeResponse> stopComponentInbound(@PathVariable("id") long id) throws ConfigurationException {
+        StatusChangeResponse response = configurationService.stopComponentInbound(id);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    
+    /**
+     * Starts the components inbound handler.
+     * 
+     * @param id
+     * @return
+     * @throws ConfigurationException
+     */
+    @PostMapping(value = "/component/{id}/start/inbound")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<StatusChangeResponse> startComponentInbound(@PathVariable("id") long id) throws ConfigurationException {
+        StatusChangeResponse response = configurationService.startComponentInbound(id);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    
+    /**
+     * Stops the components outbound handler so it cannot forward messages.
+     * 
+     * @param id
+     * @return
+     * @throws ConfigurationException
+     */
+    @PostMapping(value = "/component/{id}/stop/outbound")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<StatusChangeResponse> stopComponentOutbound(@PathVariable("id") long id) throws ConfigurationException {
+        StatusChangeResponse response = configurationService.stopComponentOutbound(id);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    
+    /**
+     * Starts the components outbound handler.
+     * 
+     * @param id
+     * @return
+     * @throws ConfigurationException
+     */
+    @PostMapping(value = "/component/{id}/start/outbound")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<StatusChangeResponse> startComponentOutbound(@PathVariable("id") long id) throws ConfigurationException {
+        StatusChangeResponse response = configurationService.startComponentOutbound(id);
+        
+        return ResponseEntity.ok(response);
     }
 }

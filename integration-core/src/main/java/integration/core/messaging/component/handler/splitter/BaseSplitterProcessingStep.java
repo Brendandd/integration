@@ -10,8 +10,6 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
-import integration.core.exception.EventProcessingException;
-import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.handler.MessageHandler;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
@@ -40,7 +38,7 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
     public ComponentCategory getCategory() {
         return ComponentCategory.MESSAGE_HANDLER;
     }
-    
+
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -68,43 +66,13 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                             MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(splitMessageFlowStepDto);
                                                                               
                             // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                            if (result.isSuccess()) {
-                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseSplitterProcessingStep.this,parentMessageFlowStepDto.getId(), null, MessageFlowStepActionType.MESSAGE_FORWARDED);
-                                
-                                messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            if (result.isSuccess()) {           
+                                messagingFlowService.recordMessageFlowEvent(splitMessageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                messagingFlowService.recordMessageNotForwarded(BaseSplitterProcessingStep.this, parentMessageFlowStepDto.getId(), result, MessageFlowStepActionType.MESSAGE_NOT_FORWARDED);
+                                messagingFlowService.recordMessageNotForwarded(BaseSplitterProcessingStep.this, splitMessageFlowStepDto.getId(), result, MessageFlowStepActionType.NOT_FORWARDED);
                             }
                         }
                     }
                 });
-
-        
-        // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeGroup(getComponentPath())
-            .transacted()
-            .process(new Processor() {
-
-                @Override
-                public void process(Exchange exchange) throws Exception {   
-                    Long eventId = null;
-                    Long messageFlowId = null;
-                    
-                    try {
-                        // Delete the event.
-                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
-                        messagingFlowService.deleteEvent(eventId);
-                    
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        
-                        producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowId);
-                    } catch(Exception e) {
-                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
-                    }
-                }
-            });
-    }
+        }
 }

@@ -14,8 +14,6 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
-import integration.core.exception.EventProcessingException;
-import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -45,16 +43,26 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
     public ComponentCategory getCategory() {
         return ComponentCategory.OUTBOUND_ROUTE_CONNECTOR;
     }
+    
+    
+    @Override
+    public String getMessageForwardingUriString() {
+        return "jms:topic:VirtualTopic." + getConnectorName();
+    }
 
-
-
-
+    
     @Override
     public void addMessageProducer(MessageProducer messageProducer) {
         if (!messageProducers.contains(messageProducer)) {
             this.messageProducers.add(messageProducer);
             messageProducer.addMessageConsumer(this);
         }
+    }
+    
+    
+    @Override
+    protected Long getBodyContent(MessageFlowStepDto messageFlowStepDto) {
+        return messageFlowStepDto.getId();
     }
 
     
@@ -67,7 +75,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
         for (MessageProducer messageProducer : messageProducers) {
           
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("messageReceiver-" + getComponentPath() + "-" + messageProducer.getComponentPath())
+                .routeId("inboundEntryPoint-" + getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == ComponentState.RUNNING)
                 .transacted()
@@ -83,13 +91,12 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                             MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowStepDto);
                             
                             if (result.isSuccess()) {
-                                // Record the content received by this component.
-                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundRouteConnector.this, parentMessageFlowStepId, null, MessageFlowStepActionType.MESSAGE_ACCEPTED);
+                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundRouteConnector.this, parentMessageFlowStepId, null, MessageFlowStepActionType.ACCEPTED);
                             
                                 // Record an event so the message can be forwarded to other components for processing.
                                 messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);
                             } else {
-                                messagingFlowService.recordMessageNotAccepted(BaseOutboundRouteConnector.this, parentMessageFlowStepId, result, MessageFlowStepActionType.MESSAGE_NOT_ACCEPTED);
+                                messagingFlowService.recordMessageNotAccepted(BaseOutboundRouteConnector.this, parentMessageFlowStepId, result, MessageFlowStepActionType.NOT_ACCEPTED);
                             }
                         }
                     });
@@ -108,39 +115,8 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                     public void process(Exchange exchange) throws Exception {               
                         // Record the outbound message.
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                                              
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundRouteConnector.this,parentMessageFlowStepId, null, MessageFlowStepActionType.MESSAGE_FORWARDED_TO_ANOTHER_ROUTE);
-                        
-                        messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), getComponentPath(), getOwner(),MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(parentMessageFlowStepId, getComponentPath(), getOwner(),MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
-
-        
-        // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeGroup(getComponentPath())
-            .transacted()
-            .process(new Processor() {
-
-                @Override
-                public void process(Exchange exchange) throws Exception { 
-                    Long eventId = null;
-                    Long messageFlowId = null;
-                    
-                    try {
-                        // Delete the event.
-                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
-                        messagingFlowService.deleteEvent(eventId);
-                    
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
-                        
-                        producerTemplate.sendBody("jms:topic:VirtualTopic." + getConnectorName(), messageFlowId);
-                    } catch(Exception e) {
-                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
-                    }
-                }
-            });
     }
 }

@@ -7,6 +7,7 @@ import integration.core.dto.RouteDto;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.BaseRoute;
 import integration.core.messaging.component.MessagingComponent;
+import integration.core.service.impl.StatusChangeResponse;
 
 /**
  * @author Brendan Douglas
@@ -17,8 +18,22 @@ public interface ConfigurationService {
     RouteDto getRouteByName(String name, String owner) throws ConfigurationException;
 
     List<RouteDto> getAllRoutes() throws ConfigurationException;
+    
+    RouteDto getRoute(long routeId) throws ConfigurationException;
 
     void configureRoute(BaseRoute baseRoute, List<MessagingComponent> components);
     
-    ComponentDto getComponent(long componentId);
+    ComponentDto getComponent(long componentId) throws ConfigurationException;
+    
+    List<ComponentDto> getAllComponents() throws ConfigurationException;
+    
+    StatusChangeResponse stopComponentInbound(long id);
+    
+    StatusChangeResponse startComponentInbound(long id);   
+    
+    StatusChangeResponse stopComponentOutbound(long id);
+    
+    StatusChangeResponse startComponentOutbound(long id); 
 }
+
+

@@ -40,7 +40,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Autowired
     private ComponentRepository componentRepository;
        
-    @Autowired
+    @Autowired(required = false)
     private RouteConfigLoader configLoader;
     
     @Autowired
@@ -61,17 +61,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         throw new ConfigurationException("Route not found.  Route name: " + name);
     }
-    
-    
-    
 
-    
     
     @Override
     public List<RouteDto> getAllRoutes() throws ConfigurationException {
         List<IntegrationRoute> routes = routeRepository.getAllRoutes();
 
-        List<RouteDto> routeDtos = new ArrayList<RouteDto>();
+        List<RouteDto> routeDtos = new ArrayList<>();
 
         for (IntegrationRoute route : routes) {
             RouteMapper routeMapper = new RouteMapper();
@@ -84,7 +80,37 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         return routeDtos;
     }
+
     
+    @Override
+    public RouteDto getRoute(long routeId) throws ConfigurationException {
+        Optional<IntegrationRoute> routeOptional = routeRepository.findById(routeId);
+
+        if (routeOptional == null) {
+            throw new ConfigurationException("Route does not exist: " + routeId);
+        }
+        
+        RouteMapper mapper = new RouteMapper();
+        
+        return mapper.doMapping(routeOptional.get());
+    }
+
+
+    @Override
+    public List<ComponentDto> getAllComponents() throws ConfigurationException {
+        List<IntegrationComponent>components = componentRepository.getAllComponents();
+        
+        List<ComponentDto>componentDtos = new ArrayList<>();
+        
+        for (IntegrationComponent component : components) {
+            ComponentMapper componentMapper = new ComponentMapper();
+            
+            ComponentDto componentDto = componentMapper.doMapping(component);
+            componentDtos.add(componentDto);
+        }
+        return componentDtos;
+    }
+
     
     @Override
     public ComponentDto getComponent(long componentId) throws ConfigurationException {
@@ -143,5 +169,69 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             component.setOutboundState(integrationComponent.getOutboundState());
             component.setConfiguration(configLoader.getConfiguration(route.getName(),component.getName()));
         }
+    }
+
+    
+    @Override
+    public StatusChangeResponse stopComponentInbound(long id) {
+        Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
+        IntegrationComponent component = componentOptional.get();
+        
+        if (component.getInboundState() == ComponentState.RUNNING) {
+            component.setInboundState(ComponentState.STOPPED);
+            componentRepository.save(component);
+            
+            return new StatusChangeResponse(true, "Inbound State Change", id, ComponentState.RUNNING, ComponentState.STOPPED);
+        } 
+
+        return new StatusChangeResponse(true, "Inbound already stopped", id, ComponentState.STOPPED, ComponentState.STOPPED);
+    }
+
+    
+    @Override
+    public StatusChangeResponse startComponentInbound(long id) {
+        Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
+        IntegrationComponent component = componentOptional.get();
+        
+        if (component.getInboundState() == ComponentState.STOPPED) {
+            component.setInboundState(ComponentState.RUNNING);
+            componentRepository.save(component);
+            
+            return new StatusChangeResponse(true, "Inbound State Change", id, ComponentState.STOPPED, ComponentState.RUNNING);
+        } 
+        
+        return new StatusChangeResponse(true, "Inbound already started", id, ComponentState.RUNNING, ComponentState.RUNNING);
+    }
+
+    
+    @Override
+    public StatusChangeResponse stopComponentOutbound(long id) {
+        Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
+        IntegrationComponent component = componentOptional.get();
+        
+        if (component.getOutboundState() == ComponentState.RUNNING) {
+            component.setOutboundState(ComponentState.STOPPED);
+            componentRepository.save(component);
+            
+            return new StatusChangeResponse(true, "Outbound State Change", id, ComponentState.RUNNING, ComponentState.STOPPED);
+        }  
+        
+        return new StatusChangeResponse(true, "Outbound already stopped", id, ComponentState.STOPPED, ComponentState.STOPPED);
+    }
+
+    
+    @Override
+    public StatusChangeResponse startComponentOutbound(long id) {
+        Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
+        IntegrationComponent component = componentOptional.get();
+        
+        if (component.getOutboundState() == ComponentState.STOPPED) {
+            component.setOutboundState(ComponentState.RUNNING);
+            componentRepository.save(component);
+            
+            return new StatusChangeResponse(true, "Outbound State Change", id, ComponentState.STOPPED, ComponentState.RUNNING);
+        } 
+        
+        return new StatusChangeResponse(true, "Outbound already started", id, ComponentState.RUNNING, ComponentState.RUNNING);
     }
 }

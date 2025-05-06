@@ -8,6 +8,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -16,6 +17,7 @@ import jakarta.annotation.PostConstruct;
  * Loads the route config.
  */
 @Component
+@ConditionalOnProperty(name = "component.route-config.enabled", havingValue = "true", matchIfMissing = false)
 public class RouteConfigLoader {
     
     @Value("${integration.config.file:/app/route-config.json}")

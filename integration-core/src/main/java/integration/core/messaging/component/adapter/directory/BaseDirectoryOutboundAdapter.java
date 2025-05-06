@@ -1,13 +1,9 @@
 package integration.core.messaging.component.adapter.directory;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
-import integration.core.dto.MessageFlowStepDto;
-import integration.core.exception.EventProcessingException;
-import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 
 /**
@@ -25,7 +21,7 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     
     
     @Override
-    public String getToUriString() {
+    public String getMessageForwardingUriString() {
         return "file:" + getDestinationFolder() + constructOptions();
     }
     
@@ -57,40 +53,16 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
+    protected void preForwardingProcessing(Exchange exchange) {
+        // Set the file name as a header.
+        Long messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+        String fileName = generateFilename(exchange, messageFlowId);
+        exchange.getMessage().setHeader(CAMEL_FILE_NAME, fileName);
+    }
+
+    
+    @Override
     public void configure() throws Exception {
         super.configure();
-        
-        // A route to process outbound message handling complete events.  This is the final stage of an outbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(new Processor() {
-    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {   
-                        Long eventId = null;
-                        Long messageFlowId = null;
-                        
-                        try {
-                            // Delete the event.
-                            eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
-                            messagingFlowService.deleteEvent(eventId);
-                        
-                            // Get the message content so it can be stored.
-                            messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
-                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
-                            
-                            // Set the file name as a header.
-                            String fileName = generateFilename(exchange, messageFlowId);
-                            exchange.getMessage().setHeader(CAMEL_FILE_NAME, fileName);
-        
-                            // write the file
-                            producerTemplate.sendBody(getToUriString(), messageFlowStepDto.getMessageContent());
-                        } catch(Exception e) {
-                            throw new EventProcessingException("Error storing the file", eventId, messageFlowId, getComponentPath(), e);
-                        }
-                    }
-                });
     }
 }

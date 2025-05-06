@@ -33,6 +33,11 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
     
     @Autowired
     protected MetaDataService metaDataService;
+    
+    @Override
+    public String getMessageForwardingUriString() {
+        return "jms:topic:VirtualTopic." + getComponentPath();
+    }
 
     @Override
     public void addMessageConsumer(MessageConsumer messageConsumer) {
@@ -51,6 +56,11 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
         }
     }
     
+    @Override
+    protected Long getBodyContent(MessageFlowStepDto messageFlowStepDto) {
+        return messageFlowStepDto.getId();
+    }
+    
     
     @Override
     public void configure() throws Exception {
@@ -61,7 +71,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
 
             
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("messageReceiver-" + getComponentPath() + "-" + messageProducer.getComponentPath())
+                .routeId("inboundEntryPoint-" + getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == ComponentState.RUNNING)
                 .transacted()
@@ -76,12 +86,12 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                             MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowStepDto);
                             if (result.isSuccess()) {
                                 // Record the content received by this component.
-                                MessageFlowStepDto acceptedMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(MessageHandler.this, parentMessageFlowStepId, null, MessageFlowStepActionType.MESSAGE_ACCEPTED);
+                                MessageFlowStepDto acceptedMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(MessageHandler.this, parentMessageFlowStepId, null, MessageFlowStepActionType.ACCEPTED);
                             
                                 // Record an event so the message can be forwarded to other components for processing.
                                 messagingFlowService.recordMessageFlowEvent(acceptedMessageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                messagingFlowService.recordMessageNotAccepted(MessageHandler.this, parentMessageFlowStepId, result, MessageFlowStepActionType.MESSAGE_NOT_ACCEPTED);
+                                messagingFlowService.recordMessageNotAccepted(MessageHandler.this, parentMessageFlowStepId, result, MessageFlowStepActionType.NOT_ACCEPTED);
                             }
                         }
                     });

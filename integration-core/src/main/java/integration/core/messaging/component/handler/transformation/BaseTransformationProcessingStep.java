@@ -10,8 +10,6 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.MessageFlowStepDto;
-import integration.core.exception.EventProcessingException;
-import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.handler.MessageHandler;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
@@ -26,11 +24,13 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
         return LOGGER;
     }
     
+    
     @Override
     public ComponentType getType() {
         return ComponentType.TRANSFORMER;
     }
-
+    
+    
     @Override
     public ComponentCategory getCategory() {
         return ComponentCategory.MESSAGE_HANDLER;
@@ -49,7 +49,6 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
     public void configure() throws Exception {
         super.configure();
         
-
         // Entry point for an inbound adapters outbound message handling. 
         from("direct:outboundMessageHandling-" + getComponentPath())
             .routeId("outboundMessageHandling-" + getComponentPath())
@@ -64,7 +63,10 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                         MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
                         
+                        // Transform the content.
                         String transformedContent = getTransformer().transform(parentMessageFlowStepDto);
+                        
+                        MessageFlowStepDto transformedMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(transformedContent, BaseTransformationProcessingStep.this,parentMessageFlowStepId, getContentType(), null, MessageFlowStepActionType.TRANSFORMED);
                         
                         // Need to update the message content before applying the policy.
                         parentMessageFlowStepDto.getMessage().setContent(transformedContent);
@@ -73,40 +75,11 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                                                                        
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
-                            MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(transformedContent, BaseTransformationProcessingStep.this,parentMessageFlowStepId, getContentType(), null, MessageFlowStepActionType.MESSAGE_FORWARDED);
-                            messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            messagingFlowService.recordMessageFlowEvent(transformedMessageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {
-                            messagingFlowService.recordMessageNotForwarded(BaseTransformationProcessingStep.this, parentMessageFlowStepDto.getId(), result, MessageFlowStepActionType.MESSAGE_NOT_FORWARDED);
+                            messagingFlowService.recordMessageNotForwarded(BaseTransformationProcessingStep.this, transformedMessageFlowStepDto.getId(), result, MessageFlowStepActionType.NOT_FORWARDED);
                         }
                     }
                 });
-
-        
-        // A route to process outbound message handling complete events.  This is the final stage of an inbound adapter.
-        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeId("handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
-            .routeGroup(getComponentPath())
-            .transacted()
-            .process(new Processor() {
-
-                @Override
-                public void process(Exchange exchange) throws Exception {    
-                    Long eventId = null;
-                    Long messageFlowId = null;
-                    
-                    try {
-                        // Delete the event.
-                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
-                        messagingFlowService.deleteEvent(eventId);
-                    
-                        // Set the message flow step id as the exchange message body so it can be added to the queue.
-                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        
-                        producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowId);
-                    } catch(Exception e) {
-                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
-                    }
-                }
-            });
     }
 }

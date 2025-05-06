@@ -2,6 +2,7 @@ package integration.core.dto.mapper;
 
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.dto.ComponentDto;
+import integration.core.dto.RouteDto;
 
 /**
  * Maps a component domain object to a component dto.
@@ -20,6 +21,12 @@ public class ComponentMapper extends BaseMapper<ComponentDto, IntegrationCompone
         destination.setOwner(source.getOwner());
         destination.setInboundState(source.getInboundState());
         destination.setOutboundState(source.getOutboundState());
+        
+        RouteDto routeDto = new RouteDto();
+        routeDto.setId(source.getRoute().getId());
+        routeDto.setName(source.getRoute().getName());
+        
+        destination.setRoute(routeDto);
 
         return destination;
     }

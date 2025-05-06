@@ -65,7 +65,7 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
 
         // A route to read a file from the defined location, store the file content, store an event all within a single transaction.
         from(getFromUriString())
-            .routeId("mllpInboundMessageHandlerRoute-" + getComponentPath())
+            .routeId("inboundEntryPoint-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .autoStartup(inboundState == ComponentState.RUNNING)
@@ -75,16 +75,17 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        // Store the message received by this inbound adapter.
-                        String messageContent = exchange.getMessage().getBody(String.class);
-                        
                         // Store the incoming file name header.
                         Map<String,String>metaData = new HashMap<>();
                         String incomingFilename = (String)exchange.getMessage().getHeader(CAMEL_FILE_NAME);
                         metaData.put(CAMEL_FILE_NAME, incomingFilename);
                         
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData, MessageFlowStepActionType.MESSAGE_RECEIVED_FROM_OUTSIDE_ENGINE);
                         
+                        // Store the message received by this inbound adapter.
+                        String messageContent = exchange.getMessage().getBody(String.class);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData, MessageFlowStepActionType.ACCEPTED);
+                        
+                        // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
                         messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });

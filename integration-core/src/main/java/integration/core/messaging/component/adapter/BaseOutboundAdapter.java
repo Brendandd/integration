@@ -31,7 +31,11 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
         }
     }
     
-    public abstract String getToUriString();
+    
+    @Override
+    protected String getBodyContent(MessageFlowStepDto messageFlowStepDto) {
+        return messageFlowStepDto.getMessageContent();
+    }
 
     
     @Override
@@ -42,7 +46,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
         for (MessageProducer messageProducer : messageProducers) {
             
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("messageReceiver-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
+                .routeId("inboundEntryPoint-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == ComponentState.RUNNING)
                 .transacted()
@@ -57,12 +61,12 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                             MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowStepDto);
                             if (result.isSuccess()) {
                                 // Record the content received by this component.
-                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundAdapter.this, parentMessageFlowStepId, null, MessageFlowStepActionType.MESSAGE_ACCEPTED);
+                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundAdapter.this, parentMessageFlowStepId, null, MessageFlowStepActionType.ACCEPTED);
                             
                                 // Record an event so the message can be forwarded to other components for processing.
                                 messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                messagingFlowService.recordMessageNotAccepted(BaseOutboundAdapter.this, parentMessageFlowStepId, result, MessageFlowStepActionType.MESSAGE_NOT_ACCEPTED);
+                                messagingFlowService.recordMessageNotAccepted(BaseOutboundAdapter.this, parentMessageFlowStepId, result, MessageFlowStepActionType.NOT_ACCEPTED);
                             }
                         }
                     });
@@ -81,8 +85,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                     public void process(Exchange exchange) throws Exception {                       
                         Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
                         
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundAdapter.this, parentMessageFlowStepId, null, MessageFlowStepActionType.MESSAGE_DISPATCHED_TO_OUTSIDE_ENGINE);
-                        messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(), getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(parentMessageFlowStepId, getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }

@@ -80,7 +80,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
         // A route to receive a HL7 message via MLLP, store the message, store an event and generate and send the ACK all
         // within a single transaction.  This is the initial entry point for a HL7 message.
         from(getFromUriString())
-            .routeId("mllpInboundMessageHandlerRoute-" + getComponentPath())
+            .routeId("inboundEntryPoint-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .autoStartup(inboundState == ComponentState.RUNNING)
@@ -93,7 +93,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                         
                         // Store the message received by this inbound adapter.
                         String inboundMessageContent = exchange.getMessage().getBody(String.class);
-                        MessageFlowStepDto inboundMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(inboundMessageContent, BaseMllpInboundAdapter.this, getContentType(), null, MessageFlowStepActionType.MESSAGE_RECEIVED_FROM_OUTSIDE_ENGINE);
+                        MessageFlowStepDto inboundMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(inboundMessageContent, BaseMllpInboundAdapter.this, getContentType(), null, MessageFlowStepActionType.ACCEPTED);
                         
                         // Set the message flow step id as as a header so it can be used later.
                         exchange.getMessage().setHeader(MESSAGE_FLOW_STEP_ID, inboundMessageFlowStepDto.getId());

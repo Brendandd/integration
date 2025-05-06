@@ -1,8 +1,11 @@
-package integration.core.messaging.component.handler.filter;
+package integration.core.messaging.component.handler.filter.common;
 
 import org.springframework.stereotype.Component;
 
 import integration.core.dto.MessageFlowStepDto;
+import integration.core.messaging.component.handler.filter.FilterException;
+import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
  * A message filter which accepts all messages (does not filter). This is the default behaviour.
@@ -10,19 +13,17 @@ import integration.core.dto.MessageFlowStepDto;
  * @author Brendan Douglas
  *
  */
-@Component("acceptAllMessages")
-public class AcceptAllMessages extends MessageAcceptancePolicy {
-    private static final String NAME = "Accept All Messages";
+@Component("forwardAllMessages")
+public class ForwardAllMessages extends MessageForwardingPolicy {
+    private static final String NAME = "Forward All Messages";
 
     @Override
     public MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException {
         return new MessageFlowPolicyResult(true);
     }
-
+    
     @Override
     public String getName() {
         return NAME;
     }
-    
-    
 }

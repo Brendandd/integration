@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
@@ -16,8 +17,10 @@ import org.springframework.core.env.Environment;
 
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.MessageFlowEventDto;
+import integration.core.dto.MessageFlowStepDto;
 import integration.core.exception.EventProcessingException;
 import integration.core.messaging.BaseRoute;
 import integration.core.service.ConfigurationService;
@@ -53,8 +56,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected ConfigurationService configurationService;
+    
+    @Autowired
+    protected CamelContext camelContext;
 
-
+    
     @Autowired
     protected MessagingFlowService messagingFlowService;
     
@@ -78,7 +84,15 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected Ignite ignite;
+
     
+    /**
+     * Where to forward the message too.  This is a Camel uri. 
+     * 
+     * @return
+     */
+    public abstract String getMessageForwardingUriString();
+
     
     /**
      * The full component path.  owner-route-path
@@ -115,7 +129,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         // A route to add the message flow step id to the inbound message handling complete queue.
         from("direct:addToInboundMessageHandlingCompleteQueue-" + getComponentPath())
             .routeId("addToInboundMessageHandlingCompleteQueue-" + getComponentPath())
-            .routeGroup(getComponentPath())   
+            .routeGroup(getComponentPath())  
             .transacted()
                 .process(new Processor() {
     
@@ -143,8 +157,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         
         // A route which reads from the components internal message handling complete queue.  This is the entry point for a components outbound message handling.
         from("jms:queue:inboundMessageHandlingComplete-" + getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-            .routeId("inboundMessageHandlingComplete-" + getComponentPath())
-            .autoStartup(outboundState == ComponentState.RUNNING)
+            .routeId("outboundEntryPoint-" + getComponentPath())
             .routeGroup(getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .transacted()            
@@ -195,21 +208,84 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         from("timer://stateTimer-" + getComponentPath() + "?fixedRate=true&period=100&delay=2000")
         .routeId("stateTimer-" + getComponentPath())
         .process(exchange -> {
-            String owner = env.getProperty("owner");
-
-                ComponentDto component = configurationService.getComponent(identifier);
+            ComponentDto component = configurationService.getComponent(identifier);
                 
-                // Process inbound state change
-                if (component.getInboundState() != inboundState) {
-                    //TODO Stop/start the camel route
+            // Process inbound state change
+            if (component.getInboundState() != inboundState) {
+                if (component.getInboundState() == ComponentState.RUNNING) {
+                    camelContext.getRouteController().startRoute("inboundEntryPoint-" + getComponentPath());
+                } else {
+                    camelContext.getRouteController().stopRoute("inboundEntryPoint-" + getComponentPath());
                 }
                 
-                // Process outbound state change
-                if (component.getOutboundState() != outboundState) {
-                  //TODO Stop/start the camel route
+                inboundState = component.getInboundState();
+            }
+            
+            // Process outbound state change
+            if (component.getOutboundState() != outboundState) {
+                if (component.getOutboundState() == ComponentState.RUNNING) {
+                    camelContext.getRouteController().startRoute("outboundExitPoint-" + getComponentPath());
+                } else {
+                    camelContext.getRouteController().stopRoute("outboundExitPoint-" + getComponentPath());
                 }
+                
+                outboundState = component.getOutboundState();
+            }
         });
+
+        
+        // A route to process outbound message handling complete events.  This is the final stage of a components processing.
+        from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
+            .routeId("outboundExitPoint-" + getComponentPath())
+            .routeGroup(getComponentPath())
+            .autoStartup(outboundState == ComponentState.RUNNING)
+            .transacted()
+            .process(new Processor() {
+
+                @Override
+                public void process(Exchange exchange) throws Exception { 
+                    Long eventId = null;
+                    Long messageFlowId = null;
+                    
+                    try {
+                        // Delete the event.
+                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
+                        messagingFlowService.deleteEvent(eventId);
+                    
+                        // Record a message forwarded step.
+                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseMessagingComponent.this, messageFlowId, null, MessageFlowStepActionType.FORWARDED);
+                        
+                        // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
+                        preForwardingProcessing(exchange);
+                        
+                        // Get the appropriate body content to send out.  Subclasses need to provide the content.
+                        producerTemplate.sendBody(getMessageForwardingUriString(), getBodyContent(messageFlowStepDto));
+                    } catch(Exception e) {
+                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
+                    }
+                }
+            });
      }
+
+    
+    /**
+     * Custom processing required by a component before forwarding the message eg. set headers.
+     * 
+     * @param exchange
+     */
+    protected void preForwardingProcessing(Exchange exchange) {
+        // The default is nothing.
+    }
+
+    
+    /**
+     * Get the body content that needs to be forwarded to the next component/send externally.
+     * 
+     * @param messageFlowStepDto
+     * @return
+     */
+    protected abstract Object getBodyContent(MessageFlowStepDto messageFlowStepDto);
     
     
     @Override
