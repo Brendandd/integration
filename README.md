@@ -2,7 +2,7 @@
 
 This integration engine started as a learning opportunity to explore various integration patterns and solutions. It is currently under active development and is **not production-ready**. Significant changes and improvements are still needed to make it production-ready. The engine will support a wide range of integration patterns and provide foundational tools for transforming, routing, and processing messages across different microservices.
 
-One of the key features of this engine is how easy it is to configure routes and define the relationships between components. Routes are built through simple, declarative method calls, where you can easily link inbound connectors, transformers, filters, splitters, and outbound adapters. For example:
+One of the key features of this engine is how easy it is to configure routes and define the relationships between components. Routes are built through simple, declarative method calls, where you can easily link inbound and outbound adapters, inbound and outbound route connectors, transformers, filters, and splitters.  More components types will be added in the future.  For example:
 
 ```
 java
