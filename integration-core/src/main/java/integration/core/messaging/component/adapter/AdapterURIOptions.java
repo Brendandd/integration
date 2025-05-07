@@ -3,15 +3,9 @@ package integration.core.messaging.component.adapter;
 import java.util.HashMap;
 import java.util.Map;
 
-import integration.core.messaging.component.BaseMessagingComponent;
-
-/**
- * Base class for all adapters.  An adapter communications with external entities.
- * 
- * @author Brendan Douglas
- */
-public abstract class BaseAdapter extends BaseMessagingComponent {
+public abstract class AdapterURIOptions {
     private Map<String, String>uriOptions = new HashMap<>();
+
     
     /**
      * Adds a camel URI options.
@@ -23,22 +17,12 @@ public abstract class BaseAdapter extends BaseMessagingComponent {
     }
 
     
-    protected String constructOptions() {
-        Class<?> clazz = this.getClass();
-        
-        while (clazz != null) {
-            AdapterOption[] options = clazz.getDeclaredAnnotationsByType(AdapterOption.class);
-            for (AdapterOption option : options) {
-                addURIOption(option.key(), option.value());
-            }
-            clazz = clazz.getSuperclass();
-        }
-        
-        
+    protected String getOptionsString() {
+       
         if (uriOptions.isEmpty()) {
             return "";
         }
-        
+
         StringBuilder uriBuilder = new StringBuilder("?");
         boolean first = true;
 

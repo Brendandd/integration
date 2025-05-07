@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import integration.core.messaging.component.IntegrationComponent;
+import integration.core.messaging.component.adapter.AdapterOption;
 import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 import integration.messaging.hl7.component.adapter.directory.BaseHL7InboundDirectoryAdapter;
 
@@ -14,21 +15,16 @@ import integration.messaging.hl7.component.adapter.directory.BaseHL7InboundDirec
  * 
  */
 @IntegrationComponent(name = "directory-inbound")
+@AdapterOption(key = "idempotent", value = "true")
+@AdapterOption(key = "idempotentRepository", value = "#jpaStore")
+@AdapterOption(key = "move", value = "processed")
+@AdapterOption(key = "noop", value = "false")
 public class HL7DirectoryInboundAdapter extends BaseHL7InboundDirectoryAdapter {
 
     @Autowired
     @Qualifier("forwardAllMessages")
     private MessageForwardingPolicy messageForwardingPolicy;
-    
-    public HL7DirectoryInboundAdapter() {
-        
-        // Add some URI options.
-        addURIOption("idempotent", "true");
-        addURIOption("idempotentRepository", "#jpaStore");
-        addURIOption("move", "processed");
-        addURIOption("noop", "false");
-    }
-    
+       
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;

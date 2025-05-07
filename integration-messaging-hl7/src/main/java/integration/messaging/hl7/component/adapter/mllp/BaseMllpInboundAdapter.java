@@ -13,6 +13,7 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.messaging.component.adapter.AdapterOption;
 import integration.core.messaging.component.adapter.BaseInboundAdapter;
 
 /**
@@ -22,6 +23,9 @@ import integration.core.messaging.component.adapter.BaseInboundAdapter;
  * @author Brendan Douglas
  *
  */
+@AdapterOption(key = "sync", value = "true")
+@AdapterOption(key = "encoders", value = "#hl7encoder")
+@AdapterOption(key = "decoders", value = "#hl7decoder")
 public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpInboundAdapter.class);
 
@@ -45,14 +49,6 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     public String getFromUriString() {
         String target = getHost() + ":" + getPort();
         return "netty:tcp://" + target +  constructOptions();
-    }
-
-    
-    @Override
-    protected void setDefaultURIOptions() {
-        addURIOption("sync", "true");
-        addURIOption("encoders", "#hl7encoder");
-        addURIOption("decoders", "#hl7decoder");  
     }
 
     

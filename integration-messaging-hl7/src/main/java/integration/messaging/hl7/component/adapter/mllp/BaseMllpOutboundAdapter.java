@@ -10,11 +10,15 @@ import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.adapter.AdapterOption;
 import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.
  */
+@AdapterOption(key = "sync", value = "true")
+@AdapterOption(key = "encoders", value = "#hl7encoder")
+@AdapterOption(key = "decoders", value = "#hl7decoder")
 public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpOutboundAdapter.class);
     
@@ -29,27 +33,22 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
         }
     }
     
+    
     @Override
     public Logger getLogger() {
         return LOGGER;
     }
     
+    
     @Override
     public ComponentType getType() {
         return ComponentType.OUTBOUND_MLLP_ADAPTER;
     }
-
+    
+    
     @Override
     public ComponentCategory getCategory() {
         return ComponentCategory.OUTBOUND_ADAPTER;
-    }
-
-    
-    @Override
-    protected void setDefaultURIOptions() {
-        addURIOption("sync", "true");
-        addURIOption("encoders", "#hl7encoder");
-        addURIOption("decoders", "#hl7decoder");  
     }
 
     

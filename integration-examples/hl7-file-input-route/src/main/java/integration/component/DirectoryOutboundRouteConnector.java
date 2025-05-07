@@ -20,7 +20,7 @@ public class DirectoryOutboundRouteConnector extends BaseOutboundRouteConnector 
     @Autowired
     @Qualifier("acceptAllMessages")
     private MessageAcceptancePolicy messageAcceptancePolicy;
-
+        
     @Override
     public String getContentType() {
         return "HL7";
