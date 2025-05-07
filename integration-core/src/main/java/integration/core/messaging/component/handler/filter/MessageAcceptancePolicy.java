@@ -2,7 +2,7 @@ package integration.core.messaging.component.handler.filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.core.service.MetaDataService;
+import integration.core.service.MessageFlowPropertyService;
 
 /**
  * A message filter.
@@ -13,5 +13,5 @@ import integration.core.service.MetaDataService;
 public abstract class MessageAcceptancePolicy extends MessageFlowPolicy {
     
     @Autowired
-    protected MetaDataService metaDataService;
+    protected MessageFlowPropertyService propertyService;
 }

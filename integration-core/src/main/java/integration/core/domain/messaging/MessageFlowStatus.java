@@ -11,41 +11,41 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * The status of a message flow step.
+ * The status of a message flow.
  * 
  * @author Brendan Douglas
  */
 @Entity
 @Table(name = "message_flow_status")
 public class MessageFlowStatus extends BaseIntegrationDomain {
-    private MessageFlowStep messageFlowStep;
-    private MessageFlowStepActionType statusType;
+    private MessageFlow messageFlow;
+    private MessageFlowActionType statusType;
 
     
-    public MessageFlowStatus(MessageFlowStepActionType statusType) {
+    public MessageFlowStatus(MessageFlowActionType statusType) {
         this.statusType = statusType;
     }
     
     
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "message_flow_step_id")
-    public MessageFlowStep getMessageFlowStep() {
-        return messageFlowStep;
+    @JoinColumn(name = "message_flow_id")
+    public MessageFlow getMessageFlow() {
+        return messageFlow;
     }
 
     
-    public void setMessageFlowStep(MessageFlowStep messageFlowStep) {
-        this.messageFlowStep = messageFlowStep;
+    public void setMessageFlow(MessageFlow messageFlow) {
+        this.messageFlow = messageFlow;
     }
 
     @Column(name="status")
     @Enumerated(EnumType.STRING)
-    public MessageFlowStepActionType getStatusType() {
+    public MessageFlowActionType getStatusType() {
         return statusType;
     }
 
     
-    public void setStatusType(MessageFlowStepActionType statusType) {
+    public void setStatusType(MessageFlowActionType statusType) {
         this.statusType = statusType;
     }
 }

@@ -1,8 +1,17 @@
 package integration.core.dto;
 
-public class MessageMetaDataDto extends BaseDto {
+public class MessageFlowPropertyDto extends BaseDto {
     private String key;
     private String value;
+    
+    public MessageFlowPropertyDto() {
+        
+    }
+    
+    public MessageFlowPropertyDto(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
     
     
     public String getKey() {

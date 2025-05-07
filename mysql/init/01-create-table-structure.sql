@@ -76,12 +76,12 @@ CREATE TABLE `message_flow_group` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `message_flow_step` (
+CREATE TABLE `message_flow` (
   `id` int NOT NULL AUTO_INCREMENT,
   `component_id` int DEFAULT NULL,
   `message_flow_group_id` int DEFAULT NULL,
   `message_id` int DEFAULT NULL,
-  `from_message_flow_step_id` int DEFAULT NULL,
+  `from_message_flow_id` int DEFAULT NULL,
   `action` varchar(100) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
@@ -89,9 +89,9 @@ CREATE TABLE `message_flow_step` (
 ) ENGINE=InnoDB AUTO_INCREMENT=260 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
-CREATE TABLE `message_flow_step_filtered` (
+CREATE TABLE `message_flow_filtered` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `message_flow_step_id` int DEFAULT NULL,
+  `message_flow_id` int DEFAULT NULL,
   `name` varchar(45) DEFAULT NULL,
   `reason` varchar(100) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
@@ -119,20 +119,9 @@ CREATE TABLE `shedlock` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
-CREATE TABLE `message_flow_group_metadata` (
+CREATE TABLE `message_flow_property` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `metadata_key` varchar(100) DEFAULT NULL,
-  `value` varchar(100) DEFAULT NULL,
-  `message_flow_group_id` int DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `message_metadata` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `metadata_key` varchar(100) DEFAULT NULL,
+  `property_key` varchar(100) DEFAULT NULL,
   `value` varchar(100) DEFAULT NULL,
   `message_id` int DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,

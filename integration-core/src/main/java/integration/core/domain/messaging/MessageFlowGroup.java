@@ -10,7 +10,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
- * A grouping of message flow steps. Used to determine what steps are related to
+ * A grouping of message flows. Used to determine what flows are related to
  * the original incoming message.
  * 
  * @author Brendan Douglas
@@ -18,42 +18,25 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "message_flow_group")
 public class MessageFlowGroup extends BaseIntegrationDomain {
-    private List<MessageFlowStep> messageFlowSteps = new ArrayList<>();
-    private List<MessageFlowGroupMetaData>metaData = new ArrayList<>();
+    private List<MessageFlow> messageFlows = new ArrayList<>();
 
     @OneToMany(mappedBy = "messageFlowGroup", cascade = CascadeType.ALL)
-    public List<MessageFlowStep> getMessageFlowSteps() {
-        return messageFlowSteps;
+    public List<MessageFlow> getMessageFlows() {
+        return messageFlows;
     }
 
-    public void setMessageFlowSteps(List<MessageFlowStep> messageFlowSteps) {
-        this.messageFlowSteps = messageFlowSteps;
+    public void setMessageFlows(List<MessageFlow> messageFlows) {
+        this.messageFlows = messageFlows;
     }
 
     /**
-     * Adds a step to this message flow.
+     * Adds a message flow to this group.
      * 
-     * @param messageFlowStep
+     * @param messageFlow
      */
-    public void addMessageFlowStep(MessageFlowStep messageFlowStep) {
-        this.messageFlowSteps.add(messageFlowStep);
+    public void addMessageFlow(MessageFlow messageFlow) {
+        this.messageFlows.add(messageFlow);
 
-        messageFlowStep.setMessageFlowGroup(this);
-    }
-
-    @OneToMany(mappedBy = "messageFlowGroup", cascade = CascadeType.ALL)
-    public List<MessageFlowGroupMetaData> getMetaData() {
-        return metaData;
-    }
-    
-    public void setMetaData(List<MessageFlowGroupMetaData> metaData) {
-        this.metaData = metaData;
-    }
-    
-    public void addMetaData(String key, String value) {
-        MessageFlowGroupMetaData metaData = new MessageFlowGroupMetaData(key, value);
-        metaData.setMessageFlowGroup(this);
-        
-        this.metaData.add(metaData);
+        messageFlow.setMessageFlowGroup(this);
     }
 }

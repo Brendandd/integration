@@ -1,8 +1,5 @@
 package integration.core.messaging.component.adapter.directory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
@@ -12,9 +9,9 @@ import org.springframework.context.annotation.Bean;
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.adapter.BaseInboundAdapter;
 import jakarta.persistence.EntityManagerFactory;
 
@@ -75,19 +72,24 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        // Store the incoming file name header.
-                        Map<String,String>metaData = new HashMap<>();
-                        String incomingFilename = (String)exchange.getMessage().getHeader(CAMEL_FILE_NAME);
-                        metaData.put(CAMEL_FILE_NAME, incomingFilename);
-                        
-                        
+                       
                         // Store the message received by this inbound adapter.
                         String messageContent = exchange.getMessage().getBody(String.class);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), metaData, MessageFlowStepActionType.ACCEPTED);
+                        MessageFlowDto messageFlowDto = messagingFlowService.recordMessageFlow(messageContent, BaseDirectoryInboundAdapter.this, getContentType(), MessageFlowActionType.ACCEPTED);
+                        
+                        
+                        addProperties(exchange, messageFlowDto.getId());
                         
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
-                        messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
+    }
+
+    
+    private void addProperties(Exchange exchange, long messageFlowId) {
+        // Store the incoming file name header.
+        String incomingFilename = (String)exchange.getMessage().getHeader(CAMEL_FILE_NAME);
+        messageFlowPropertyService.addProperty(CAMEL_FILE_NAME, incomingFilename, messageFlowId);
     }
 }

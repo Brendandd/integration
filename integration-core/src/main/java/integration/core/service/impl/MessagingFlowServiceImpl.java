@@ -16,17 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.messaging.Message;
+import integration.core.domain.messaging.MessageFlow;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEvent;
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.MessageFlowFiltered;
 import integration.core.domain.messaging.MessageFlowGroup;
-import integration.core.domain.messaging.MessageFlowStep;
-import integration.core.domain.messaging.MessageFlowStepActionType;
-import integration.core.domain.messaging.MessageFlowStepFiltered;
-import integration.core.domain.messaging.MessageMetaData;
+import integration.core.domain.messaging.MessageFlowProperty;
+import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowEventDto;
-import integration.core.dto.MessageFlowStepDto;
 import integration.core.dto.mapper.MessageFlowEventMapper;
-import integration.core.dto.mapper.MessageFlowStepMapper;
+import integration.core.dto.mapper.MessageFlowMapper;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
@@ -35,8 +35,8 @@ import integration.core.messaging.component.handler.filter.MessageFlowPolicyResu
 import integration.core.repository.ComponentRepository;
 import integration.core.repository.MessageFlowEventRepository;
 import integration.core.repository.MessageFlowRepository;
-import integration.core.repository.MessageFlowStepRepository;
 import integration.core.repository.MessageRepository;
+import integration.core.service.MessageFlowPropertyService;
 import integration.core.service.MessagingFlowService;
 
 @Service
@@ -45,11 +45,8 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessagingFlowServiceImpl.class);
 
     @Autowired
-    private MessageFlowStepRepository messageFlowStepRepository;
-    
-    @Autowired
     private MessageFlowRepository messageFlowRepository;
-    
+       
     @Autowired
     private MessageRepository messageRepository;
         
@@ -58,11 +55,14 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     
     @Autowired
     private ComponentRepository componentRepository;
+    
+    @Autowired
+    private MessageFlowPropertyService messageFlowPropertyService;
 
     
     @Override
     public void recordMessageFlowEvent(long messageFlowId, String componentPath, String owner, MessageFlowEventType eventType) {
-        MessageFlowStep messageFlow = findMessageFlowById(messageFlowId);
+        MessageFlow messageFlow = findMessageFlowById(messageFlowId);
 
         MessageFlowEvent event = new MessageFlowEvent();
         event.setMessageFlow(messageFlow);
@@ -78,22 +78,22 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * Retrieves a message flowDto by id.
      */
     @Override
-    public MessageFlowStepDto retrieveMessageFlow(long messageFlowId) {       
-        Optional<MessageFlowStep> messageFlow = messageFlowStepRepository.findById(messageFlowId);
+    public MessageFlowDto retrieveMessageFlow(long messageFlowId) {       
+        Optional<MessageFlow> messageFlow = messageFlowRepository.findById(messageFlowId);
 
         // The message flow must exist.
         if (messageFlow.isEmpty()) {
             throw new ConfigurationException("Message flow not found. Id: " + messageFlowId);
         }
 
-        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        MessageFlowMapper mapper = new MessageFlowMapper();
 
         return mapper.doMapping(messageFlow.get());
     }
     
     
-    private MessageFlowStep findMessageFlowById(long messageFlowId) {
-        Optional<MessageFlowStep> messageFlow = messageFlowStepRepository.findById(messageFlowId);
+    private MessageFlow findMessageFlowById(long messageFlowId) {
+        Optional<MessageFlow> messageFlow = messageFlowRepository.findById(messageFlowId);
 
         // The message flow must exist.
         if (messageFlow.isEmpty()) {
@@ -143,63 +143,63 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
-    public MessageFlowStepDto recordMessageNotAccepted(MessageConsumer component, long parentMessageFlowStepId,MessageFlowPolicyResult policyResult, MessageFlowStepActionType action) {        
-        return filterMessage((BaseMessagingComponent)component, parentMessageFlowStepId, policyResult, action);
+    public MessageFlowDto recordMessageNotAccepted(MessageConsumer component, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) {        
+        return filterMessage((BaseMessagingComponent)component, parentMessageFlowId, policyResult, action);
     }
 
     
     @Override
-    public MessageFlowStepDto recordMessageNotForwarded(MessageProducer component, long parentMessageFlowStepId,MessageFlowPolicyResult policyResult, MessageFlowStepActionType action) {        
-        return filterMessage((BaseMessagingComponent)component, parentMessageFlowStepId, policyResult, action);
+    public MessageFlowDto recordMessageNotForwarded(MessageProducer component, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) {        
+        return filterMessage((BaseMessagingComponent)component, parentMessageFlowId, policyResult, action);
     }
 
     
-    private MessageFlowStepDto filterMessage(BaseMessagingComponent component, long parentMessageFlowStepId,MessageFlowPolicyResult policyResult, MessageFlowStepActionType action) {  
+    private MessageFlowDto filterMessage(BaseMessagingComponent component, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) {  
         MessageFlowRequest request = new MessageFlowRequest();
         request.setComponent(component);
-        request.setParentMessageFlowStepId(parentMessageFlowStepId);
+        request.setParentMessageFlowId(parentMessageFlowId);
         request.setAction(action);
         
-        MessageFlowStepDto messageFlowStepDto = recordMessageFlowStep(request);
+        MessageFlowDto messageFlowDto = recordMessageFlow(request);
         
-        Optional<MessageFlowStep> messageFlowOptional = messageFlowStepRepository.findById(messageFlowStepDto.getId());       
-        MessageFlowStep messageFlowStep = messageFlowOptional.get();
+        Optional<MessageFlow> messageFlowOptional = messageFlowRepository.findById(messageFlowDto.getId());       
+        MessageFlow messageFlow = messageFlowOptional.get();
                
         // Create the filter object.
-        MessageFlowStepFiltered filter = new MessageFlowStepFiltered();
+        MessageFlowFiltered filter = new MessageFlowFiltered();
         filter.setName(policyResult.getFilterName());
         filter.setReason(policyResult.getFilterReason());
-        filter.setMessageFlowStep(messageFlowStep);
+        filter.setMessageFlow(messageFlow);
         
-        messageFlowStep = messageFlowStepRepository.save(messageFlowStep);
+        messageFlow = messageFlowRepository.save(messageFlow);
         
-        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
-        return mapper.doMapping(messageFlowStep);
+        MessageFlowMapper mapper = new MessageFlowMapper();
+        return mapper.doMapping(messageFlow);
     }
 
     
     /**
-     * Returns the specified message meta data value.
+     * Returns the specified message flow property.
      * 
      * @param key
-     * @param messageFlowStepId
+     * @param messageFlowId
      * @return
      */
     @Override
-    public String retrieveMessageMetaData(String key, Long messageFlowStepId) {
-        Optional<MessageFlowStep> messageFlowStepOptional = messageFlowStepRepository.findById(messageFlowStepId);
+    public String getMessageFlowProperty(String key, Long messageFlowId) {
+        Optional<MessageFlow> messageFlowOptional = messageFlowRepository.findById(messageFlowId);
         
-        if (messageFlowStepOptional.isEmpty()) {
-            throw new RuntimeException("Message flow step id is not found");
+        if (messageFlowOptional.isEmpty()) {
+            throw new RuntimeException("Message flow id is not found");
         }
         
-        MessageFlowStep messageFlowStep = messageFlowStepOptional.get();
+        MessageFlow messageFlow = messageFlowOptional.get();
         
-        List<MessageMetaData>metaData = messageFlowStep.getMessage().getMetaData();
+        List<MessageFlowProperty>properties = messageFlow.getProperties();
                
-        for (MessageMetaData metaDataItem : metaData) {
-            if (metaDataItem.getKey().equals(key)) {                
-                return metaDataItem.getValue();
+        for (MessageFlowProperty property : properties) {
+            if (property.getKey().equals(key)) {                
+                return property.getValue();
             }
         }
         
@@ -208,83 +208,78 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
 
     @Override
-    public MessageFlowStepDto recordMessageFlowStep(String messageContent, BaseMessagingComponent component, String contentType, Map<String,String>metaData, MessageFlowStepActionType action) {       
+    public MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, String contentType, MessageFlowActionType action) {       
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setMessageContent(messageContent);
         request.setComponent(component);
         request.setContentType(contentType);
-        request.setMetaData(metaData);
         request.setAction(action);
         
-        return recordMessageFlowStep(request);
+        return recordMessageFlow(request);
     }
 
 
     @Override
-    public MessageFlowStepDto recordMessageFlowStep(String messageContent, BaseMessagingComponent component, long parentMessageFlowStepId, String contentType, Map<String,String>metaData, MessageFlowStepActionType action) {
+    public MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, String contentType, MessageFlowActionType action) {
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setMessageContent(messageContent);
         request.setComponent(component);
-        request.setParentMessageFlowStepId(parentMessageFlowStepId);
+        request.setParentMessageFlowId(parentMessageFlowId);
         request.setContentType(contentType);
-        request.setMetaData(metaData);
         request.setAction(action);
         
-        return recordMessageFlowStep(request);
+        return recordMessageFlow(request);
     }
 
 
     @Override
-    public MessageFlowStepDto recordMessageFlowStep(BaseMessagingComponent component, long parentMessageFlowStepId, Map<String,String>metaData, MessageFlowStepActionType action) {
+    public MessageFlowDto recordMessageFlow(BaseMessagingComponent component, long parentMessageFlowId, MessageFlowActionType action) {
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setComponent(component);
-        request.setParentMessageFlowStepId(parentMessageFlowStepId);
-        request.setMetaData(metaData);
+        request.setParentMessageFlowId(parentMessageFlowId);
         request.setAction(action);
         
-        return recordMessageFlowStep(request);
+        return recordMessageFlow(request);
     }
 
     
-    private MessageFlowStepDto recordMessageFlowStep(MessageFlowRequest request) {
+    private MessageFlowDto recordMessageFlow(MessageFlowRequest request) {
         String messageContent = request.getMessageContent();
         BaseMessagingComponent component = request.getComponent();
-        Long parentMessageFlowStepId = request.getParentMessageFlowStepId();
+        Long parentMessageFlowId = request.getParentMessageFlowId();
         String contentType = request.getContentType();
-        Map<String,String>metaData = request.getMetaData();
-        MessageFlowStepActionType action = request.getAction();
+        Map<String,String>properties = request.getProperties();
+        MessageFlowActionType action = request.getAction();
         
         if (component == null) {
             throw new RuntimeException("Component must not be null");
         }
         
-        if (messageContent == null && parentMessageFlowStepId == null) {
+        if (messageContent == null && parentMessageFlowId == null) {
             throw new RuntimeException("Either message or parentMessageFlowId must not be null");
         }
 
         
-        // Get the parent message flow step if an id was supplied.
-        MessageFlowStep parentMessageFlowStep = null;
+        // Get the parent message flow if an id was supplied.
+        MessageFlow parentMessageFlow = null;
         
-        if (parentMessageFlowStepId != null) {
-            Optional<MessageFlowStep> parentFlowStepOptional = messageFlowRepository.findById(parentMessageFlowStepId);
-            parentMessageFlowStep = parentFlowStepOptional.get();
+        if (parentMessageFlowId != null) {
+            Optional<MessageFlow> parentFlowStepOptional = messageFlowRepository.findById(parentMessageFlowId);
+            parentMessageFlow = parentFlowStepOptional.get();
         }
-        
-        
+
         // If the message was not supplied then create it from the parent message flow id if that was supplied.
         Message message = null;
         
-        if (parentMessageFlowStep != null) {
+        if (parentMessageFlow != null) {
             if (messageContent == null) {
-                message = parentMessageFlowStep.getMessage();
-                message.setMetaData(parentMessageFlowStep.getMessage().getMetaData());  // Copy the metadata to the new message.                
+                message = parentMessageFlow.getMessage();                 
             } else {
                 // If message content was supplied then compare against the parent message.  If different then create a new message.
-                if (!messageContent.equals(parentMessageFlowStep.getMessage().getContent())) {
+                if (!messageContent.equals(parentMessageFlow.getMessage().getContent())) {
                     message = new Message(messageContent, contentType);
                 } 
             }
@@ -292,42 +287,38 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             // There is no parent so store the original message.
             message = new Message(messageContent, contentType);
         }
-
+        
         Optional<IntegrationComponent> integrationComponent = componentRepository.findById(component.getIdentifier());
         
-        MessageFlowStep messageFlowStep = new MessageFlowStep();
-        messageFlowStep.setComponent(integrationComponent.get());
-        messageFlowStep.setMessage(message);
-        messageFlowStep.setAction(action);
+        MessageFlow messageFlow = new MessageFlow();
+        messageFlow.setComponent(integrationComponent.get());
+        messageFlow.setMessage(message);
+        messageFlow.setAction(action);
 
-        // Associate the new message flow step with its parent.
-        if (parentMessageFlowStep != null) {
-            messageFlowStep.setFromMessageFlowStep(parentMessageFlowStep);
+        // Associate the new message flow with its parent.
+        if (parentMessageFlow != null) {
+            messageFlow.setFromMessageFlow(parentMessageFlow);
+            
+            // Copy all properties
+            for (MessageFlowProperty property : parentMessageFlow.getProperties()) {
+                messageFlow.addOrUpdateProperty(property.getKey(), property.getValue());
+            }
         }
 
         MessageFlowGroup group = null;
         
         // If the parent is null this is the original message so a new group needs creating.
-        if (parentMessageFlowStep == null) {
+        if (parentMessageFlow == null) {
             group = new MessageFlowGroup();
         } else {
-            group = parentMessageFlowStep.getMessageFlowGroup();
+            group = parentMessageFlow.getMessageFlowGroup();
         }
         
-        group.addMessageFlowStep(messageFlowStep);
+        group.addMessageFlow(messageFlow);
         
-        // Add or replace metadata stored against the message.
-        if (metaData != null) {
-            for (Map.Entry<String, String> entry : metaData.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                message.addMetaData(key, value);
-            }
-        }
-
-        MessageFlowStep savedStep = messageFlowStepRepository.save(messageFlowStep);
+        MessageFlow savedStep = messageFlowRepository.save(messageFlow);
         
-        MessageFlowStepMapper mapper = new MessageFlowStepMapper();
+        MessageFlowMapper mapper = new MessageFlowMapper();
         return mapper.doMapping(savedStep);
     }
 

@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.handler.MessageHandler;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
@@ -55,21 +55,21 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
-                        Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                        MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
                         
-                        String[] splitMessages = getSplitter().split(parentMessageFlowStepDto);
+                        String[] splitMessages = getSplitter().split(parentMessageFlowDto);
                                   
                         for (int i = 0; i < splitMessages.length; i++) {
-                            MessageFlowStepDto splitMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseSplitterProcessingStep.this,parentMessageFlowStepId, null, MessageFlowStepActionType.CREATED_FROM_SPLIT);
+                            MessageFlowDto splitMessageFlowDto = messagingFlowService.recordMessageFlow(BaseSplitterProcessingStep.this,parentMessageFlowId, MessageFlowActionType.CREATED_FROM_SPLIT);
                                                
-                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(splitMessageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(splitMessageFlowDto);
                                                                               
                             // Apply the message forwarding rules and either write an event for further processing or filter the message.
                             if (result.isSuccess()) {           
-                                messagingFlowService.recordMessageFlowEvent(splitMessageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                messagingFlowService.recordMessageFlowEvent(splitMessageFlowDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                messagingFlowService.recordMessageNotForwarded(BaseSplitterProcessingStep.this, splitMessageFlowStepDto.getId(), result, MessageFlowStepActionType.NOT_FORWARDED);
+                                messagingFlowService.recordMessageNotForwarded(BaseSplitterProcessingStep.this, splitMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                             }
                         }
                     }

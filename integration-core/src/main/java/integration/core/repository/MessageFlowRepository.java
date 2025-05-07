@@ -3,9 +3,9 @@ package integration.core.repository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import integration.core.domain.messaging.MessageFlowStep;
+import integration.core.domain.messaging.MessageFlow;
 
 @Repository
-public interface MessageFlowRepository extends CrudRepository<MessageFlowStep, Long> {
+public interface MessageFlowRepository extends CrudRepository<MessageFlow, Long> {
 
 }

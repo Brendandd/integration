@@ -7,9 +7,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -33,8 +33,8 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     
     
     @Override
-    protected String getBodyContent(MessageFlowStepDto messageFlowStepDto) {
-        return messageFlowStepDto.getMessageContent();
+    protected String getBodyContent(MessageFlowDto messageFlowDto) {
+        return messageFlowDto.getMessageContent();
     }
 
     
@@ -55,18 +55,18 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                         @Override
                         public void process(Exchange exchange) throws Exception {
                             // Record the outbound message.
-                            Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                            Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                            MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
                                                        
-                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowStepDto);
+                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
                             if (result.isSuccess()) {
                                 // Record the content received by this component.
-                                MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseOutboundAdapter.this, parentMessageFlowStepId, null, MessageFlowStepActionType.ACCEPTED);
+                                MessageFlowDto messageFlowDto = messagingFlowService.recordMessageFlow(BaseOutboundAdapter.this, parentMessageFlowId, MessageFlowActionType.ACCEPTED);
                             
                                 // Record an event so the message can be forwarded to other components for processing.
-                                messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
-                                messagingFlowService.recordMessageNotAccepted(BaseOutboundAdapter.this, parentMessageFlowStepId, result, MessageFlowStepActionType.NOT_ACCEPTED);
+                                messagingFlowService.recordMessageNotAccepted(BaseOutboundAdapter.this, parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
                             }
                         }
                     });
@@ -83,9 +83,9 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {                       
-                        Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
+                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
                         
-                        messagingFlowService.recordMessageFlowEvent(parentMessageFlowStepId, getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(parentMessageFlowId, getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }

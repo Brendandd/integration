@@ -3,16 +3,16 @@ package integration.core.service.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import integration.core.domain.messaging.MessageFlowStepActionType;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.messaging.component.BaseMessagingComponent;
 
 public class MessageFlowRequest {
     private String messageContent;
     private BaseMessagingComponent component;
-    private Long parentMessageFlowStepId;
+    private Long parentMessageFlowId;
     private String contentType;
-    private Map<String,String>metaData = new HashMap<>();
-    private MessageFlowStepActionType action;
+    private Map<String,String>properties = new HashMap<>();
+    private MessageFlowActionType action;
     
     
     public String getMessageContent() {
@@ -35,13 +35,13 @@ public class MessageFlowRequest {
     }
     
     
-    public Long getParentMessageFlowStepId() {
-        return parentMessageFlowStepId;
+    public Long getParentMessageFlowId() {
+        return parentMessageFlowId;
     }
     
     
-    public void setParentMessageFlowStepId(Long parentMessageFlowStepId) {
-        this.parentMessageFlowStepId = parentMessageFlowStepId;
+    public void setParentMessageFlowId(Long parentMessageFlowId) {
+        this.parentMessageFlowId = parentMessageFlowId;
     }
     
     
@@ -55,22 +55,22 @@ public class MessageFlowRequest {
     }
     
     
-    public Map<String, String> getMetaData() {
-        return metaData;
+    public Map<String, String> getProperties() {
+        return properties;
     }
     
     
-    public void setMetaData(Map<String, String> metaData) {
-        this.metaData = metaData;
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
     
     
-    public MessageFlowStepActionType getAction() {
+    public MessageFlowActionType getAction() {
         return action;
     }
     
     
-    public void setAction(MessageFlowStepActionType action) {
+    public void setAction(MessageFlowActionType action) {
         this.action = action;
     }
 }

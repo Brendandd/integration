@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.adapter.BaseInboundAdapter;
 
 /**
@@ -93,10 +93,10 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                         
                         // Store the message received by this inbound adapter.
                         String inboundMessageContent = exchange.getMessage().getBody(String.class);
-                        MessageFlowStepDto inboundMessageFlowStepDto = messagingFlowService.recordMessageFlowStep(inboundMessageContent, BaseMllpInboundAdapter.this, getContentType(), null, MessageFlowStepActionType.ACCEPTED);
+                        MessageFlowDto inboundMessageFlowDto = messagingFlowService.recordMessageFlow(inboundMessageContent, BaseMllpInboundAdapter.this, getContentType(), MessageFlowActionType.ACCEPTED);
                         
-                        // Set the message flow step id as as a header so it can be used later.
-                        exchange.getMessage().setHeader(MESSAGE_FLOW_STEP_ID, inboundMessageFlowStepDto.getId());
+                        // Set the message flow id as as a header so it can be used later.
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, inboundMessageFlowDto.getId());
                     }
                 })
                 .transform(ack())
@@ -104,14 +104,14 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        long inboundMessageFlowStepId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+                        long inboundMessageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_ID);
                         
                         // Store the ACK
                         String ackContent = exchange.getMessage().getBody(String.class);
-                        messagingFlowService.recordMessageFlowStep(ackContent, BaseMllpInboundAdapter.this, inboundMessageFlowStepId, "HL7 ACK", null, MessageFlowStepActionType.ACKNOWLEDGMENT_SENT);
+                        messagingFlowService.recordMessageFlow(ackContent, BaseMllpInboundAdapter.this, inboundMessageFlowId, "HL7 ACK", MessageFlowActionType.ACKNOWLEDGMENT_SENT);
                                                 
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
-                        messagingFlowService.recordMessageFlowEvent(inboundMessageFlowStepId,getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(inboundMessageFlowId,getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }        

@@ -13,21 +13,21 @@ import jakarta.persistence.Table;
  * @author Brendan Douglas
  */
 @Entity
-@Table(name = "message_flow_step_filtered")
-public class MessageFlowStepFiltered extends BaseIntegrationDomain {
-    private MessageFlowStep messageFlowStep;
+@Table(name = "message_flow_filtered")
+public class MessageFlowFiltered extends BaseIntegrationDomain {
+    private MessageFlow messageFlow;
     private String reason;
     private String name;
 
     @OneToOne
-    @JoinColumn(name = "message_flow_step_id", nullable =  false)
-    public MessageFlowStep getMessageFlowStep() {
-        return messageFlowStep;
+    @JoinColumn(name = "message_flow_id", nullable =  false)
+    public MessageFlow getMessageFlow() {
+        return messageFlow;
     }
 
-    public void setMessageFlowStep(MessageFlowStep messageFlowStep) {
-        this.messageFlowStep = messageFlowStep;
-        messageFlowStep.setFilteredStep(this);
+    public void setMessageFlow(MessageFlow messageFlow) {
+        this.messageFlow = messageFlow;
+        messageFlow.setFilteredStep(this);
     }
 
     @Column(name = "reason")

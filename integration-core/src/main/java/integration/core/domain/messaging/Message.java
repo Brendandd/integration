@@ -1,13 +1,8 @@
 package integration.core.domain.messaging;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import integration.core.domain.BaseIntegrationDomain;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
@@ -21,9 +16,7 @@ import jakarta.persistence.Table;
 public class Message extends BaseIntegrationDomain {
     private String content;
     private String contentType;
-    
-    private List<MessageMetaData>metaData = new ArrayList<>();
-    
+       
     private Message() {
         
     }
@@ -56,24 +49,5 @@ public class Message extends BaseIntegrationDomain {
     
     public void setContentType(String contentType) {
         this.contentType = contentType;
-    }
-
-    
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
-    public List<MessageMetaData> getMetaData() {
-        return metaData;
-    }
-
-    
-    public void setMetaData(List<MessageMetaData> metaData) {
-        this.metaData = metaData;
-    }
-
-    
-    public void addMetaData(String key, String value) {
-        MessageMetaData metaData = new MessageMetaData(key, value);
-        metaData.setMessage(this);
-        
-        this.metaData.add(metaData);
     }
 }

@@ -46,7 +46,7 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
      * @return
      */
     protected String generateFilename(Exchange exchange, long messageFlowId) {
-        String originalFileName = messagingFlowService.retrieveMessageMetaData(CAMEL_FILE_NAME, messageFlowId);
+        String originalFileName = messagingFlowService.getMessageFlowProperty(CAMEL_FILE_NAME, messageFlowId);
         
         return originalFileName;      
     }
@@ -55,7 +55,7 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     @Override
     protected void preForwardingProcessing(Exchange exchange) {
         // Set the file name as a header.
-        Long messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_STEP_ID);
+        Long messageFlowId = (Long)exchange.getMessage().getHeader(MESSAGE_FLOW_ID);
         String fileName = generateFilename(exchange, messageFlowId);
         exchange.getMessage().setHeader(CAMEL_FILE_NAME, fileName);
     }

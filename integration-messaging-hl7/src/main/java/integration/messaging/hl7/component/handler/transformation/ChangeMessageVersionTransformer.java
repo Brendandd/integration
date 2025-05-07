@@ -1,6 +1,6 @@
 package integration.messaging.hl7.component.handler.transformation;
 
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.handler.transformation.MessageTransformer;
 import integration.core.messaging.component.handler.transformation.TransformationException;
 import integration.messaging.hl7.datamodel.HL7Message;
@@ -16,10 +16,10 @@ public abstract class ChangeMessageVersionTransformer extends MessageTransformer
     public abstract String getNewVersion() throws TransformationException;
 
     @Override
-    public String transformMessage(MessageFlowStepDto messageFlowStep) throws TransformationException {
+    public String transformMessage(MessageFlowDto messageFlow) throws TransformationException {
 
         try {
-            HL7Message source = new HL7Message(messageFlowStep.getMessage().getContent());
+            HL7Message source = new HL7Message(messageFlow.getMessage().getContent());
             
             source.changeMessageVersion(getNewVersion());
             

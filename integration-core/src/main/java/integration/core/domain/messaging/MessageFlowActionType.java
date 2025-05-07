@@ -3,7 +3,7 @@ package integration.core.domain.messaging;
 /**
  * The types of message flow status types
  */
-public enum MessageFlowStepActionType {
+public enum MessageFlowActionType {
     
     // Message accepted or rejected by internal components
     ACCEPTED,

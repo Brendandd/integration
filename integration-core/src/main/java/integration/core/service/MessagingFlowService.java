@@ -1,12 +1,11 @@
 package integration.core.service;
 
 import java.util.List;
-import java.util.Map;
 
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
+import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowEventDto;
-import integration.core.dto.MessageFlowStepDto;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
@@ -32,22 +31,22 @@ public interface MessagingFlowService {
      * Records the message as not accepted (filtered).
      * 
      * @param messageConsumer
-     * @param messageFlowStepId
+     * @param messageFlowId
      * @param contentType
      * @return
      */
-    MessageFlowStepDto recordMessageNotAccepted(MessageConsumer component, long messageFlowStepId, MessageFlowPolicyResult policyResult, MessageFlowStepActionType action);
+    MessageFlowDto recordMessageNotAccepted(MessageConsumer component, long messageFlowId, MessageFlowPolicyResult policyResult, MessageFlowActionType action);
     
     
     /**
      * Records the message as not forwarded (filtered).
      * 
      * @param messageConsumer
-     * @param messageFlowStepId
+     * @param messageFlowId
      * @param contentType
      * @return
      */
-    MessageFlowStepDto recordMessageNotForwarded(MessageProducer component, long messageFlowStepId, MessageFlowPolicyResult policyResult, MessageFlowStepActionType action);
+    MessageFlowDto recordMessageNotForwarded(MessageProducer component, long messageFlowId, MessageFlowPolicyResult policyResult, MessageFlowActionType action);
 
     /**
      * Records a message flow event without linking it to a parent.
@@ -56,7 +55,7 @@ public interface MessagingFlowService {
      * @param componentId
      * @param content
      */
-    MessageFlowStepDto recordMessageFlowStep(String messageContent, BaseMessagingComponent component, String contentType,Map<String,String>metaData, MessageFlowStepActionType action);
+    MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, String contentType, MessageFlowActionType action);
     
     
     /**
@@ -66,7 +65,7 @@ public interface MessagingFlowService {
      * @param componentId
      * @param content
      */
-    MessageFlowStepDto recordMessageFlowStep(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, String contentType, Map<String,String>metaData, MessageFlowStepActionType action);
+    MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, String contentType, MessageFlowActionType action);
 
     
     /**
@@ -76,7 +75,7 @@ public interface MessagingFlowService {
      * @param componentId
      * @param content
      */
-    MessageFlowStepDto recordMessageFlowStep(BaseMessagingComponent component, long parentMessageFlowStepId, Map<String,String>metaData, MessageFlowStepActionType action);
+    MessageFlowDto recordMessageFlow(BaseMessagingComponent component, long parentMessageFlowId, MessageFlowActionType action);
     
     
 
@@ -87,7 +86,7 @@ public interface MessagingFlowService {
      * @param messageFlowId
      * @return
      */
-    MessageFlowStepDto retrieveMessageFlow(long messageFlowId);
+    MessageFlowDto retrieveMessageFlow(long messageFlowId);
 
     
     /**
@@ -124,11 +123,11 @@ public interface MessagingFlowService {
     
     
     /**
-     * Returns meta data from the message associated with the current message flow step.
+     * Returns a message flow property.
      * 
      * @param key
-     * @param messageFlowStepId
+     * @param messageFlowId
      * @return
      */
-    String retrieveMessageMetaData(String key, Long messageFlowStepId);
+    String getMessageFlowProperty(String key, Long messageFlowId);
 }

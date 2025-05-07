@@ -9,37 +9,37 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Metadata associated with a single message.
+ * Property associated with a single message flow.
  * 
  * @author Brendan Douglas
  */
 @Entity
-@Table(name = "message_metadata")
-public class MessageMetaData extends BaseIntegrationDomain  {
+@Table(name = "message_flow_property")
+public class MessageFlowProperty extends BaseIntegrationDomain  {
     private String key;
     private String value;
-    private Message message;
+    private MessageFlow messageFlow;
     
-    private MessageMetaData() {
+    private MessageFlowProperty() {
         
     }
     
-    public MessageMetaData(String key, String value) {
+    public MessageFlowProperty(String key, String value) {
         this.key = key;
         this.value = value;
     }
     
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "message_id")
-    public Message getMessage() {
-        return message;
+    @JoinColumn(name = "message_flow_id")
+    public MessageFlow getMessageFlow() {
+        return messageFlow;
     }
     
-    public void setMessage(Message message) {
-        this.message= message;
+    public void setMessageFlow(MessageFlow messageFlow) {
+        this.messageFlow = messageFlow;
     }
 
-    @Column(name = "metadata_key")
+    @Column(name = "property_key")
     public String getKey() {
         return key;
     }

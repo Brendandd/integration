@@ -1,6 +1,6 @@
 package integration.core.messaging.component.handler.splitter;
 
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 
 /**
  * Interface for all splitters. A splitter will duplicate a mesage. Each message
@@ -11,9 +11,9 @@ import integration.core.dto.MessageFlowStepDto;
  */
 public abstract class MessageSplitter {
 
-    public String[] split(MessageFlowStepDto messageFlowStep) throws SplitterException {
+    public String[] split(MessageFlowDto messageFlow) throws SplitterException {
         try {
-            String[] splitMessages = splitMessage(messageFlowStep);
+            String[] splitMessages = splitMessage(messageFlow);
 
             return splitMessages;
         } catch (Exception e) {
@@ -21,5 +21,5 @@ public abstract class MessageSplitter {
         }
     }
 
-    public abstract String[] splitMessage(MessageFlowStepDto messageFlowStep) throws SplitterException;
+    public abstract String[] splitMessage(MessageFlowDto messageFlow) throws SplitterException;
 }

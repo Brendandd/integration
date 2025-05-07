@@ -2,15 +2,15 @@ package integration.core.messaging.component.handler.filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.core.dto.MessageFlowStepDto;
-import integration.core.service.MetaDataService;
+import integration.core.dto.MessageFlowDto;
+import integration.core.service.MessageFlowPropertyService;
 
 public abstract class MessageFlowPolicy {
     
     @Autowired
-    protected MetaDataService metaDataService;
+    protected MessageFlowPropertyService messageFlowPropertyService;
     
-    public abstract MessageFlowPolicyResult applyPolicy(MessageFlowStepDto messageFlowStep) throws FilterException;
+    public abstract MessageFlowPolicyResult applyPolicy(MessageFlowDto messageFlow) throws FilterException;
     
     public abstract String getName();
 }

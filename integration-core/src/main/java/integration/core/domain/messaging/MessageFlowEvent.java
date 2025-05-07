@@ -23,7 +23,7 @@ import jakarta.persistence.TemporalType;
 @Entity
 @Table(name = "message_flow_event")
 public class MessageFlowEvent extends BaseIntegrationDomain {
-    private MessageFlowStep messageFlow;
+    private MessageFlow messageFlow;
     private MessageFlowEventType type;
     private String componentPath;
     private String owner;
@@ -32,11 +32,11 @@ public class MessageFlowEvent extends BaseIntegrationDomain {
 
     @ManyToOne
     @JoinColumn(name = "message_flow_id")
-    public MessageFlowStep getMessageFlow() {
+    public MessageFlow getMessageFlow() {
         return messageFlow;
     }
 
-    public void setMessageFlow(MessageFlowStep messageFlow) {
+    public void setMessageFlow(MessageFlow messageFlow) {
         this.messageFlow = messageFlow;
     }
 

@@ -16,14 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
 import integration.core.dto.ComponentDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowEventDto;
-import integration.core.dto.MessageFlowStepDto;
 import integration.core.exception.EventProcessingException;
 import integration.core.messaging.BaseRoute;
 import integration.core.service.ConfigurationService;
+import integration.core.service.MessageFlowPropertyService;
 import integration.core.service.MessagingFlowService;
 
 /**
@@ -44,7 +45,7 @@ import integration.core.service.MessagingFlowService;
  *
  */
 public abstract class BaseMessagingComponent extends RouteBuilder implements MessagingComponent {   
-    public static final String MESSAGE_FLOW_STEP_ID = "messageFlowStepId";
+    public static final String MESSAGE_FLOW_ID = "messageFlowId";
     public static final String EVENT_ID = "eventId";
     
     protected long identifier;
@@ -71,7 +72,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected ProducerTemplate producerTemplate;
-
+    
+    @Autowired
+    protected MessageFlowPropertyService messageFlowPropertyService;
+    
     /**
      * The content type handled by this component.
      * 
@@ -144,7 +148,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                             messagingFlowService.deleteEvent(eventId);
                             
                             // Get the message flow step id.
-                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
+                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
     
                             // Add the message to the queue
                             producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getComponentPath(), messageFlowId);
@@ -182,7 +186,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                 for (MessageFlowEventDto event : events) {
                     Exchange subExchange = exchange.copy();
 
-                    subExchange.getIn().setHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID, event.getMessageFlowId());
+                    subExchange.getIn().setHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, event.getMessageFlowId());
                     subExchange.getIn().setHeader("eventId", event.getId());
                     subExchange.getIn().setBody(event.getId());
                     
@@ -253,14 +257,14 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         messagingFlowService.deleteEvent(eventId);
                     
                         // Record a message forwarded step.
-                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_STEP_ID);
-                        MessageFlowStepDto messageFlowStepDto = messagingFlowService.recordMessageFlowStep(BaseMessagingComponent.this, messageFlowId, null, MessageFlowStepActionType.FORWARDED);
+                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
+                        MessageFlowDto messageFlowDto = messagingFlowService.recordMessageFlow(BaseMessagingComponent.this, messageFlowId, MessageFlowActionType.FORWARDED);
                         
                         // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
                         preForwardingProcessing(exchange);
                         
                         // Get the appropriate body content to send out.  Subclasses need to provide the content.
-                        producerTemplate.sendBody(getMessageForwardingUriString(), getBodyContent(messageFlowStepDto));
+                        producerTemplate.sendBody(getMessageForwardingUriString(), getBodyContent(messageFlowDto));
                     } catch(Exception e) {
                         throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
                     }
@@ -282,10 +286,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     /**
      * Get the body content that needs to be forwarded to the next component/send externally.
      * 
-     * @param messageFlowStepDto
+     * @param messageFlowDto
      * @return
      */
-    protected abstract Object getBodyContent(MessageFlowStepDto messageFlowStepDto);
+    protected abstract Object getBodyContent(MessageFlowDto messageFlowDto);
     
     
     @Override

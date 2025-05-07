@@ -1,7 +1,6 @@
 package integration.core.dto.mapper;
 
 import integration.core.domain.messaging.Message;
-import integration.core.domain.messaging.MessageMetaData;
 import integration.core.dto.MessageDto;
 
 /**
@@ -18,12 +17,6 @@ public class MessageMapper extends BaseMapper<MessageDto, Message> {
         destination.setContent(source.getContent());
         destination.setContentType(source.getContentType());
         
-        MessageMetaDataMapper messageDataMapper = new MessageMetaDataMapper();
-        
-        for (MessageMetaData metaData : source.getMetaData()) {
-            destination.addMetaData(messageDataMapper.doMapping(metaData));
-        }
-
         return destination;
     }
 }

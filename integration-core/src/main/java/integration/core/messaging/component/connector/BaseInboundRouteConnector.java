@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.domain.messaging.MessageFlowStepActionType;
-import integration.core.dto.MessageFlowStepDto;
+import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -39,8 +39,8 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
     }
     
     @Override
-    protected Long getBodyContent(MessageFlowStepDto messageFlowStepDto) {
-        return messageFlowStepDto.getId();
+    protected Long getBodyContent(MessageFlowDto messageFlowDto) {
+        return messageFlowDto.getId();
     }
 
     
@@ -76,12 +76,12 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
+                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
                                                               
                         // An inbound route connector always accepts the message form the outbound route connector.
-                        MessageFlowStepDto messageFlowStepDto  = messagingFlowService.recordMessageFlowStep(BaseInboundRouteConnector.this, parentMessageFlowStepId, null,MessageFlowStepActionType.ACCEPTED);
+                        MessageFlowDto messageFlowDto  = messagingFlowService.recordMessageFlow(BaseInboundRouteConnector.this, parentMessageFlowId,MessageFlowActionType.ACCEPTED);
                         
-                        messagingFlowService.recordMessageFlowEvent(messageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);               }
+                        messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);               }
                 });
  
         
@@ -96,16 +96,16 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
-                        Long parentMessageFlowStepId = exchange.getMessage().getBody(Long.class);
-                        MessageFlowStepDto parentMessageFlowStepDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowStepId);
+                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                        MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
                                                
-                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowStepDto);
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
                                                                        
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
-                            messagingFlowService.recordMessageFlowEvent(parentMessageFlowStepDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE);
+                            messagingFlowService.recordMessageFlowEvent(parentMessageFlowDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE);
                         } else {
-                            messagingFlowService.recordMessageNotForwarded(BaseInboundRouteConnector.this, parentMessageFlowStepDto.getId(), result, MessageFlowStepActionType.NOT_FORWARDED);
+                            messagingFlowService.recordMessageNotForwarded(BaseInboundRouteConnector.this, parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                         }
                     }
                 });
