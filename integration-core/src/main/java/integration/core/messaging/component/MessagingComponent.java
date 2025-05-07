@@ -5,16 +5,17 @@ import java.util.Map;
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.BaseRoute;
 
 public interface MessagingComponent {
-    public String getName();
+    public String getName() throws ConfigurationException;
 
     public ComponentType getType();
     
     public ComponentCategory getCategory();
     
-    public String getComponentPath();
+    public String getComponentPath() throws ConfigurationException;
     
     public long getIdentifier();
     

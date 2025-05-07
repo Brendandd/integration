@@ -10,6 +10,7 @@ import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
@@ -30,7 +31,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
     protected List<MessageProducer> messageProducers = new ArrayList<>();
         
     @Override
-    public String getMessageForwardingUriString() {
+    public String getMessageForwardingUriString() throws ConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 

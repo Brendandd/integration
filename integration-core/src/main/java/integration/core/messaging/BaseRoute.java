@@ -7,6 +7,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.RoutesBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.MessagingComponent;
@@ -32,16 +33,9 @@ public abstract class BaseRoute {
     protected ConfigurationService configurationService;
         
     protected long identifier;
-
-    protected String name;
     
     private List<MessagingComponent> components = new ArrayList<>();
-
-    public BaseRoute(String name) {
-        this.name = name;
-    }
-
-    
+   
     /**
      * An inbound adapter message can be sent to one or more message processors.
      * 
@@ -156,7 +150,13 @@ public abstract class BaseRoute {
 
     
     public String getName() {
-        return name;
+        IntegrationRoute annotation = this.getClass().getAnnotation(IntegrationRoute.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes");
+        }
+        
+        return annotation.name();
     }
 
     

@@ -2,10 +2,8 @@ package integration.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 import integration.messaging.hl7.component.adapter.directory.BaseHL7InboundDirectoryAdapter;
 
@@ -15,10 +13,8 @@ import integration.messaging.hl7.component.adapter.directory.BaseHL7InboundDirec
  * @author Brendan Douglas
  * 
  */
-@Component
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@IntegrationComponent(name = "directory-inbound")
 public class HL7DirectoryInboundAdapter extends BaseHL7InboundDirectoryAdapter {
-    private static final String COMPONENT_NAME = "directory-inbound";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -36,10 +32,5 @@ public class HL7DirectoryInboundAdapter extends BaseHL7InboundDirectoryAdapter {
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
-    }
-
-    @Override
-    public String getName() {
-        return COMPONENT_NAME;
-    }    
+    }  
 }

@@ -127,7 +127,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     
     @Override
-    public void configureRoute(BaseRoute integrationRoute, List<MessagingComponent> components) {   
+    public void configureRoute(BaseRoute integrationRoute, List<MessagingComponent> components) throws ConfigurationException{   
         String owner = env.getProperty("owner");       
         
         IntegrationRoute route = routeRepository.getByName(integrationRoute.getName(), owner);

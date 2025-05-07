@@ -2,10 +2,8 @@ package integration.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
 
@@ -14,10 +12,8 @@ import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
  * 
  * @author Brendan Douglas
  */
-@Component("mllpInboundAdapter")
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@IntegrationComponent(name = "From-Adelaide-Hospital-MLLP-Inbound-Adapter")
 public class FromAdelaideHospitalMLLPInboundAdapter extends BaseMllpInboundAdapter {
-    private static final String COMPONENT_NAME = "From-Adelaide-Hospital-MLLP-Inbound-Adapter";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -26,10 +22,5 @@ public class FromAdelaideHospitalMLLPInboundAdapter extends BaseMllpInboundAdapt
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
-    }
-    
-    @Override
-    public String getName() {
-        return COMPONENT_NAME;
     }
 }

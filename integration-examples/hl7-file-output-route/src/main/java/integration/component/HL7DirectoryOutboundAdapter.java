@@ -2,10 +2,8 @@ package integration.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDirectoryAdapter;
 
@@ -17,10 +15,8 @@ import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDire
  *         TODO filename not retained in all situations.
  * 
  */
-@Component
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@IntegrationComponent(name = "To-Sydney-Hospital-Directory-Outbound-Adapter")
 public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter {
-    private static final String COMPONENT_NAME = "To-Sydney-Hospital-Directory-Outbound-Adapter";
 
     @Autowired
     @Qualifier("acceptAllMessages")
@@ -36,10 +32,5 @@ public class HL7DirectoryOutboundAdapter extends BaseHL7OutboundDirectoryAdapter
     @Override
     public MessageAcceptancePolicy getMessageAcceptancePolicy() {
         return messageAcceptancePolicy;
-    }
-    
-    @Override
-    public String getName() {
-        return COMPONENT_NAME;
     }
 }

@@ -1,11 +1,11 @@
 package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import integration.component.FromAdelaideHospitalMLLPInboundAdapter;
 import integration.component.OutboundRouteConnector;
 import integration.core.messaging.BaseRoute;
+import integration.core.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -17,9 +17,8 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@Component
+@IntegrationRoute(name = "Inbound-MLLP-from-Adelaide-Hospital")
 public class MLLPInboundRoute extends BaseRoute {
-    public static final String ROUTE_NAME = "Inbound-MLLP-from-Adelaide-Hospital";
 
     @Autowired
     private FromAdelaideHospitalMLLPInboundAdapter mllpInboundAdapter;
@@ -27,10 +26,6 @@ public class MLLPInboundRoute extends BaseRoute {
     @Autowired
     private OutboundRouteConnector toMllpOutboundRouteConnector;
     
-    public MLLPInboundRoute() {
-        super(ROUTE_NAME);
-    }
-
     @Override
     @PostConstruct
     public void configureRoute() throws Exception {

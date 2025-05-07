@@ -21,7 +21,7 @@ public interface ConfigurationService {
     
     RouteDto getRoute(long routeId) throws ConfigurationException;
 
-    void configureRoute(BaseRoute baseRoute, List<MessagingComponent> components);
+    void configureRoute(BaseRoute baseRoute, List<MessagingComponent> components) throws ConfigurationException;
     
     ComponentDto getComponent(long componentId) throws ConfigurationException;
     

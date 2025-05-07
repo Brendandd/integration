@@ -2,11 +2,10 @@ package integration.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseInboundRouteConnector;
+import integration.core.messaging.component.connector.FromRoute;
 import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
@@ -15,10 +14,9 @@ import integration.core.messaging.component.handler.filter.MessageForwardingPoli
  * @author Brendan Douglas
  * 
  */
-@Component
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@IntegrationComponent(name = "From-Adelaide-Hospital-Route-Connector")
+@FromRoute(connectorName = "mllpRouteConnector")
 public class FromAdelaideHospitalRouteConnector extends BaseInboundRouteConnector {
-    private static final String COMPONENT_NAME = "From-Adelaide-Hospital-Route-Connector";
 
     @Autowired
     @Qualifier("forwardAllMessages")
@@ -29,18 +27,9 @@ public class FromAdelaideHospitalRouteConnector extends BaseInboundRouteConnecto
         return "HL7";
     }
 
-    @Override
-    public String getConnectorName() {
-        return "mllpRouteConnector";
-    }
-
+    
     @Override
     public MessageForwardingPolicy getMessageForwardingPolicy() {
         return messageForwardingPolicy;
-    }
-    
-    @Override
-    public String getName() {
-        return COMPONENT_NAME;
     }
 }

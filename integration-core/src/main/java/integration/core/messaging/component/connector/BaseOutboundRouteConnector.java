@@ -14,6 +14,7 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -118,5 +119,20 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                         messagingFlowService.recordMessageFlowEvent(parentMessageFlowId, getComponentPath(), getOwner(),MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
+    }
+    
+    
+    /**
+     * 
+     */
+    @Override
+    public String getConnectorName() throws ConfigurationException {
+        ToRoute annotation = this.getClass().getAnnotation(ToRoute.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@ToRoute annotation not found.  It is mandatory for all outbound route connectors");
+        }
+        
+        return annotation.connectorName();
     }
 }

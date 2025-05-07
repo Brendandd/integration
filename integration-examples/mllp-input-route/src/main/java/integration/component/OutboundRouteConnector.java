@@ -2,11 +2,10 @@ package integration.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseOutboundRouteConnector;
+import integration.core.messaging.component.connector.ToRoute;
 import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
 
 /**
@@ -15,10 +14,9 @@ import integration.core.messaging.component.handler.filter.MessageAcceptancePoli
  * 
  * @author Brendan Douglas
  */
-@Component("mllpOutboundRouteConnector")
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@IntegrationComponent(name = "To-Other-Hospital-Route-Connector")
+@ToRoute(connectorName = "mllpRouteConnector")
 public class OutboundRouteConnector extends BaseOutboundRouteConnector {
-    private static final String COMPONENT_NAME = "To-Other-Hospital-Route-Connector";
 
     @Autowired
     @Qualifier("acceptAllMessages")
@@ -30,18 +28,9 @@ public class OutboundRouteConnector extends BaseOutboundRouteConnector {
         return "HL7";
     }
 
-    @Override
-    public String getConnectorName() {
-        return "mllpRouteConnector";
-    }
-
+    
     @Override
     public MessageAcceptancePolicy getMessageAcceptancePolicy() {
         return messageAcceptancePolicy;
-    }
-    
-    @Override
-    public String getName() {
-        return COMPONENT_NAME;
     }
 }

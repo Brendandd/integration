@@ -1,12 +1,12 @@
 package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import integration.component.FromAdelaideHospitalRouteConnector;
 import integration.component.Hl7MessageTypeFilter;
 import integration.component.MelbourneHospitalMLLPOutboundAdapter;
 import integration.core.messaging.BaseRoute;
+import integration.core.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -23,9 +23,8 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@Component
+@IntegrationRoute(name = "Outbound-MLLP-to-Melbourne-Hospital")
 public class ToMelbourneHospitalRoute extends BaseRoute {
-    private static final String ROUTE_NAME = "Outbound-MLLP-to-Melbourne-Hospital";
 
     @Autowired
     private FromAdelaideHospitalRouteConnector fromAdelaideHospitalInboundRouteConnector;
@@ -36,11 +35,6 @@ public class ToMelbourneHospitalRoute extends BaseRoute {
     @Autowired
     private MelbourneHospitalMLLPOutboundAdapter mllpOutboundAdapter;
 
-    public ToMelbourneHospitalRoute() {
-        super(ROUTE_NAME);
-    }
-
-    
     @Override
     @PostConstruct
     public void configureRoute() throws Exception {

@@ -21,6 +21,7 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowEventDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.exception.EventProcessingException;
 import integration.core.messaging.BaseRoute;
 import integration.core.service.ConfigurationService;
@@ -94,15 +95,16 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * Where to forward the message too.  This is a Camel uri. 
      * 
      * @return
+     * @throws ConfigurationException 
      */
-    public abstract String getMessageForwardingUriString();
+    public abstract String getMessageForwardingUriString() throws ConfigurationException;
 
     
     /**
      * The full component path.  owner-route-path
      */
     @Override
-    public String getComponentPath() {
+    public String getComponentPath() throws ConfigurationException {
         return getOwner() + "-" + route.getName() + "-" + getName();
     }
 
@@ -343,5 +345,20 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     @Override
     public String getOwner() {
         return env.getProperty("owner");
+    }
+
+    
+    /**
+     * Returns the component name which has been defined in the @IntegrationComponent annotation.
+     */
+    @Override
+    public String getName() throws ConfigurationException {
+        IntegrationComponent annotation = this.getClass().getAnnotation(IntegrationComponent.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@IntegrationComponent annotation not found.  It is mandatory for all components");
+        }
+        
+        return annotation.name();
     }
 }

@@ -1,11 +1,11 @@
 package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import integration.component.DirectoryOutboundRouteConnector;
 import integration.component.HL7DirectoryInboundAdapter;
 import integration.core.messaging.BaseRoute;
+import integration.core.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -13,19 +13,14 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@Component
+@IntegrationRoute(name = "Inbound-Directory-from-Adelaide-Hospital")
 public class DirectoryInboundRoute extends BaseRoute {
-    public static final String ROUTE_NAME = "Inbound-Directory-from-Adelaide-Hospital";
 
     @Autowired
     private HL7DirectoryInboundAdapter directoryInboundAdapter;
 
     @Autowired
     private DirectoryOutboundRouteConnector directoryOutboundRouteConnector;
-
-    public DirectoryInboundRoute() {
-        super(ROUTE_NAME);
-    }
 
     @Override
     @PostConstruct

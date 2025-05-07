@@ -6,9 +6,10 @@ import java.util.List;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
-import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowActionType;
+import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -46,7 +47,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public String getMessageForwardingUriString() {
+    public String getMessageForwardingUriString() throws ConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 

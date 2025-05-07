@@ -1,7 +1,6 @@
 package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import integration.component.DirectoryInboundRouteConnector;
 import integration.component.FromAdelaideHospitalRouteConnector;
@@ -10,6 +9,7 @@ import integration.component.Hl7Splitter;
 import integration.component.Hl7Transformation;
 import integration.component.SydneyHospitalMLLPOutboundAdapter;
 import integration.core.messaging.BaseRoute;
+import integration.core.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -27,9 +27,8 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@Component
+@IntegrationRoute(name = "Outbound-MLLP-to-Sydney-Hospital")
 public class ToSydneyHospitalRoute extends BaseRoute {
-    private static final String ROUTE_NAME = "Outbound-MLLP-to-Sydney-Hospital";
 
     @Autowired
     private FromAdelaideHospitalRouteConnector fromAdelaideHospitalInboundRouteConnector;
@@ -48,10 +47,6 @@ public class ToSydneyHospitalRoute extends BaseRoute {
     
     @Autowired
     private DirectoryInboundRouteConnector fromDirectoryInboundRouteConnector;
-
-    public ToSydneyHospitalRoute() {
-        super(ROUTE_NAME);
-    }
 
     // TODO accepts ACK from destination system.
 

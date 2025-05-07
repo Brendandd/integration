@@ -14,6 +14,7 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
@@ -34,7 +35,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
     }
     
     @Override
-    public String getMessageForwardingUriString() {
+    public String getMessageForwardingUriString() throws ConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
     
@@ -109,5 +110,20 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                         }
                     }
                 });
+    }
+
+    
+    /**
+     * 
+     */
+    @Override
+    public String getConnectorName() throws ConfigurationException {
+        FromRoute annotation = this.getClass().getAnnotation(FromRoute.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@FromRoute annotation not found.  It is mandatory for all inbound route connectors");
+        }
+        
+        return annotation.connectorName();
     }
 }
