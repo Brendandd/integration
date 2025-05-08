@@ -1,5 +1,7 @@
 package integration.component;
 
+import integration.core.domain.configuration.ContentTypeEnum;
+import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseOutboundRouteConnector;
 import integration.core.messaging.component.connector.ToRoute;
@@ -14,10 +16,7 @@ import integration.core.messaging.component.handler.filter.AcceptancePolicy;
 @IntegrationComponent(name = "To-Other-Hospital-Route-Connector")
 @ToRoute(connectorName = "mllpRouteConnector")
 @AcceptancePolicy(name = "acceptAllMessages")
+@AllowedContentType(ContentTypeEnum.HL7)
 public class OutboundRouteConnector extends BaseOutboundRouteConnector {
 
-    @Override
-    public String getContentType() {
-        return "HL7";
-    }
 }

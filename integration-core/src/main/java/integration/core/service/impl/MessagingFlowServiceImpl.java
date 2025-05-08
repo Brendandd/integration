@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.messaging.Message;
 import integration.core.domain.messaging.MessageFlow;
@@ -208,7 +209,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
 
     @Override
-    public MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, String contentType, MessageFlowActionType action) {       
+    public MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, ContentTypeEnum contentType, MessageFlowActionType action) {       
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setMessageContent(messageContent);
@@ -221,7 +222,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
 
     @Override
-    public MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, String contentType, MessageFlowActionType action) {
+    public MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) {
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setMessageContent(messageContent);
@@ -250,7 +251,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         String messageContent = request.getMessageContent();
         BaseMessagingComponent component = request.getComponent();
         Long parentMessageFlowId = request.getParentMessageFlowId();
-        String contentType = request.getContentType();
+        ContentTypeEnum contentType = request.getContentType();
         Map<String,String>properties = request.getProperties();
         MessageFlowActionType action = request.getAction();
         

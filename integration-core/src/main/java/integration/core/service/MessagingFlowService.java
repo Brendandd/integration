@@ -2,6 +2,7 @@ package integration.core.service;
 
 import java.util.List;
 
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -55,7 +56,7 @@ public interface MessagingFlowService {
      * @param componentId
      * @param content
      */
-    MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, String contentType, MessageFlowActionType action);
+    MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, ContentTypeEnum contentType, MessageFlowActionType action);
     
     
     /**
@@ -65,7 +66,7 @@ public interface MessagingFlowService {
      * @param componentId
      * @param content
      */
-    MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, String contentType, MessageFlowActionType action);
+    MessageFlowDto recordMessageFlow(String messageContent, BaseMessagingComponent component, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action);
 
     
     /**

@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ContentTypeEnum;
+import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.adapter.AdapterOption;
@@ -19,6 +21,7 @@ import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 @AdapterOption(key = "sync", value = "true")
 @AdapterOption(key = "encoders", value = "#hl7encoder")
 @AdapterOption(key = "decoders", value = "#hl7decoder")
+@AllowedContentType(ContentTypeEnum.HL7)
 public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpOutboundAdapter.class);
     
@@ -66,12 +69,6 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     public String getMessageForwardingUriString() {
         String target = getTargetHost() + ":" + getTargetPort();
         return "netty:tcp://" + target + constructOptions();
-    }
-
-    
-    @Override
-    public String getContentType() {
-        return CONTENT_TYPE;
     }
     
     

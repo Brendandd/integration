@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.ComponentDto;
@@ -86,7 +87,15 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * 
      * @return
      */
-    public abstract String getContentType();
+    public ContentTypeEnum getContentType() {
+        AllowedContentType annotation = this.getClass().getAnnotation(AllowedContentType.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@ContentType annotation not found.  It is mandatory for all components");
+        }
+        
+        return annotation.value();
+    }
 
     
     public abstract Logger getLogger();

@@ -1,8 +1,11 @@
 package integration.core.domain.messaging;
 
 import integration.core.domain.BaseIntegrationDomain;
+import integration.core.domain.configuration.ContentTypeEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
 /**
@@ -15,13 +18,13 @@ import jakarta.persistence.Table;
 @Table(name = "message")
 public class Message extends BaseIntegrationDomain {
     private String content;
-    private String contentType;
+    private ContentTypeEnum contentType;
        
     private Message() {
         
     }
 
-    public Message(String content, String contentType) {
+    public Message(String content, ContentTypeEnum contentType) {
         this.content = content;
         this.contentType = contentType;
     }
@@ -42,12 +45,13 @@ public class Message extends BaseIntegrationDomain {
     }
 
     @Column(name = "content_type")
-    public String getContentType() {
+    @Enumerated(EnumType.STRING)
+    public ContentTypeEnum getContentType() {
         return contentType;
     }
 
     
-    public void setContentType(String contentType) {
+    public void setContentType(ContentTypeEnum contentType) {
         this.contentType = contentType;
     }
 }

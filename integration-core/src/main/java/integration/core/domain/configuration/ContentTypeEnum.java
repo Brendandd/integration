@@ -6,6 +6,6 @@ package integration.core.domain.configuration;
  * @author Brendan Douglas
  *
  */
-public enum MessageType {
-    HL7, XML, PDF, TXT, JSON, SQL_RESULTSET, GENERIC;
+public enum ContentTypeEnum {
+    HL7, HL7_ACK, XML, PDF, TXT, JSON, SQL_RESULTSET, GENERIC;
 }

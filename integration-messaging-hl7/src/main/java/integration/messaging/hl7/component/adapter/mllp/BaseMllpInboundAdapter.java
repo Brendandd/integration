@@ -10,9 +10,11 @@ import org.slf4j.LoggerFactory;
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentState;
 import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.adapter.AdapterOption;
 import integration.core.messaging.component.adapter.BaseInboundAdapter;
 
@@ -26,11 +28,10 @@ import integration.core.messaging.component.adapter.BaseInboundAdapter;
 @AdapterOption(key = "sync", value = "true")
 @AdapterOption(key = "encoders", value = "#hl7encoder")
 @AdapterOption(key = "decoders", value = "#hl7decoder")
+@AllowedContentType(ContentTypeEnum.HL7)
 public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpInboundAdapter.class);
-
-    private static final String CONTENT_TYPE = "HL7";
-    
+   
     @Override
     public Logger getLogger() {
         return LOGGER;
@@ -50,12 +51,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
         String target = getHost() + ":" + getPort();
         return "netty:tcp://" + target +  constructOptions();
     }
-
     
-    @Override
-    public String getContentType() {
-        return CONTENT_TYPE;
-    }
     
     @Override
     public ComponentType getType() {
@@ -104,7 +100,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                         
                         // Store the ACK
                         String ackContent = exchange.getMessage().getBody(String.class);
-                        messagingFlowService.recordMessageFlow(ackContent, BaseMllpInboundAdapter.this, inboundMessageFlowId, "HL7 ACK", MessageFlowActionType.ACKNOWLEDGMENT_SENT);
+                        messagingFlowService.recordMessageFlow(ackContent, BaseMllpInboundAdapter.this, inboundMessageFlowId, ContentTypeEnum.HL7_ACK, MessageFlowActionType.ACKNOWLEDGMENT_SENT);
                                                 
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
                         messagingFlowService.recordMessageFlowEvent(inboundMessageFlowId,getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 

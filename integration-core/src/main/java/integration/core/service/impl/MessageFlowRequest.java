@@ -3,6 +3,7 @@ package integration.core.service.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.messaging.component.BaseMessagingComponent;
 
@@ -10,7 +11,7 @@ public class MessageFlowRequest {
     private String messageContent;
     private BaseMessagingComponent component;
     private Long parentMessageFlowId;
-    private String contentType;
+    private ContentTypeEnum contentType;
     private Map<String,String>properties = new HashMap<>();
     private MessageFlowActionType action;
     
@@ -45,12 +46,12 @@ public class MessageFlowRequest {
     }
     
     
-    public String getContentType() {
+    public ContentTypeEnum getContentType() {
         return contentType;
     }
     
     
-    public void setContentType(String contentType) {
+    public void setContentType(ContentTypeEnum contentType) {
         this.contentType = contentType;
     }
     

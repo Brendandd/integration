@@ -1,10 +1,9 @@
 package integration.component;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
+import integration.core.domain.configuration.ContentTypeEnum;
+import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.IntegrationComponent;
-import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
 
 /**
@@ -13,14 +12,8 @@ import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
  * @author Brendan Douglas
  */
 @IntegrationComponent(name = "From-Adelaide-Hospital-MLLP-Inbound-Adapter")
+@ForwardingPolicy(name = "forwardAllMessages")
+@AllowedContentType(ContentTypeEnum.HL7)
 public class FromAdelaideHospitalMLLPInboundAdapter extends BaseMllpInboundAdapter {
 
-    @Autowired
-    @Qualifier("forwardAllMessages")
-    private MessageForwardingPolicy messageForwardingPolicy;
-
-    @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() {
-        return messageForwardingPolicy;
-    }
 }

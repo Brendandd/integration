@@ -1,5 +1,7 @@
 package integration.core.dto;
 
+import integration.core.domain.configuration.ContentTypeEnum;
+
 /**
  * A single message
  * 
@@ -9,7 +11,7 @@ public class MessageDto extends BaseDto {
     private static final long serialVersionUID = -5868048360433222690L;
 
     private String content;
-    private String contentType;
+    private ContentTypeEnum contentType;
     
     
     public String getContent() {
@@ -22,12 +24,12 @@ public class MessageDto extends BaseDto {
     }
 
     
-    public String getContentType() {
+    public ContentTypeEnum getContentType() {
         return contentType;
     }
 
     
-    public void setContentType(String contentType) {
+    public void setContentType(ContentTypeEnum contentType) {
         this.contentType = contentType;
     }
 }
