@@ -11,7 +11,7 @@ import integration.core.messaging.component.handler.transformation.UsesTransform
 @IntegrationComponent(name = "Transform-to-version-2-5")
 @ForwardingPolicy(name = "forwardAllMessages")
 @AcceptancePolicy(name = "acceptAllMessages")
-@UsesTransformer(name = "changeVersion")
+@UsesTransformer(name = "changeVersionTo2.5")
 @AllowedContentType(ContentTypeEnum.HL7)
 public class Hl7Transformation extends BaseTransformationProcessingStep {
 
