@@ -13,6 +13,7 @@ import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import integration.core.domain.configuration.ComponentState;
@@ -61,6 +62,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected CamelContext camelContext;
+    
+    @Autowired
+    protected ApplicationContext springContext;
 
     
     @Autowired

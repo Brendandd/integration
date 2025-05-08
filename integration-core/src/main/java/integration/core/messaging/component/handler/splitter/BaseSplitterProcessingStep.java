@@ -10,6 +10,7 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.handler.MessageHandler;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
@@ -27,7 +28,16 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
     }
 
     
-    public abstract MessageSplitter getSplitter();
+    public MessageSplitter getSplitter() {
+        UsesSplitter annotation = this.getClass().getAnnotation(UsesSplitter.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@UsesSplitter annotation not found.  It is mandatory for all splitters");
+        }
+        
+        return springContext.getBean(annotation.name(), MessageSplitter.class);  
+    }
+    
     
     @Override
     public ComponentType getType() {
@@ -38,7 +48,8 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
     public ComponentCategory getCategory() {
         return ComponentCategory.MESSAGE_HANDLER;
     }
-
+    
+    
     @Override
     public void configure() throws Exception {
         super.configure();

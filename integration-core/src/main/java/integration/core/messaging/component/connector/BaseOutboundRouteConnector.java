@@ -17,6 +17,8 @@ import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.handler.filter.AcceptancePolicy;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
@@ -58,6 +60,18 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
             this.messageProducers.add(messageProducer);
             messageProducer.addMessageConsumer(this);
         }
+    }
+
+    
+    @Override
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
+        AcceptancePolicy annotation = this.getClass().getAnnotation(AcceptancePolicy.class);
+               
+        if (annotation == null) {
+            return springContext.getBean("acedptAllMessages", MessageAcceptancePolicy.class);
+        }
+        
+        return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
     }
     
     

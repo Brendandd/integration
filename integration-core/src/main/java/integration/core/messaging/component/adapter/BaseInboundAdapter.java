@@ -12,7 +12,9 @@ import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
  * Base class for all inbound adapters.
@@ -30,6 +32,19 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
             messageConsumer.addMessageProducer(this);
         }
     }
+
+    
+    @Override
+    public MessageForwardingPolicy getMessageForwardingPolicy() {
+        ForwardingPolicy annotation = this.getClass().getAnnotation(ForwardingPolicy.class);
+               
+        if (annotation == null) {
+            return springContext.getBean("forwardAllMessages", MessageForwardingPolicy.class);
+        }
+        
+        return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
+    }
+
     
     @Override
     protected Long getBodyContent(MessageFlowDto messageFlowDto) {

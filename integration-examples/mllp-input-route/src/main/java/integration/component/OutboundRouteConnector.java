@@ -1,12 +1,9 @@
 package integration.component;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
 import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseOutboundRouteConnector;
 import integration.core.messaging.component.connector.ToRoute;
-import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.core.messaging.component.handler.filter.AcceptancePolicy;
 
 /**
  * An outbound route connector. Connects this route to another route.  This component does not care
@@ -16,21 +13,11 @@ import integration.core.messaging.component.handler.filter.MessageAcceptancePoli
  */
 @IntegrationComponent(name = "To-Other-Hospital-Route-Connector")
 @ToRoute(connectorName = "mllpRouteConnector")
+@AcceptancePolicy(name = "acceptAllMessages")
 public class OutboundRouteConnector extends BaseOutboundRouteConnector {
-
-    @Autowired
-    @Qualifier("acceptAllMessages")
-    private MessageAcceptancePolicy messageAcceptancePolicy;
-
 
     @Override
     public String getContentType() {
         return "HL7";
-    }
-
-    
-    @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
-        return messageAcceptancePolicy;
     }
 }

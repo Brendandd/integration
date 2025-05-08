@@ -14,7 +14,11 @@ import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.BaseMessagingComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.handler.filter.AcceptancePolicy;
+import integration.core.messaging.component.handler.filter.ForwardingPolicy;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
  * Base class for all message handlers. A message handler is a component which is not an inbound or outbound adapter.
@@ -51,6 +55,31 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
             messageProducer.addMessageConsumer(this);
         }
     }
+
+    
+    @Override
+    public MessageForwardingPolicy getMessageForwardingPolicy() {
+        ForwardingPolicy annotation = this.getClass().getAnnotation(ForwardingPolicy.class);
+               
+        if (annotation == null) {
+            return springContext.getBean("forwardAllMessages", MessageForwardingPolicy.class);
+        }
+        
+        return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
+    }
+
+    
+    @Override
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
+        AcceptancePolicy annotation = this.getClass().getAnnotation(AcceptancePolicy.class);
+               
+        if (annotation == null) {
+            return springContext.getBean("acedptAllMessages", MessageAcceptancePolicy.class);
+        }
+        
+        return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
+    }    
+
     
     @Override
     protected Long getBodyContent(MessageFlowDto messageFlowDto) {

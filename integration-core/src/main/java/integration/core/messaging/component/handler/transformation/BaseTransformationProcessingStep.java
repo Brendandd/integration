@@ -10,6 +10,7 @@ import integration.core.domain.configuration.ComponentType;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.handler.MessageHandler;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
@@ -43,7 +44,16 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
      * 
      * @return
      */
-    public abstract MessageTransformer getTransformer();
+    public MessageTransformer getTransformer() {
+        UsesTransformer annotation = this.getClass().getAnnotation(UsesTransformer.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@UsesTransformer annotation not found.  It is mandatory for all transformers");
+        }
+        
+        return springContext.getBean(annotation.name(), MessageTransformer.class);  
+    }
+    
     
     @Override
     public void configure() throws Exception {

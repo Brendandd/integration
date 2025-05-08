@@ -17,7 +17,9 @@ import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
+import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
 
 /**
  * Inbound route connector. Accepts messages from other routes.
@@ -52,6 +54,19 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
             messageConsumer.addMessageProducer(this);
         }
     }
+    
+    
+    @Override
+    public MessageForwardingPolicy getMessageForwardingPolicy() {
+        ForwardingPolicy annotation = this.getClass().getAnnotation(ForwardingPolicy.class);
+               
+        if (annotation == null) {
+            return springContext.getBean("forwardAllMessages", MessageForwardingPolicy.class);
+        }
+        
+        return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
+    }
+
     
     @Override
     public ComponentType getType() {

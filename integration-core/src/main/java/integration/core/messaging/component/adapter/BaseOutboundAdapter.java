@@ -12,6 +12,8 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
+import integration.core.messaging.component.handler.filter.AcceptancePolicy;
+import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
@@ -36,6 +38,19 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     protected String getBodyContent(MessageFlowDto messageFlowDto) {
         return messageFlowDto.getMessageContent();
     }
+    
+    
+    @Override
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() {
+        AcceptancePolicy annotation = this.getClass().getAnnotation(AcceptancePolicy.class);
+               
+        if (annotation == null) {
+            return springContext.getBean("acedptAllMessages", MessageAcceptancePolicy.class);
+        }
+        
+        return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
+    }
+    
 
     
     @Override
