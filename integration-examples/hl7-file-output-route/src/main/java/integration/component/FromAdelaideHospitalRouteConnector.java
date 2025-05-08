@@ -4,7 +4,7 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseInboundRouteConnector;
-import integration.core.messaging.component.connector.FromRoute;
+import integration.core.messaging.component.connector.From;
 import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 
 /**
@@ -14,7 +14,7 @@ import integration.core.messaging.component.handler.filter.ForwardingPolicy;
  * 
  */
 @IntegrationComponent(name = "From-Adelaide-Hospital-Route-Connector")
-@FromRoute(connectorName = "mllpRouteConnector")
+@From(connectorName = "mllpRouteConnector")
 @ForwardingPolicy(name = "forwardAllMessages")
 @AllowedContentType(ContentTypeEnum.HL7)
 public class FromAdelaideHospitalRouteConnector extends BaseInboundRouteConnector {

@@ -4,7 +4,7 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseOutboundRouteConnector;
-import integration.core.messaging.component.connector.ToRoute;
+import integration.core.messaging.component.connector.StaticDestination;
 import integration.core.messaging.component.handler.filter.AcceptancePolicy;
 
 /**
@@ -13,7 +13,7 @@ import integration.core.messaging.component.handler.filter.AcceptancePolicy;
  * @author Brendan Douglas
  */
 @IntegrationComponent(name = "From-Adelaide-Hospital-Directory-Inbound-Adapter")
-@ToRoute(connectorName = "directoryRouteConnector")
+@StaticDestination(connectorName = "directoryRouteConnector")
 @AcceptancePolicy(name = "acceptAllMessages")
 @AllowedContentType(ContentTypeEnum.HL7)
 public class DirectoryOutboundRouteConnector extends BaseOutboundRouteConnector {

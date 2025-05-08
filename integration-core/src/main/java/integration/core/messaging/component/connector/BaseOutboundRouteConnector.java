@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,13 +147,22 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
      */
     @Override
     public String getConnectorName() throws ConfigurationException {
-        ToRoute annotation = this.getClass().getAnnotation(ToRoute.class);
+        StaticDestination staticAnnotation = this.getClass().getAnnotation(StaticDestination.class);
+        DynamicDestination dynamicAnnotation = this.getClass().getAnnotation(DynamicDestination.class);
         
-        if (annotation == null) {
-            throw new ConfigurationException("@ToRoute annotation not found.  It is mandatory for all outbound route connectors");
+        if (staticAnnotation != null && dynamicAnnotation != null) {
+            throw new ConfigurationException("Both @ToStatic and @ToDynamic annotations found.  One one is allowed.");
         }
         
-        return annotation.connectorName();
+        if (staticAnnotation == null && dynamicAnnotation == null) {
+            throw new ConfigurationException("Neither @ToStatic and @ToDynamic annotations found.  One is required.");
+        }
+        
+        if (staticAnnotation != null) {
+            return staticAnnotation.connectorName();
+        }
+        
+        throw new NotImplementedException("Dynamic connector names not implemented yet");
     }
 
     
@@ -161,7 +171,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
         Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
         
         allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(ToRoute.class);
+        allowedAnnotations.add(StaticDestination.class);
         allowedAnnotations.add(AcceptancePolicy.class);
         allowedAnnotations.add(AllowedContentType.class);
 

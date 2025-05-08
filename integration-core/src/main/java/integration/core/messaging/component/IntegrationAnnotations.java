@@ -6,8 +6,8 @@ import java.util.Set;
 import integration.core.messaging.IntegrationRoute;
 import integration.core.messaging.component.adapter.AdapterOption;
 import integration.core.messaging.component.adapter.AdapterOptions;
-import integration.core.messaging.component.connector.FromRoute;
-import integration.core.messaging.component.connector.ToRoute;
+import integration.core.messaging.component.connector.From;
+import integration.core.messaging.component.connector.StaticDestination;
 import integration.core.messaging.component.handler.filter.AcceptancePolicy;
 import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 import integration.core.messaging.component.handler.splitter.UsesSplitter;
@@ -28,7 +28,7 @@ public class IntegrationAnnotations {
         AdapterOptions.class,
         IntegrationComponent.class,
         IntegrationRoute.class,
-        FromRoute.class,
-        ToRoute.class
+        From.class,
+        StaticDestination.class
     );
 }

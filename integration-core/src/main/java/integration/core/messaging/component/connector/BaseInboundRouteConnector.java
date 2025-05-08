@@ -138,7 +138,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
      */
     @Override
     public String getConnectorName() throws ConfigurationException {
-        FromRoute annotation = this.getClass().getAnnotation(FromRoute.class);
+        From annotation = this.getClass().getAnnotation(From.class);
         
         if (annotation == null) {
             throw new ConfigurationException("@FromRoute annotation not found.  It is mandatory for all inbound route connectors");
@@ -152,7 +152,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
         
         allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(FromRoute.class);
+        allowedAnnotations.add(From.class);
         allowedAnnotations.add(ForwardingPolicy.class);
         allowedAnnotations.add(AllowedContentType.class);
 
