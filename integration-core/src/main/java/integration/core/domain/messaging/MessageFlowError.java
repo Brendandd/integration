@@ -13,11 +13,10 @@ import jakarta.persistence.Table;
  * @author Brendan Douglas
  */
 @Entity
-@Table(name = "message_flow_filtered")
-public class MessageFlowFiltered extends BaseIntegrationDomain {
+@Table(name = "message_flow_error")
+public class MessageFlowError extends BaseIntegrationDomain {
     private MessageFlow messageFlow;
-    private String reason;
-    private String name;
+    private String details;
 
     @OneToOne
     @JoinColumn(name = "message_flow_id", nullable =  false)
@@ -27,24 +26,15 @@ public class MessageFlowFiltered extends BaseIntegrationDomain {
 
     public void setMessageFlow(MessageFlow messageFlow) {
         this.messageFlow = messageFlow;
-        messageFlow.setFiltered(this);
+        messageFlow.setError(this);
     }
 
-    @Column(name = "reason")
-    public String getReason() {
-        return reason;
+    @Column(name = "details")
+    public String getDetails() {
+        return details;
     }
 
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    @Column(name = "name")
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setDetails(String details) {
+        this.details = details;
     }
 }

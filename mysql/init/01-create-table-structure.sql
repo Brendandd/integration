@@ -99,6 +99,17 @@ CREATE TABLE `message_flow_filtered` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+
+CREATE TABLE `message_flow_error` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `message_flow_id` int DEFAULT NULL,
+  `details` blob DEFAULT NULL,
+  `created_by_user_id` varchar(45) DEFAULT NULL,
+  `created_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 CREATE TABLE `route` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(45) DEFAULT NULL,

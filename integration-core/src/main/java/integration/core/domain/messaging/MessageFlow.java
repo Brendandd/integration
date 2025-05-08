@@ -35,7 +35,8 @@ public class MessageFlow extends BaseIntegrationDomain {
 
     private MessageFlowGroup group;
 
-    private MessageFlowFiltered filteredStep;
+    private MessageFlowFiltered filtered;
+    private MessageFlowError error;
 
     public MessageFlow() {
 
@@ -83,14 +84,25 @@ public class MessageFlow extends BaseIntegrationDomain {
     }
 
     @OneToOne(mappedBy = "messageFlow", optional = true, cascade = CascadeType.ALL)
-    public MessageFlowFiltered getFilteredStep() {
-        return filteredStep;
+    public MessageFlowFiltered getFiltered() {
+        return filtered;
     }
 
-    public void setFilteredStep(MessageFlowFiltered filteredStep) {
-        this.filteredStep = filteredStep;
+    public void setFiltered(MessageFlowFiltered filtered) {
+        this.filtered = filtered;
     }
+
     
+    @OneToOne(mappedBy = "messageFlow", optional = true, cascade = CascadeType.ALL)
+    public MessageFlowError getError() {
+        return error;
+    }
+
+    
+    public void setError(MessageFlowError error) {
+        this.error = error;
+    }
+
     
     @Column(name="action")
     @Enumerated(EnumType.STRING)
