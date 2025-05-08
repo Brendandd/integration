@@ -298,7 +298,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
         // Associate the new message flow with its parent.
         if (parentMessageFlow != null) {
-            messageFlow.setFromMessageFlow(parentMessageFlow);
+            messageFlow.setParentMessageFlow(parentMessageFlow);
             
             // Copy all properties
             for (MessageFlowProperty property : parentMessageFlow.getProperties()) {
@@ -312,7 +312,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
         if (parentMessageFlow == null) {
             group = new MessageFlowGroup();
         } else {
-            group = parentMessageFlow.getMessageFlowGroup();
+            group = parentMessageFlow.getGroup();
         }
         
         group.addMessageFlow(messageFlow);

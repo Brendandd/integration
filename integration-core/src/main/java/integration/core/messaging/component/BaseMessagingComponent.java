@@ -1,7 +1,11 @@
 package integration.core.messaging.component;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.camel.CamelContext;
@@ -29,6 +33,7 @@ import integration.core.messaging.BaseRoute;
 import integration.core.service.ConfigurationService;
 import integration.core.service.MessageFlowPropertyService;
 import integration.core.service.MessagingFlowService;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -81,6 +86,42 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected MessageFlowPropertyService messageFlowPropertyService;
+
+    
+    /**
+     * Gets a list of allowed annotations
+     * 
+     * @return
+     */
+    protected abstract Set<Class<? extends Annotation>> getAllowedAnnotations();
+
+    
+    @PostConstruct
+    public void validateConfiguration() {
+        
+        // Validate the annotations on this component against a list of allowed annotations.
+        Class<?> clazz = this.getClass();
+        Set<Annotation> allAnnotations = new LinkedHashSet<>();
+
+        // Traverse class hierarchy
+        while (clazz != null && clazz != Object.class) {
+            Collections.addAll(allAnnotations, clazz.getDeclaredAnnotations());
+            clazz = clazz.getSuperclass();
+        }
+
+        Set<Class<? extends Annotation>> allowed = getAllowedAnnotations();
+        Set<Class<? extends Annotation>> known = IntegrationAnnotations.ALL_INTEGRATION_ANNOTATIONS;
+
+        for (Annotation annotation : allAnnotations) {
+            Class<? extends Annotation> annotationType = annotation.annotationType();
+
+            if (known.contains(annotationType) && !allowed.contains(annotationType)) {
+                throw new IllegalStateException("Annotation @" + annotationType.getSimpleName()+ " is not allowed on " + this.getClass().getSimpleName());
+            }
+        }
+    } 
+    
+    
     
     /**
      * The content type handled by this component.

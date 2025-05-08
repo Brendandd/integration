@@ -1,5 +1,9 @@
 package integration.core.messaging.component.handler.filter;
 
+import java.lang.annotation.Annotation;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
@@ -7,9 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ComponentCategory;
 import integration.core.domain.configuration.ComponentType;
-import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.domain.messaging.MessageFlowActionType;
+import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.messaging.component.AllowedContentType;
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.handler.MessageHandler;
 
 /**
@@ -65,4 +71,16 @@ public abstract class BaseFilterProcessingStep extends MessageHandler {
                 });
         }
 
+    
+    @Override
+    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
+        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
+        
+        allowedAnnotations.add(IntegrationComponent.class);
+        allowedAnnotations.add(AcceptancePolicy.class);
+        allowedAnnotations.add(ForwardingPolicy.class);
+        allowedAnnotations.add(AllowedContentType.class);
+
+        return allowedAnnotations;
+    }
 }

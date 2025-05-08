@@ -28,12 +28,12 @@ import jakarta.persistence.Transient;
 public class MessageFlow extends BaseIntegrationDomain {
     private IntegrationComponent component;
     private Message message;
-    private MessageFlow fromMessageFlow;
+    private MessageFlow parentMessageFlow;
     private MessageFlowActionType action;
     
     private List<MessageFlowProperty>properties = new ArrayList<>();
 
-    private MessageFlowGroup messageFlowGroup;
+    private MessageFlowGroup group;
 
     private MessageFlowFiltered filteredStep;
 
@@ -62,24 +62,24 @@ public class MessageFlow extends BaseIntegrationDomain {
     }
 
     @ManyToOne
-    @JoinColumn(name = "from_message_flow_id")
-    public MessageFlow getFromMessageFlow() {
-        return fromMessageFlow;
+    @JoinColumn(name = "parent_message_flow_id")
+    public MessageFlow getParentMessageFlow() {
+        return parentMessageFlow;
     }
 
-    public void setFromMessageFlow(MessageFlow fromMessageFlow) {
-        this.fromMessageFlow = fromMessageFlow;
+    public void setParentMessageFlow(MessageFlow parentMessageFlow) {
+        this.parentMessageFlow = parentMessageFlow;
     }
 
     
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "message_flow_group_id")
-    public MessageFlowGroup getMessageFlowGroup() {
-        return messageFlowGroup;
+    @JoinColumn(name = "group_id")
+    public MessageFlowGroup getGroup() {
+        return group;
     }
 
-    public void setMessageFlowGroup(MessageFlowGroup messageFlowGroup) {
-        this.messageFlowGroup = messageFlowGroup;
+    public void setGroup(MessageFlowGroup group) {
+        this.group = group;
     }
 
     @OneToOne(mappedBy = "messageFlow", optional = true, cascade = CascadeType.ALL)

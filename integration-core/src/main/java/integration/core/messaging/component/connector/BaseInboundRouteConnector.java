@@ -1,7 +1,10 @@
 package integration.core.messaging.component.connector;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -15,6 +18,8 @@ import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
+import integration.core.messaging.component.AllowedContentType;
+import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.ForwardingPolicy;
@@ -141,4 +146,16 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         
         return annotation.connectorName();
     }
+
+    @Override
+    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
+        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
+        
+        allowedAnnotations.add(IntegrationComponent.class);
+        allowedAnnotations.add(FromRoute.class);
+        allowedAnnotations.add(ForwardingPolicy.class);
+        allowedAnnotations.add(AllowedContentType.class);
+
+        return allowedAnnotations;
+    }   
 }

@@ -79,9 +79,9 @@ CREATE TABLE `message_flow_group` (
 CREATE TABLE `message_flow` (
   `id` int NOT NULL AUTO_INCREMENT,
   `component_id` int DEFAULT NULL,
-  `message_flow_group_id` int DEFAULT NULL,
+  `group_id` int DEFAULT NULL,
   `message_id` int DEFAULT NULL,
-  `from_message_flow_id` int DEFAULT NULL,
+  `parent_message_flow_id` int DEFAULT NULL,
   `action` varchar(100) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,

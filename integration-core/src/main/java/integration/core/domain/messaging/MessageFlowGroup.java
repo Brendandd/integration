@@ -20,7 +20,7 @@ import jakarta.persistence.Table;
 public class MessageFlowGroup extends BaseIntegrationDomain {
     private List<MessageFlow> messageFlows = new ArrayList<>();
 
-    @OneToMany(mappedBy = "messageFlowGroup", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     public List<MessageFlow> getMessageFlows() {
         return messageFlows;
     }
@@ -37,6 +37,6 @@ public class MessageFlowGroup extends BaseIntegrationDomain {
     public void addMessageFlow(MessageFlow messageFlow) {
         this.messageFlows.add(messageFlow);
 
-        messageFlow.setMessageFlowGroup(this);
+        messageFlow.setGroup(this);
     }
 }
