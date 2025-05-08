@@ -2,7 +2,10 @@
 
 This integration engine started as a learning opportunity to explore various integration patterns and solutions. It is currently under active development and is **not production-ready**. Significant changes and improvements are still needed to make it production-ready. The engine will support a wide range of integration patterns and provide foundational tools for transforming, routing, and processing messages across different microservices.
 
-One of the key features of this engine is how easy it is to configure routes and define the relationships between components. Routes are built through simple, declarative method calls, where you can easily link inbound and outbound adapters, inbound and outbound route connectors, transformers, filters, and splitters.  More components types will be added in the future.  For example:
+## Route Configuration
+In this engine, routes are configured declaratively by linking various components. The configureRoute() method is where the magic happens, connecting adapters, transformers, filters, and splitters in an intuitive way.
+
+Here’s an example of how a route can be configured:
 
 ```
 java
@@ -20,6 +23,47 @@ public void configureRoute() throws Exception {
     applyConfiguration();
 }
 ```
+
+- addInboundFlow(): Links inbound components (e.g., adapters, connectors) to the transformation and filtering logic.
+
+
+- addInternalFlow(): Connects internal components like transformers and splitters.
+
+
+- addOutboundFlow(): Defines the path to send data to the output (e.g., adapters).
+
+
+- addDirectFlow(): Establishes a direct flow between inbound and outbound components without any transformations or filters.
+
+
+## Component Configuration
+Each component in the system is configured with annotations. These annotations make it easy to specify component behaviors such as content types, routing policies, and other configuration details.
+
+Example:
+
+```
+java
+
+@IntegrationComponent(name = "Allow-only-ADT-A04")
+@AcceptancePolicy(name = "acceptADT^A04")
+@ForwardingPolicy(name = "forwardAllMessages")
+@AllowedContentType(ContentTypeEnum.HL7)
+public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
+}
+
+```
+
+- @IntegrationComponent: Identifies the component and provides metadata such as its name.
+
+
+- @AcceptancePolicy: Defines the acceptance criteria for messages (e.g., message types).
+
+
+- @ForwardingPolicy: Configures how messages will be forwarded after processing.
+
+
+- @AllowedContentType: Specifies the content types that the component can handle (e.g., HL7). Content type validation will be a future change.
+
 ---
 
 ## 🛠 Getting Started
