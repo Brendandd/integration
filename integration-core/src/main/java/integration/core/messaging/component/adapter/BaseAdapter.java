@@ -53,11 +53,4 @@ public abstract class BaseAdapter extends BaseMessagingComponent {
 
         return uriBuilder.toString();
     }
-
-    
-    @Override
-    protected void configureRequiredAnnotations() {    
-        requiredAnnotations.add(AdapterOption.class);
-        requiredAnnotations.add(AdapterOptions.class);
-    }
 }

@@ -99,9 +99,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    protected void configureRequiredAnnotations() {    
-        super.configureRequiredAnnotations();
-        
+    protected void configureRequiredAnnotations() {            
         requiredAnnotations.add(ForwardingPolicy.class);
     }
 

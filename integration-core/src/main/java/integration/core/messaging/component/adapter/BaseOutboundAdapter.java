@@ -110,8 +110,6 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     
     @Override
     protected void configureRequiredAnnotations() {    
-        super.configureRequiredAnnotations();
-        
         requiredAnnotations.add(AcceptancePolicy.class);
     }
 }

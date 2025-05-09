@@ -1,6 +1,7 @@
 package integration.core.messaging.component;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -323,7 +324,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         preForwardingProcessing(exchange);
                         
                         // Get the appropriate body content to send out.  Subclasses need to provide the content.
-                        producerTemplate.sendBody(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto));
+                        producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
                     } catch(Exception e) {
                         throw new EventProcessingException("Error forwarding message", eventId, messageFlowId, getComponentPath(), e);
                     }
@@ -339,6 +340,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      */
     protected void preForwardingProcessing(Exchange exchange) {
         // The default is nothing.
+    }
+    
+    
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) {
+        return new HashMap<String, Object>();
     }
 
     
