@@ -1,22 +1,17 @@
 package integration.core.messaging.component.handler;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
-import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.configuration.ComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.BaseMessagingComponent;
-import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.AcceptancePolicy;
@@ -35,6 +30,8 @@ import integration.core.messaging.component.handler.filter.MessageForwardingPoli
  * @author Brendan Douglas
  *
  */
+@AcceptancePolicy(name = "acceptAllMessages")
+@ForwardingPolicy(name = "forwardAllMessages")
 public abstract class MessageHandler extends BaseMessagingComponent implements MessageConsumer, MessageProducer {
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
     protected List<MessageProducer> messageProducers = new ArrayList<>();
@@ -67,7 +64,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
         ForwardingPolicy annotation = this.getClass().getAnnotation(ForwardingPolicy.class);
                
         if (annotation == null) {
-            return springContext.getBean("forwardAllMessages", MessageForwardingPolicy.class);
+            throw new ConfigurationException("@ForwardingPolicy annotation not found.  It is mandatory for all components");
         }
         
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
@@ -79,7 +76,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
         AcceptancePolicy annotation = this.getClass().getAnnotation(AcceptancePolicy.class);
                
         if (annotation == null) {
-            return springContext.getBean("acedptAllMessages", MessageAcceptancePolicy.class);
+            throw new ConfigurationException("@AcceptancePolicy annotation not found.  It is mandatory for all components");
         }
         
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
@@ -103,7 +100,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("inboundEntryPoint-" + getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
-                .autoStartup(inboundState == ComponentState.RUNNING)
+                .autoStartup(inboundState == ComponentStateEnum.RUNNING)
                 .transacted()
                     .process(new Processor() {
                     
@@ -127,17 +124,11 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                     });
         }
     }
-    
+
     
     @Override
-    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
-        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
-        
-        allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(AcceptancePolicy.class);
-        allowedAnnotations.add(ForwardingPolicy.class);
-        allowedAnnotations.add(AllowedContentType.class);
-
-        return allowedAnnotations;
+    protected void configureRequiredAnnotations() {    
+        requiredAnnotations.add(AcceptancePolicy.class);
+        requiredAnnotations.add(ForwardingPolicy.class);
     }
 }

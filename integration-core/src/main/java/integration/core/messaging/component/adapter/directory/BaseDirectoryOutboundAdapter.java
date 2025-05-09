@@ -2,8 +2,8 @@ package integration.core.messaging.component.adapter.directory;
 
 import org.apache.camel.Exchange;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 
 /**
@@ -12,6 +12,7 @@ import integration.core.messaging.component.adapter.BaseOutboundAdapter;
  * @author Brendan Douglas
  *
  */
+@ComponentType(type = ComponentTypeEnum.OUTBOUND_DIRECTORY_ADAPTER)
 public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     private static final String CAMEL_FILE_NAME = "CamelFileName";
 
@@ -23,18 +24,6 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     @Override
     public String getMessageForwardingUriString() {
         return "file:" + getDestinationFolder() + constructOptions();
-    }
-    
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.OUTBOUND_DIRECTORY_ADAPTER;
-    }
-    
-    
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.OUTBOUND_ADAPTER;
     }
 
     

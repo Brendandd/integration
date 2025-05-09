@@ -1,10 +1,7 @@
 package integration.core.messaging.component.connector;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -12,15 +9,13 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentState;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.IntegrationComponent;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.AcceptancePolicy;
@@ -32,6 +27,8 @@ import integration.core.messaging.component.handler.filter.MessageFlowPolicyResu
  * 
  * @author Brendan Douglas
  */
+@ComponentType(type = ComponentTypeEnum.OUTBOUND_ROUTE_CONNECTOR)
+@AcceptancePolicy(name = "acceptAllMessages")
 public abstract class BaseOutboundRouteConnector extends BaseRouteConnector implements MessageConsumer  {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseOutboundRouteConnector.class);
     
@@ -41,18 +38,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
     public Logger getLogger() {
         return LOGGER;
     }
-    
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.OUTBOUND_ROUTE_CONNECTOR;
-    }
 
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.OUTBOUND_ROUTE_CONNECTOR;
-    }
-    
     
     @Override
     public String getMessageForwardingUriString() {
@@ -74,7 +60,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
         AcceptancePolicy annotation = this.getClass().getAnnotation(AcceptancePolicy.class);
                
         if (annotation == null) {
-            return springContext.getBean("acedptAllMessages", MessageAcceptancePolicy.class);
+            throw new ConfigurationException("@AcceptancePolicy annotation not found.  It is mandatory for all components");
         }
         
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
@@ -98,7 +84,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("inboundEntryPoint-" + getComponentPath())
                 .routeGroup(getComponentPath())
-                .autoStartup(inboundState == ComponentState.RUNNING)
+                .autoStartup(inboundState == ComponentStateEnum.RUNNING)
                 .transacted()
                     .process(new Processor() {
                     
@@ -167,14 +153,9 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
 
     
     @Override
-    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
-        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
-        
-        allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(StaticDestination.class);
-        allowedAnnotations.add(AcceptancePolicy.class);
-        allowedAnnotations.add(AllowedContentType.class);
-
-        return allowedAnnotations;
+    protected void configureRequiredAnnotations() {    
+        requiredAnnotations.add(StaticDestination.class);
+        requiredAnnotations.add(DynamicDestination.class);
+        requiredAnnotations.add(AcceptancePolicy.class);
     }
 }

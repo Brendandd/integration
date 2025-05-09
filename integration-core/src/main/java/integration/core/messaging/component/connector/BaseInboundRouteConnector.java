@@ -1,25 +1,20 @@
 package integration.core.messaging.component.connector;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentState;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.IntegrationComponent;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.ForwardingPolicy;
@@ -31,6 +26,8 @@ import integration.core.messaging.component.handler.filter.MessageForwardingPoli
  * 
  * @author Brendan Douglas
  */
+@ComponentType(type = ComponentTypeEnum.INBOUND_ROUTE_CONNECTOR)
+@ForwardingPolicy(name = "forwardAllMessages")
 public abstract class BaseInboundRouteConnector extends BaseRouteConnector implements MessageProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseInboundRouteConnector.class);
     
@@ -66,21 +63,10 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         ForwardingPolicy annotation = this.getClass().getAnnotation(ForwardingPolicy.class);
                
         if (annotation == null) {
-            return springContext.getBean("forwardAllMessages", MessageForwardingPolicy.class);
+            throw new ConfigurationException("@ForwardingPolicy annotation not found.  It is mandatory for all components");
         }
         
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
-    }
-
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.INBOUND_ROUTE_CONNECTOR;
-    }
-
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.INBOUND_ROUTE_CONNECTOR;
     }
 
     
@@ -91,7 +77,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
             .routeId("inboundEntryPoint-" + getComponentPath())
             .routeGroup(getComponentPath())
-            .autoStartup(inboundState == ComponentState.RUNNING)
+            .autoStartup(inboundState == ComponentStateEnum.RUNNING)
             .transacted()
                 .process(new Processor() {
                     
@@ -147,15 +133,10 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         return annotation.connectorName();
     }
 
+    
     @Override
-    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
-        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
-        
-        allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(From.class);
-        allowedAnnotations.add(ForwardingPolicy.class);
-        allowedAnnotations.add(AllowedContentType.class);
-
-        return allowedAnnotations;
+    protected void configureRequiredAnnotations() {        
+        requiredAnnotations.add(From.class);
+        requiredAnnotations.add(ForwardingPolicy.class);
     }   
 }

@@ -6,13 +6,14 @@ import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentState;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.adapter.BaseInboundAdapter;
+import integration.core.messaging.component.adapter.StoreHeader;
 import jakarta.persistence.EntityManagerFactory;
 
 /**
@@ -23,8 +24,9 @@ import jakarta.persistence.EntityManagerFactory;
  * @author Brendan Douglas
  *
  */
+@StoreHeader(name = "CamelFileName")
+@ComponentType(type = ComponentTypeEnum.INBOUND_DIRECTORY_ADAPTER)
 public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
-    private static final String CAMEL_FILE_NAME = "CamelFileName";
     
     @Autowired
     private EntityManagerFactory emf;
@@ -45,16 +47,6 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
         return new JpaMessageIdRepository(emf, "FileRepo");
     }
 
-    @Override
-    public ComponentType getType() {
-        return ComponentType.INBOUND_DIRECTORY_ADAPTER;
-    }
-
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.INBOUND_ADAPTER;
-    }
-
     
     @Override
     public void configure() throws Exception {
@@ -65,7 +57,7 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
             .routeId("inboundEntryPoint-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(inboundState == ComponentState.RUNNING)
+            .autoStartup(inboundState == ComponentStateEnum.RUNNING)
             .transacted()
             
                 .process(new Processor() {
@@ -84,12 +76,5 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
                         messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
-    }
-
-    
-    private void addProperties(Exchange exchange, long messageFlowId) {
-        // Store the incoming file name header.
-        String incomingFilename = (String)exchange.getMessage().getHeader(CAMEL_FILE_NAME);
-        messageFlowPropertyService.addProperty(CAMEL_FILE_NAME, incomingFilename, messageFlowId);
     }
 }

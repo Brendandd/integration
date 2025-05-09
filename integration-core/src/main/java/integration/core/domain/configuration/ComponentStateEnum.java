@@ -6,6 +6,6 @@ package integration.core.domain.configuration;
  * @author Brendan Douglas
  *
  */
-public enum ComponentState {
+public enum ComponentStateEnum {
     RUNNING, STOPPED;
 }

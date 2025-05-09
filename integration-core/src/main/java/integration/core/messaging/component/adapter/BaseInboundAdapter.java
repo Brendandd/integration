@@ -1,10 +1,7 @@
 package integration.core.messaging.component.adapter;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -13,8 +10,6 @@ import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.handler.filter.ForwardingPolicy;
@@ -27,6 +22,7 @@ import integration.core.messaging.component.handler.filter.MessageForwardingPoli
  * @author Brendan Douglas
  *
  */
+@ForwardingPolicy(name = "forwardAllMessages")
 public abstract class BaseInboundAdapter extends BaseAdapter implements MessageProducer {
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
 
@@ -44,9 +40,9 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
         ForwardingPolicy annotation = this.getClass().getAnnotation(ForwardingPolicy.class);
                
         if (annotation == null) {
-            return springContext.getBean("forwardAllMessages", MessageForwardingPolicy.class);
+            throw new ConfigurationException("@ForwardingPolicy annotation not found.  It is mandatory for all components");
         }
-        
+
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
     }
 
@@ -100,19 +96,28 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
                     }
                 });
     }
-    
+
     
     @Override
-    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
-        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
+    protected void configureRequiredAnnotations() {    
+        super.configureRequiredAnnotations();
         
-        allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(ForwardingPolicy.class);
-        allowedAnnotations.add(AllowedContentType.class);
-        allowedAnnotations.add(AdapterOption.class);
-        allowedAnnotations.add(AdapterOptions.class);
+        requiredAnnotations.add(ForwardingPolicy.class);
+    }
 
-        return allowedAnnotations;
+    
+    protected void addProperties(Exchange exchange, long messageFlowId) {
+        Class<?> clazz = this.getClass();
+        
+        while (clazz != null) {
+            StoreHeader[] headers = clazz.getDeclaredAnnotationsByType(StoreHeader.class);
+            for (StoreHeader header : headers) {
+                String headerValue = (String)exchange.getMessage().getHeader(header.name());
+                messageFlowPropertyService.addProperty(header.name(), headerValue, messageFlowId);
+            }
+            
+            clazz = clazz.getSuperclass();
+        }
     }
 }
 

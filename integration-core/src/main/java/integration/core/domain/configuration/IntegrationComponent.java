@@ -24,30 +24,30 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     private String owner;
     private IntegrationRoute route;
     
-    private ComponentState inboundState;
+    private ComponentStateEnum inboundState;
 
-    private ComponentState outboundState;
+    private ComponentStateEnum outboundState;
     
-    private ComponentType type;
-    private ComponentCategory category;
+    private ComponentTypeEnum type;
+    private ComponentCategoryEnum category;
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    public ComponentType getType() {
+    public ComponentTypeEnum getType() {
         return type;
     }
 
-    public void setType(ComponentType type) {
+    public void setType(ComponentTypeEnum type) {
         this.type = type;
     }
     
     @Column(name = "category")
     @Enumerated(EnumType.STRING)
-    public ComponentCategory getCategory() {
+    public ComponentCategoryEnum getCategory() {
         return category;
     }
     
-    public void setCategory(ComponentCategory category) {
+    public void setCategory(ComponentCategoryEnum category) {
         this.category = category;
     }
 
@@ -82,24 +82,24 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     
     @Column(name = "inbound_state")
     @Enumerated(EnumType.STRING)
-    public ComponentState getInboundState() {
+    public ComponentStateEnum getInboundState() {
         return inboundState;
     }
     
     
-    public void setInboundState(ComponentState inboundState) {
+    public void setInboundState(ComponentStateEnum inboundState) {
         this.inboundState = inboundState;
     }
     
     
     @Column(name = "outbound_state")
     @Enumerated(EnumType.STRING)
-    public ComponentState getOutboundState() {
+    public ComponentStateEnum getOutboundState() {
         return outboundState;
     }
 
     
-    public void setOutboundState(ComponentState outboundState) {
+    public void setOutboundState(ComponentStateEnum outboundState) {
         this.outboundState = outboundState;
     }
 }

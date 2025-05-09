@@ -1,48 +1,29 @@
 package integration.core.messaging.component.handler.transformation;
 
-import java.lang.annotation.Annotation;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.IntegrationComponent;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.handler.MessageHandler;
-import integration.core.messaging.component.handler.filter.AcceptancePolicy;
-import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
  * Base class for all transformation processing steps.
  */
+@ComponentType(type = ComponentTypeEnum.TRANSFORMER)
 public abstract class BaseTransformationProcessingStep extends MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformationProcessingStep.class);
 
     @Override
     public Logger getLogger() {
         return LOGGER;
-    }
-    
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.TRANSFORMER;
-    }
-    
-    
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.MESSAGE_HANDLER;
     }
 
     
@@ -100,18 +81,11 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                     }
                 });
     }
-    
+
     
     @Override
-    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
-        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
-        
-        allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(AcceptancePolicy.class);
-        allowedAnnotations.add(ForwardingPolicy.class);
-        allowedAnnotations.add(AllowedContentType.class);
-        allowedAnnotations.add(UsesTransformer.class);
-
-        return allowedAnnotations;
+    protected void configureRequiredAnnotations() {    
+        super.configureRequiredAnnotations();
+        requiredAnnotations.add(UsesTransformer.class);
     }
 }

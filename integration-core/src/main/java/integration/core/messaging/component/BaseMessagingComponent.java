@@ -1,7 +1,6 @@
 package integration.core.messaging.component;
 
 import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
-import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.configuration.ComponentCategoryEnum;
+import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
@@ -60,8 +61,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected BaseRoute route;
     protected String owner;
     
-    protected ComponentState inboundState;
-    protected ComponentState outboundState;
+    protected ComponentStateEnum inboundState;
+    protected ComponentStateEnum outboundState;
     
     @Autowired
     protected ConfigurationService configurationService;
@@ -86,40 +87,40 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected MessageFlowPropertyService messageFlowPropertyService;
-
     
-    /**
-     * Gets a list of allowed annotations
-     * 
-     * @return
-     */
-    protected abstract Set<Class<? extends Annotation>> getAllowedAnnotations();
+    protected Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
 
     
     @PostConstruct
     public void validateConfiguration() {
+        // These are common for all components.
+        requiredAnnotations.add(IntegrationComponent.class);
+        requiredAnnotations.add(ComponentType.class);
+        requiredAnnotations.add(AllowedContentType.class);
         
-        // Validate the annotations on this component against a list of allowed annotations.
-        Class<?> clazz = this.getClass();
-        Set<Annotation> allAnnotations = new LinkedHashSet<>();
+        // Collect all annotations in the class hierarchy
+        Set<Class<? extends Annotation>> foundAnnotations = new LinkedHashSet<>();
 
-        // Traverse class hierarchy
-        while (clazz != null && clazz != Object.class) {
-            Collections.addAll(allAnnotations, clazz.getDeclaredAnnotations());
-            clazz = clazz.getSuperclass();
+        Class<?> currentClass = this.getClass();
+        while (currentClass != null && currentClass != Object.class) {
+            for (Annotation annotation : currentClass.getDeclaredAnnotations()) {
+                foundAnnotations.add(annotation.annotationType());
+            }
+            currentClass = currentClass.getSuperclass();
         }
 
-        Set<Class<? extends Annotation>> allowed = getAllowedAnnotations();
-        Set<Class<? extends Annotation>> known = IntegrationAnnotations.ALL_INTEGRATION_ANNOTATIONS;
-
-        for (Annotation annotation : allAnnotations) {
-            Class<? extends Annotation> annotationType = annotation.annotationType();
-
-            if (known.contains(annotationType) && !allowed.contains(annotationType)) {
-                throw new IllegalStateException("Annotation @" + annotationType.getSimpleName()+ " is not allowed on " + this.getClass().getSimpleName());
+        // Check if all required annotations are present
+        for (Class<? extends Annotation> required : requiredAnnotations) {
+            if (!foundAnnotations.contains(required)) {
+                throw new IllegalStateException("Missing required annotation @" + required.getSimpleName() + " on class " + this.getClass().getName() + " or its hierarchy.");
             }
         }
+        
+        getLogger().info("All required annotations found on component: {}", getComponentPath());
     } 
+
+    
+    protected abstract void configureRequiredAnnotations();
     
     
     
@@ -178,12 +179,14 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     @Override
     public void configure() throws Exception {
         
-        // Sets the event as failed.
+        // Handled errors processing events from the outbox.
         onException(EventProcessingException.class)
         .process(exchange -> {
             Long eventId = exchange.getIn().getHeader(BaseMessagingComponent.EVENT_ID, Long.class);
             messagingFlowService.setEventFailed(eventId);
-        });
+            exchange.setRollbackOnly(true);
+        })
+        .handled(true); // handled is true but the outbox process will keep retrying.
         
      
         // A route to add the message flow step id to the inbound message handling complete queue.
@@ -272,7 +275,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                 
             // Process inbound state change
             if (component.getInboundState() != inboundState) {
-                if (component.getInboundState() == ComponentState.RUNNING) {
+                if (component.getInboundState() == ComponentStateEnum.RUNNING) {
                     camelContext.getRouteController().startRoute("inboundEntryPoint-" + getComponentPath());
                 } else {
                     camelContext.getRouteController().stopRoute("inboundEntryPoint-" + getComponentPath());
@@ -283,7 +286,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             
             // Process outbound state change
             if (component.getOutboundState() != outboundState) {
-                if (component.getOutboundState() == ComponentState.RUNNING) {
+                if (component.getOutboundState() == ComponentStateEnum.RUNNING) {
                     camelContext.getRouteController().startRoute("outboundExitPoint-" + getComponentPath());
                 } else {
                     camelContext.getRouteController().stopRoute("outboundExitPoint-" + getComponentPath());
@@ -298,7 +301,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         from("direct:handleOutboundMessageHandlingCompleteEvent-" + getComponentPath())
             .routeId("outboundExitPoint-" + getComponentPath())
             .routeGroup(getComponentPath())
-            .autoStartup(outboundState == ComponentState.RUNNING)
+            .autoStartup(outboundState == ComponentStateEnum.RUNNING)
             .transacted()
             .process(new Processor() {
 
@@ -322,7 +325,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         // Get the appropriate body content to send out.  Subclasses need to provide the content.
                         producerTemplate.sendBody(getMessageForwardingUriString(), getBodyContent(messageFlowDto));
                     } catch(Exception e) {
-                        throw new EventProcessingException("Error adding message step flow id to the topic", eventId, messageFlowId, getComponentPath(), e);
+                        throw new EventProcessingException("Error forwarding message", eventId, messageFlowId, getComponentPath(), e);
                     }
                 }
             });
@@ -373,29 +376,29 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     @Override
-    public ComponentState getInboundState() {
+    public ComponentStateEnum getInboundState() {
         return inboundState;
     }
 
 
     @Override
-    public void setInboundState(ComponentState inboundState) {
+    public void setInboundState(ComponentStateEnum inboundState) {
         this.inboundState = inboundState;
     }
 
 
     @Override
-    public ComponentState getOutboundState() {
+    public ComponentStateEnum getOutboundState() {
         return outboundState;
     }
 
-
+    
     @Override
-    public void setOutboundState(ComponentState outboundState) {
+    public void setOutboundState(ComponentStateEnum outboundState) {
         this.outboundState = outboundState;
     }
 
-
+    
     @Override
     public String getOwner() {
         return env.getProperty("owner");
@@ -414,5 +417,23 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         }
         
         return annotation.name();
+    }
+
+    
+    @Override
+    public ComponentCategoryEnum getCategory() {
+        return getType().getCategory();
+    }
+
+    
+    @Override
+    public ComponentTypeEnum getType() throws ConfigurationException {
+        ComponentType annotation = this.getClass().getAnnotation(ComponentType.class);
+        
+        if (annotation == null) {
+            throw new ConfigurationException("@ComponentType annotation not found.  It is mandatory for all components");
+        }
+        
+        return annotation.type();
     }
 }

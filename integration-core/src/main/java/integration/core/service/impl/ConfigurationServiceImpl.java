@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import integration.core.domain.configuration.ComponentState;
+import integration.core.domain.configuration.ComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationRoute;
 import integration.core.dto.ComponentDto;
@@ -156,8 +156,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 integrationComponent.setType(component.getType());
                 integrationComponent.setCreatedUserId(owner);
                 integrationComponent = componentRepository.save(integrationComponent);
-                integrationComponent.setInboundState(ComponentState.RUNNING);
-                integrationComponent.setOutboundState(ComponentState.RUNNING);
+                integrationComponent.setInboundState(ComponentStateEnum.RUNNING);
+                integrationComponent.setOutboundState(ComponentStateEnum.RUNNING);
                 integrationComponent.setOwner(owner);
                 integrationComponent.setRoute(route);
             } 
@@ -177,14 +177,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
         IntegrationComponent component = componentOptional.get();
         
-        if (component.getInboundState() == ComponentState.RUNNING) {
-            component.setInboundState(ComponentState.STOPPED);
+        if (component.getInboundState() == ComponentStateEnum.RUNNING) {
+            component.setInboundState(ComponentStateEnum.STOPPED);
             componentRepository.save(component);
             
-            return new StatusChangeResponse(true, "Inbound State Change", id, ComponentState.RUNNING, ComponentState.STOPPED);
+            return new StatusChangeResponse(true, "Inbound State Change", id, ComponentStateEnum.RUNNING, ComponentStateEnum.STOPPED);
         } 
 
-        return new StatusChangeResponse(true, "Inbound already stopped", id, ComponentState.STOPPED, ComponentState.STOPPED);
+        return new StatusChangeResponse(true, "Inbound already stopped", id, ComponentStateEnum.STOPPED, ComponentStateEnum.STOPPED);
     }
 
     
@@ -193,14 +193,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
         IntegrationComponent component = componentOptional.get();
         
-        if (component.getInboundState() == ComponentState.STOPPED) {
-            component.setInboundState(ComponentState.RUNNING);
+        if (component.getInboundState() == ComponentStateEnum.STOPPED) {
+            component.setInboundState(ComponentStateEnum.RUNNING);
             componentRepository.save(component);
             
-            return new StatusChangeResponse(true, "Inbound State Change", id, ComponentState.STOPPED, ComponentState.RUNNING);
+            return new StatusChangeResponse(true, "Inbound State Change", id, ComponentStateEnum.STOPPED, ComponentStateEnum.RUNNING);
         } 
         
-        return new StatusChangeResponse(true, "Inbound already started", id, ComponentState.RUNNING, ComponentState.RUNNING);
+        return new StatusChangeResponse(true, "Inbound already started", id, ComponentStateEnum.RUNNING, ComponentStateEnum.RUNNING);
     }
 
     
@@ -209,14 +209,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
         IntegrationComponent component = componentOptional.get();
         
-        if (component.getOutboundState() == ComponentState.RUNNING) {
-            component.setOutboundState(ComponentState.STOPPED);
+        if (component.getOutboundState() == ComponentStateEnum.RUNNING) {
+            component.setOutboundState(ComponentStateEnum.STOPPED);
             componentRepository.save(component);
             
-            return new StatusChangeResponse(true, "Outbound State Change", id, ComponentState.RUNNING, ComponentState.STOPPED);
+            return new StatusChangeResponse(true, "Outbound State Change", id, ComponentStateEnum.RUNNING, ComponentStateEnum.STOPPED);
         }  
         
-        return new StatusChangeResponse(true, "Outbound already stopped", id, ComponentState.STOPPED, ComponentState.STOPPED);
+        return new StatusChangeResponse(true, "Outbound already stopped", id, ComponentStateEnum.STOPPED, ComponentStateEnum.STOPPED);
     }
 
     
@@ -225,13 +225,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
         IntegrationComponent component = componentOptional.get();
         
-        if (component.getOutboundState() == ComponentState.STOPPED) {
-            component.setOutboundState(ComponentState.RUNNING);
+        if (component.getOutboundState() == ComponentStateEnum.STOPPED) {
+            component.setOutboundState(ComponentStateEnum.RUNNING);
             componentRepository.save(component);
             
-            return new StatusChangeResponse(true, "Outbound State Change", id, ComponentState.STOPPED, ComponentState.RUNNING);
+            return new StatusChangeResponse(true, "Outbound State Change", id, ComponentStateEnum.STOPPED, ComponentStateEnum.RUNNING);
         } 
         
-        return new StatusChangeResponse(true, "Outbound already started", id, ComponentState.RUNNING, ComponentState.RUNNING);
+        return new StatusChangeResponse(true, "Outbound already started", id, ComponentStateEnum.RUNNING, ComponentStateEnum.RUNNING);
     }
 }

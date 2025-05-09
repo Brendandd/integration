@@ -7,14 +7,14 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentState;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.AllowedContentType;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.adapter.AdapterOption;
 import integration.core.messaging.component.adapter.BaseInboundAdapter;
 
@@ -29,6 +29,7 @@ import integration.core.messaging.component.adapter.BaseInboundAdapter;
 @AdapterOption(key = "encoders", value = "#hl7encoder")
 @AdapterOption(key = "decoders", value = "#hl7decoder")
 @AllowedContentType(ContentTypeEnum.HL7)
+@ComponentType(type = ComponentTypeEnum.INBOUND_MLLP_ADAPTER)
 public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpInboundAdapter.class);
    
@@ -51,18 +52,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
         String target = getHost() + ":" + getPort();
         return "netty:tcp://" + target +  constructOptions();
     }
-    
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.INBOUND_MLLP_ADAPTER;
-    }
 
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.INBOUND_ADAPTER;
-    }
-    
     
     @Override
     public void configure() throws Exception {
@@ -75,7 +65,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
             .routeId("inboundEntryPoint-" + getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(inboundState == ComponentState.RUNNING)
+            .autoStartup(inboundState == ComponentStateEnum.RUNNING)
             .transacted()
             
                 .process(new Processor() {

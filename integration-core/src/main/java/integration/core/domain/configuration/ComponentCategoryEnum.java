@@ -3,7 +3,7 @@ package integration.core.domain.configuration;
 /**
  * The category of component
  */
-public enum ComponentCategory {
+public enum ComponentCategoryEnum {
     INBOUND_ADAPTER,
     OUTBOUND_ADAPTER,
     

@@ -1,25 +1,17 @@
 package integration.core.messaging.component.handler.splitter;
 
-import java.lang.annotation.Annotation;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.IntegrationComponent;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.handler.MessageHandler;
-import integration.core.messaging.component.handler.filter.AcceptancePolicy;
-import integration.core.messaging.component.handler.filter.ForwardingPolicy;
 import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
 
 /**
@@ -27,6 +19,7 @@ import integration.core.messaging.component.handler.filter.MessageFlowPolicyResu
  * only responsible for splitting a message and no transformations should be
  * done as part of the splitting process.
  */
+@ComponentType(type = ComponentTypeEnum.SPLITTER)
 public abstract class BaseSplitterProcessingStep extends MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterProcessingStep.class);
 
@@ -44,17 +37,6 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
         }
         
         return springContext.getBean(annotation.name(), MessageSplitter.class);  
-    }
-    
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.SPLITTER;
-    }
-
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.MESSAGE_HANDLER;
     }
     
     
@@ -94,18 +76,12 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                     }
                 });
         }
-    
+
     
     @Override
-    protected Set<Class<? extends Annotation>> getAllowedAnnotations() {
-        Set<Class<? extends Annotation>> allowedAnnotations = new LinkedHashSet<>();
+    protected void configureRequiredAnnotations() {    
+        super.configureRequiredAnnotations();
         
-        allowedAnnotations.add(IntegrationComponent.class);
-        allowedAnnotations.add(AcceptancePolicy.class);
-        allowedAnnotations.add(ForwardingPolicy.class);
-        allowedAnnotations.add(AllowedContentType.class);
-        allowedAnnotations.add(UsesSplitter.class);
-
-        return allowedAnnotations;
+        requiredAnnotations.add(UsesSplitter.class);
     }
 }

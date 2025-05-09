@@ -5,7 +5,6 @@ import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.IntegrationComponent;
 import integration.core.messaging.component.connector.BaseOutboundRouteConnector;
 import integration.core.messaging.component.connector.StaticDestination;
-import integration.core.messaging.component.handler.filter.AcceptancePolicy;
 
 /**
  * An outbound route connector. Connects this route to another route.  This component does not care
@@ -15,7 +14,6 @@ import integration.core.messaging.component.handler.filter.AcceptancePolicy;
  */
 @IntegrationComponent(name = "To-Other-Hospital-Route-Connector")
 @StaticDestination(connectorName = "mllpRouteConnector")
-@AcceptancePolicy(name = "acceptAllMessages")
 @AllowedContentType(ContentTypeEnum.HL7)
 public class OutboundRouteConnector extends BaseOutboundRouteConnector {
 

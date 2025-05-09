@@ -6,10 +6,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.messaging.component.AllowedContentType;
+import integration.core.messaging.component.ComponentType;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.adapter.AdapterOption;
@@ -22,10 +22,10 @@ import integration.core.messaging.component.adapter.BaseOutboundAdapter;
 @AdapterOption(key = "encoders", value = "#hl7encoder")
 @AdapterOption(key = "decoders", value = "#hl7decoder")
 @AllowedContentType(ContentTypeEnum.HL7)
+@ComponentType(type = ComponentTypeEnum.OUTBOUND_MLLP_ADAPTER)
 public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpOutboundAdapter.class);
     
-    private static final String CONTENT_TYPE = "HL7";
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
 
     @Override
@@ -40,18 +40,6 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     @Override
     public Logger getLogger() {
         return LOGGER;
-    }
-    
-    
-    @Override
-    public ComponentType getType() {
-        return ComponentType.OUTBOUND_MLLP_ADAPTER;
-    }
-    
-    
-    @Override
-    public ComponentCategory getCategory() {
-        return ComponentCategory.OUTBOUND_ADAPTER;
     }
 
     

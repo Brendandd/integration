@@ -1,8 +1,8 @@
 package integration.core.dto;
 
-import integration.core.domain.configuration.ComponentCategory;
-import integration.core.domain.configuration.ComponentState;
-import integration.core.domain.configuration.ComponentType;
+import integration.core.domain.configuration.ComponentCategoryEnum;
+import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.ComponentTypeEnum;
 
 /**
  * 
@@ -15,11 +15,11 @@ public class ComponentDto extends BaseDto {
     private static final long serialVersionUID = 1099848325612162806L;
 
     private String name;
-    private ComponentType type;
-    private ComponentCategory category;
+    private ComponentTypeEnum type;
+    private ComponentCategoryEnum category;
     private String owner;
-    private ComponentState inboundState;
-    private ComponentState outboundState;
+    private ComponentStateEnum inboundState;
+    private ComponentStateEnum outboundState;
     
     private RouteDto route;
   
@@ -33,22 +33,22 @@ public class ComponentDto extends BaseDto {
     }
     
     
-    public ComponentType getType() {
+    public ComponentTypeEnum getType() {
         return type;
     }
     
     
-    public void setType(ComponentType type) {
+    public void setType(ComponentTypeEnum type) {
         this.type = type;
     }
     
     
-    public ComponentCategory getCategory() {
+    public ComponentCategoryEnum getCategory() {
         return category;
     }
     
     
-    public void setCategory(ComponentCategory category) {
+    public void setCategory(ComponentCategoryEnum category) {
         this.category = category;
     }
 
@@ -63,22 +63,22 @@ public class ComponentDto extends BaseDto {
     }
 
 
-    public ComponentState getInboundState() {
+    public ComponentStateEnum getInboundState() {
         return inboundState;
     }
 
 
-    public void setInboundState(ComponentState inboundState) {
+    public void setInboundState(ComponentStateEnum inboundState) {
         this.inboundState = inboundState;
     }
 
 
-    public ComponentState getOutboundState() {
+    public ComponentStateEnum getOutboundState() {
         return outboundState;
     }
 
 
-    public void setOutboundState(ComponentState outboundState) {
+    public void setOutboundState(ComponentStateEnum outboundState) {
         this.outboundState = outboundState;
     }
 
