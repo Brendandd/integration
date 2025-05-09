@@ -22,7 +22,7 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     
     
     @Override
-    public String getMessageForwardingUriString() {
+    public String getMessageForwardingUriString(Exchange exchange) {
         return "file:" + getDestinationFolder() + constructOptions();
     }
 

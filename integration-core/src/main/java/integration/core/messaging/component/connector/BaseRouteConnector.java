@@ -9,10 +9,4 @@ import integration.core.messaging.component.BaseMessagingComponent;
  */
 public abstract class BaseRouteConnector extends BaseMessagingComponent {
     
-    /**
-     * The name used to connect an inbound connectors to an outbound connector.
-     * 
-     * @return
-     */
-    public abstract String getConnectorName();
 }

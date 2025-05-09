@@ -39,7 +39,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
     }
     
     @Override
-    public String getMessageForwardingUriString() throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
     
@@ -119,10 +119,6 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
     }
 
     
-    /**
-     * 
-     */
-    @Override
     public String getConnectorName() throws ConfigurationException {
         From annotation = this.getClass().getAnnotation(From.class);
         

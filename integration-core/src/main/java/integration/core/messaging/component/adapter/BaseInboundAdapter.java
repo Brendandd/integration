@@ -63,7 +63,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public String getMessageForwardingUriString() throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 

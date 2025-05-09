@@ -3,6 +3,7 @@ package integration.messaging.hl7.component.adapter.mllp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    public String getMessageForwardingUriString() {
+    public String getMessageForwardingUriString(Exchange exchange) {
         String target = getTargetHost() + ":" + getTargetPort();
         return "netty:tcp://" + target + constructOptions();
     }

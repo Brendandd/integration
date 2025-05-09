@@ -37,7 +37,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
     protected List<MessageProducer> messageProducers = new ArrayList<>();
         
     @Override
-    public String getMessageForwardingUriString() throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 

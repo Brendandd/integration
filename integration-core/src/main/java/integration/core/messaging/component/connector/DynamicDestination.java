@@ -16,6 +16,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public @interface DynamicDestination {
-    String propertyName();
+    String destinationResolver();
 }
 

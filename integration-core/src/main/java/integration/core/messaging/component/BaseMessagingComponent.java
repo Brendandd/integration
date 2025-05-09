@@ -116,7 +116,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             }
         }
         
-        getLogger().info("All required annotations found on component: {}", getComponentPath());
+        getLogger().info("All required annotations found on component: {}", getIdentifier());
     } 
 
     
@@ -152,7 +152,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @return
      * @throws ConfigurationException 
      */
-    public abstract String getMessageForwardingUriString() throws ConfigurationException;
+    public abstract String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException;
 
     
     /**
@@ -323,7 +323,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         preForwardingProcessing(exchange);
                         
                         // Get the appropriate body content to send out.  Subclasses need to provide the content.
-                        producerTemplate.sendBody(getMessageForwardingUriString(), getBodyContent(messageFlowDto));
+                        producerTemplate.sendBody(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto));
                     } catch(Exception e) {
                         throw new EventProcessingException("Error forwarding message", eventId, messageFlowId, getComponentPath(), e);
                     }
