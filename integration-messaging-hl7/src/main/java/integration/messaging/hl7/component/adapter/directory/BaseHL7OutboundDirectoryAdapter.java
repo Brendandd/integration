@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.adapter.directory.BaseDirectoryOutboundAdapter;
+import integration.core.messaging.component.type.adapter.directory.BaseDirectoryOutboundAdapter;
 
 /**
  * 

@@ -1,6 +1,7 @@
 package integration.core.messaging.component;
 
-import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
+import integration.core.exception.ConfigurationException;
+import integration.core.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 
 /**
  * A consumer of a message.
@@ -20,5 +21,5 @@ public interface MessageConsumer extends MessagingComponent {
      * 
      * @return
      */
-    MessageAcceptancePolicy getMessageAcceptancePolicy();
+    MessageAcceptancePolicy getMessageAcceptancePolicy() throws ConfigurationException;
 }

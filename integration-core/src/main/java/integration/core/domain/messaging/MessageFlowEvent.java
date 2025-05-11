@@ -3,6 +3,7 @@ package integration.core.domain.messaging;
 import java.util.Date;
 
 import integration.core.domain.BaseIntegrationDomain;
+import integration.core.domain.configuration.IntegrationComponent;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -25,8 +26,7 @@ import jakarta.persistence.TemporalType;
 public class MessageFlowEvent extends BaseIntegrationDomain {
     private MessageFlow messageFlow;
     private MessageFlowEventType type;
-    private String componentPath;
-    private String owner;
+    private IntegrationComponent component;
     private Date retryAfter;
     private int retryCount;
 
@@ -35,39 +35,37 @@ public class MessageFlowEvent extends BaseIntegrationDomain {
     public MessageFlow getMessageFlow() {
         return messageFlow;
     }
-
+    
+    
     public void setMessageFlow(MessageFlow messageFlow) {
         this.messageFlow = messageFlow;
     }
-
+    
+    
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     public MessageFlowEventType getType() {
         return type;
     }
-
+    
+    
     public void setType(MessageFlowEventType type) {
         this.type = type;
     }
 
-    @Column(name = "owner")
-    public String getOwner() {
-        return owner;
+    
+    @ManyToOne
+    @JoinColumn(name = "component_id")
+    public IntegrationComponent getComponent() {
+        return component;
+    }
+    
+    
+    public void setComponent(IntegrationComponent component) {
+        this.component = component;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    @Column(name = "component_path")
-    public String getComponentPath() {
-        return componentPath;
-    }
-
-    public void setComponentPath(String componentPath) {
-        this.componentPath = componentPath;
-    }
-
+    
     @Column(name = "retry_after")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getRetryAfter() {
@@ -77,12 +75,14 @@ public class MessageFlowEvent extends BaseIntegrationDomain {
     public void setRetryAfter(Date retryAfter) {
         this.retryAfter = retryAfter;
     }
-
+    
+    
     @Column(name = "retry_count")
     public int getRetryCount() {
         return retryCount;
     }
-
+    
+    
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
     } 

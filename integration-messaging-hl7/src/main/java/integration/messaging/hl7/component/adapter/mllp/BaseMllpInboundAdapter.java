@@ -14,9 +14,9 @@ import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.ComponentType;
-import integration.core.messaging.component.adapter.AdapterOption;
-import integration.core.messaging.component.adapter.BaseInboundAdapter;
+import integration.core.messaging.component.annotation.ComponentType;
+import integration.core.messaging.component.type.adapter.BaseInboundAdapter;
+import integration.core.messaging.component.type.adapter.annotation.AdapterOption;
 
 /**
  * Base class for all MLLP/HL7 inbound communication points. This components reads the
@@ -75,7 +75,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                         
                         // Store the message received by this inbound adapter.
                         String inboundMessageContent = exchange.getMessage().getBody(String.class);
-                        MessageFlowDto inboundMessageFlowDto = messagingFlowService.recordMessageFlow(inboundMessageContent, BaseMllpInboundAdapter.this, getContentType(), MessageFlowActionType.ACCEPTED);
+                        MessageFlowDto inboundMessageFlowDto = messagingFlowService.recordMessageFlow(inboundMessageContent, getIdentifier(), getContentType(), MessageFlowActionType.ACCEPTED);
                         
                         // Set the message flow id as as a header so it can be used later.
                         exchange.getMessage().setHeader(MESSAGE_FLOW_ID, inboundMessageFlowDto.getId());
@@ -90,10 +90,10 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                         
                         // Store the ACK
                         String ackContent = exchange.getMessage().getBody(String.class);
-                        messagingFlowService.recordMessageFlow(ackContent, BaseMllpInboundAdapter.this, inboundMessageFlowId, ContentTypeEnum.HL7_ACK, MessageFlowActionType.ACKNOWLEDGMENT_SENT);
+                        messagingFlowService.recordMessageFlow(ackContent, getIdentifier(), inboundMessageFlowId, ContentTypeEnum.HL7_ACK, MessageFlowActionType.ACKNOWLEDGMENT_SENT);
                                                 
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
-                        messagingFlowService.recordMessageFlowEvent(inboundMessageFlowId,getComponentPath(), getOwner(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messagingFlowService.recordMessageFlowEvent(inboundMessageFlowId,getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }        

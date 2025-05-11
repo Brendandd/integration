@@ -2,9 +2,9 @@ package integration.component;
 
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.IntegrationComponent;
-import integration.core.messaging.component.connector.BaseInboundRouteConnector;
-import integration.core.messaging.component.connector.From;
+import integration.core.messaging.component.annotation.IntegrationComponent;
+import integration.core.messaging.component.type.connector.BaseInboundRouteConnector;
+import integration.core.messaging.component.type.connector.annotation.From;
 
 /**
  * Joins this route to the directory inbound route.

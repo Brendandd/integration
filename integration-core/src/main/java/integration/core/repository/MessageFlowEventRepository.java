@@ -11,9 +11,9 @@ import integration.core.domain.messaging.MessageFlowEvent;
 @Repository
 public interface MessageFlowEventRepository extends JpaRepository<MessageFlowEvent, Long> {
 
-    @Query(name = "getEvents", value = "select e from MessageFlowEvent e where e.owner = ?1 and e.componentPath = ?2 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?3")
-    public List<MessageFlowEvent> getEvents(String owner, String componentPath, int numberToRead);
+    @Query(name = "getEvents", value = "select e from MessageFlowEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
+    public List<MessageFlowEvent> getEvents(long componentId, int numberToRead);
     
-    @Query(name = "getEvents", value = "select e from MessageFlowEvent e where e.owner = ?1 and e.componentPath = ?2 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate")
-    public List<MessageFlowEvent> getEvents(String owner, String componentPath);
+    @Query(name = "getEvents", value = "select e from MessageFlowEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate")
+    public List<MessageFlowEvent> getEvents(long componentId);
 }

@@ -5,11 +5,10 @@ import java.util.Map;
 
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.messaging.component.BaseMessagingComponent;
 
 public class MessageFlowRequest {
     private String messageContent;
-    private BaseMessagingComponent component;
+    private long componentId;
     private Long parentMessageFlowId;
     private ContentTypeEnum contentType;
     private Map<String,String>properties = new HashMap<>();
@@ -26,13 +25,13 @@ public class MessageFlowRequest {
     }
     
     
-    public BaseMessagingComponent getComponent() {
-        return component;
+    public long getComponentId() {
+        return componentId;
     }
     
     
-    public void setComponent(BaseMessagingComponent component) {
-        this.component = component;
+    public void setComponentId(long componentId) {
+        this.componentId = componentId;
     }
     
     

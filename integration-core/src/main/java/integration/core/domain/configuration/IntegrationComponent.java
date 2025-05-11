@@ -1,6 +1,10 @@
 package integration.core.domain.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import integration.core.domain.BaseIntegrationDomain;
+import integration.core.domain.messaging.MessageFlowEvent;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,6 +12,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
@@ -25,11 +30,12 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     private IntegrationRoute route;
     
     private ComponentStateEnum inboundState;
-
     private ComponentStateEnum outboundState;
     
     private ComponentTypeEnum type;
     private ComponentCategoryEnum category;
+    
+    private List<MessageFlowEvent>events = new ArrayList<>();
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
@@ -101,5 +107,16 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     
     public void setOutboundState(ComponentStateEnum outboundState) {
         this.outboundState = outboundState;
+    }
+
+    
+    @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
+    public List<MessageFlowEvent> getEvents() {
+        return events;
+    }
+    
+    
+    public void setEvents(List<MessageFlowEvent> events) {
+        this.events = events;
     }
 }

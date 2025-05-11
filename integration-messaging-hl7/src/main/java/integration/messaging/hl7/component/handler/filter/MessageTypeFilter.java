@@ -1,9 +1,9 @@
 package integration.messaging.hl7.component.handler.filter;
 
 import integration.core.dto.MessageFlowDto;
-import integration.core.messaging.component.handler.filter.FilterException;
-import integration.core.messaging.component.handler.filter.MessageAcceptancePolicy;
-import integration.core.messaging.component.handler.filter.MessageFlowPolicyResult;
+import integration.core.messaging.component.type.handler.filter.FilterException;
+import integration.core.messaging.component.type.handler.filter.MessageAcceptancePolicy;
+import integration.core.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
@@ -35,7 +35,7 @@ public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
                 }
             }
         } catch (Exception e) {
-            throw new FilterException("Error filtering the message", e);
+            throw new FilterException("Error filtering the message", messageFlow.getId(), e);
         }
 
         return new MessageFlowPolicyResult(false, getName(), getFilteredReason());

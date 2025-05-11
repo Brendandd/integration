@@ -1,8 +1,8 @@
 package integration.messaging.hl7.component.handler.transformation;
 
 import integration.core.dto.MessageFlowDto;
-import integration.core.messaging.component.handler.transformation.MessageTransformer;
-import integration.core.messaging.component.handler.transformation.TransformationException;
+import integration.core.messaging.component.type.handler.transformation.MessageTransformer;
+import integration.core.messaging.component.type.handler.transformation.TransformationException;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
@@ -25,7 +25,7 @@ public abstract class DeleteSegmentTransformer extends MessageTransformer {
             
             return source.toString();
         } catch (Exception e) {
-            throw new TransformationException("Error transforming the message", e);
+            throw new TransformationException("Error transforming the message", messageFlow.getId(), e);
         }
     }
 }

@@ -11,9 +11,9 @@ import integration.core.messaging.BaseRoute;
 public interface MessagingComponent {
     public String getName() throws ConfigurationException;
 
-    public ComponentTypeEnum getType();
+    public ComponentTypeEnum getType() throws ConfigurationException;
     
-    public ComponentCategoryEnum getCategory();
+    public ComponentCategoryEnum getCategory() throws ConfigurationException;
     
     public String getComponentPath() throws ConfigurationException;
     

@@ -1,6 +1,7 @@
 package integration.core.messaging.component;
 
-import integration.core.messaging.component.handler.filter.MessageForwardingPolicy;
+import integration.core.exception.ConfigurationException;
+import integration.core.messaging.component.type.handler.filter.MessageForwardingPolicy;
 
 /**
  * A producer of a message.
@@ -19,6 +20,7 @@ public interface MessageProducer extends MessagingComponent {
      * Gets the message forwarding policy for this message producer.
      * 
      * @return
+     * @throws ConfigurationException 
      */
-    MessageForwardingPolicy getMessageForwardingPolicy();
+    MessageForwardingPolicy getMessageForwardingPolicy() throws ConfigurationException;
 }

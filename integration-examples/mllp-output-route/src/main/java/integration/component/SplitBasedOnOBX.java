@@ -3,8 +3,8 @@ package integration.component;
 import org.springframework.stereotype.Component;
 
 import integration.core.dto.MessageFlowDto;
-import integration.core.messaging.component.handler.splitter.MessageSplitter;
-import integration.core.messaging.component.handler.splitter.SplitterException;
+import integration.core.messaging.component.type.handler.splitter.MessageSplitter;
+import integration.core.messaging.component.type.handler.splitter.SplitterException;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**
@@ -28,7 +28,7 @@ public class SplitBasedOnOBX extends MessageSplitter {
 
             return messageFlowArray;
         } catch (Exception e) {
-            throw new SplitterException("Error splitting the message", e);
+            throw new SplitterException("Error splitting the message", messageFlow.getId(), e);
         }
     }
 }

@@ -10,6 +10,7 @@ public enum MessageFlowActionType {
     NOT_ACCEPTED,
 
     // Message forwarding outcomes by internal components
+    PENDING_FORWARDING,
     FORWARDED,
     NOT_FORWARDED,
 
@@ -21,5 +22,11 @@ public enum MessageFlowActionType {
     NOT_TRANSFORMED,
 
     // Acknowledgment sent to the message source
-    ACKNOWLEDGMENT_SENT;
+    ACKNOWLEDGMENT_SENT,
+    
+    TRANSFORMATION_ERROR,
+    FILTER_ERROR,
+    SPLITTER_ERROR;
+    
+    
 }

@@ -6,7 +6,8 @@ import java.time.format.DateTimeFormatter;
 import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 
-import integration.core.messaging.component.adapter.directory.FileNamingStrategy;
+import integration.core.messaging.MessageFlowException;
+import integration.core.messaging.component.type.adapter.directory.annotation.FileNamingStrategy;
 
 /**
  * A custom file naming strategy which appends a date time to the original file name.
@@ -15,7 +16,7 @@ import integration.core.messaging.component.adapter.directory.FileNamingStrategy
 public class CustomFileNamingStrategy extends FileNamingStrategy {
 
     @Override
-    protected String getFilename(Exchange exchange, long messageFlowId) {
+    public String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowException {
         String filename = propertyService.getPropertyValue("CamelFileName", messageFlowId);
         
         String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));

@@ -8,14 +8,16 @@ import org.apache.camel.RoutesBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.exception.ConfigurationException;
+import integration.core.exception.ExceptionIdentifier;
+import integration.core.exception.ExceptionIdentifierType;
 import integration.core.messaging.component.MessageConsumer;
 import integration.core.messaging.component.MessageProducer;
 import integration.core.messaging.component.MessagingComponent;
-import integration.core.messaging.component.adapter.BaseInboundAdapter;
-import integration.core.messaging.component.adapter.BaseOutboundAdapter;
-import integration.core.messaging.component.connector.BaseInboundRouteConnector;
-import integration.core.messaging.component.connector.BaseOutboundRouteConnector;
-import integration.core.messaging.component.handler.MessageHandler;
+import integration.core.messaging.component.type.adapter.BaseInboundAdapter;
+import integration.core.messaging.component.type.adapter.BaseOutboundAdapter;
+import integration.core.messaging.component.type.connector.BaseInboundRouteConnector;
+import integration.core.messaging.component.type.connector.BaseOutboundRouteConnector;
+import integration.core.messaging.component.type.handler.MessageHandler;
 import integration.core.service.ConfigurationService;
 
 /**
@@ -139,8 +141,9 @@ public abstract class BaseRoute {
 
     
     public abstract void configureRoute() throws Exception;
-
-    public void applyConfiguration() throws Exception { 
+    
+    
+    protected void applyConfiguration() throws Exception { 
         configurationService.configureRoute(this, components);
 
         for (MessagingComponent component : components) {
@@ -149,11 +152,13 @@ public abstract class BaseRoute {
     }
 
     
-    public String getName() {
+    public String getName() throws ConfigurationException {
         IntegrationRoute annotation = this.getClass().getAnnotation(IntegrationRoute.class);
         
         if (annotation == null) {
-            throw new ConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes");
+            List<ExceptionIdentifier>identifiers = new ArrayList<>();
+            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, getIdentifier()));
+            throw new ConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes", identifiers, false);
         }
         
         return annotation.name();

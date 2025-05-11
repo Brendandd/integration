@@ -15,8 +15,7 @@ public class MessageFlowEventMapper extends BaseMapper<MessageFlowEventDto, Mess
         MessageFlowEventDto destination = new MessageFlowEventDto();
         destination.setMessageFlowId(source.getMessageFlow().getId());
         destination.setId(source.getId());
-        destination.setComponentPath(source.getComponentPath());
-        destination.setOwner(source.getOwner());
+        destination.setComponentId(source.getComponent().getId());
         destination.setType(source.getType());
 
         return destination;

@@ -12,8 +12,7 @@ public class MessageFlowEventDto extends BaseDto {
     private static final long serialVersionUID = 5050473264308343049L;
 
     private long messageFlowId;
-    private String owner;
-    private String componentPath;
+    private long componentId;
     private MessageFlowEventType type;
 
     public long getMessageFlowId() {
@@ -24,26 +23,22 @@ public class MessageFlowEventDto extends BaseDto {
         this.messageFlowId = messageFlowId;
     }
 
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public String getComponentPath() {
-        return componentPath;
-    }
-
-    public void setComponentPath(String componentPath) {
-        this.componentPath = componentPath;
-    }
-
+    
     public MessageFlowEventType getType() {
         return type;
     }
-
+    
+    
+    public long getComponentId() {
+        return componentId;
+    }
+    
+    
+    public void setComponentId(long componentId) {
+        this.componentId = componentId;
+    }
+    
+    
     public void setType(MessageFlowEventType type) {
         this.type = type;
     }

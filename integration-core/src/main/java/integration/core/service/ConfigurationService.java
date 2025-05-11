@@ -15,8 +15,6 @@ import integration.core.service.impl.StatusChangeResponse;
  */
 public interface ConfigurationService {
 
-    RouteDto getRouteByName(String name, String owner) throws ConfigurationException;
-
     List<RouteDto> getAllRoutes() throws ConfigurationException;
     
     RouteDto getRoute(long routeId) throws ConfigurationException;
@@ -27,13 +25,13 @@ public interface ConfigurationService {
     
     List<ComponentDto> getAllComponents() throws ConfigurationException;
     
-    StatusChangeResponse stopComponentInbound(long id);
+    StatusChangeResponse stopComponentInbound(long id) throws ConfigurationException;
     
-    StatusChangeResponse startComponentInbound(long id);   
+    StatusChangeResponse startComponentInbound(long id) throws ConfigurationException;  
     
-    StatusChangeResponse stopComponentOutbound(long id);
+    StatusChangeResponse stopComponentOutbound(long id) throws ConfigurationException;
     
-    StatusChangeResponse startComponentOutbound(long id); 
+    StatusChangeResponse startComponentOutbound(long id) throws ConfigurationException;
 }
 
 
