@@ -81,7 +81,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
         for (MessageProducer messageProducer : messageProducers) {
           
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("inboundEntryPoint-" + getComponentPath())
+                .routeId("inboundEntryPoint-" + getIdentifier())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == ComponentStateEnum.RUNNING)
                 .transacted()
@@ -111,8 +111,8 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
 
         
         // Entry point for a outbound route connector outbound message handling. 
-        from("direct:outboundMessageHandling-" + getComponentPath())
-            .routeId("outboundMessageHandling-" + getComponentPath())
+        from("direct:outboundMessageHandling-" + getIdentifier())
+            .routeId("outboundMessageHandling-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             

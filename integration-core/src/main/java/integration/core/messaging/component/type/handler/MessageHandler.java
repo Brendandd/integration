@@ -90,7 +90,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
 
             
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("inboundEntryPoint-" + getComponentPath() + "-" + messageProducer.getComponentPath())
+                .routeId("inboundEntryPoint-" + getIdentifier() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == ComponentStateEnum.RUNNING)
                 .transacted()

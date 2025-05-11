@@ -62,7 +62,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
         // A route to receive a HL7 message via MLLP, store the message, store an event and generate and send the ACK all
         // within a single transaction.  This is the initial entry point for a HL7 message.
         from(getFromUriString())
-            .routeId("inboundEntryPoint-" + getComponentPath())
+            .routeId("inboundEntryPoint-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .autoStartup(inboundState == ComponentStateEnum.RUNNING)

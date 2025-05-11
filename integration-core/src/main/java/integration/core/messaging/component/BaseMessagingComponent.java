@@ -329,7 +329,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                             messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
     
                             // Add the message to the queue
-                            producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getComponentPath(), messageFlowId);
+                            producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
                         } catch (Exception e) {
                             List<ExceptionIdentifier>identifiers = new ArrayList<>();
                             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
@@ -341,19 +341,19 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
         
         // A route which reads from the components internal message handling complete queue.  This is the entry point for a components outbound message handling.
-        from("jms:queue:inboundMessageHandlingComplete-" + getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-            .routeId("outboundEntryPoint-" + getComponentPath())
+        from("jms:queue:inboundMessageHandlingComplete-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+            .routeId("outboundEntryPoint-" + getIdentifier())
             .routeGroup(getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .transacted()            
                 // All components must provide an outboudMessageHandling route.
-                .to("direct:outboundMessageHandling-" + getComponentPath());
+                .to("direct:outboundMessageHandling-" + getIdentifier());
 
         
         
         // Event processor routes.
-        from("timer://eventProcessorTimer-" + getComponentPath() + "?fixedRate=true&period=100&delay=2000")
-        .routeId("eventProcessorTimer-" + getComponentPath())
+        from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
+        .routeId("eventProcessorTimer-" + getIdentifier())
         .process(exchange -> {
             IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
             Lock lock = cache.lock(getComponentPath());
@@ -389,17 +389,17 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     
         // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
-        from("timer://stateTimer-" + getComponentPath() + "?fixedRate=true&period=100&delay=2000")
-        .routeId("stateTimer-" + getComponentPath())
+        from("timer://stateTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
+        .routeId("stateTimer-" + getIdentifier())
         .process(exchange -> {
             ComponentDto component = configurationService.getComponent(identifier);
                 
             // Process inbound state change
             if (component.getInboundState() != inboundState) {
                 if (component.getInboundState() == ComponentStateEnum.RUNNING) {
-                    camelContext.getRouteController().startRoute("inboundEntryPoint-" + getComponentPath());
+                    camelContext.getRouteController().startRoute("inboundEntryPoint-" + getIdentifier());
                 } else {
-                    camelContext.getRouteController().stopRoute("inboundEntryPoint-" + getComponentPath());
+                    camelContext.getRouteController().stopRoute("inboundEntryPoint-" + getIdentifier());
                 }
                 
                 inboundState = component.getInboundState();
@@ -408,9 +408,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             // Process outbound state change
             if (component.getOutboundState() != outboundState) {
                 if (component.getOutboundState() == ComponentStateEnum.RUNNING) {
-                    camelContext.getRouteController().startRoute("outboundExitPoint-" + getComponentPath());
+                    camelContext.getRouteController().startRoute("outboundExitPoint-" + getIdentifier());
                 } else {
-                    camelContext.getRouteController().stopRoute("outboundExitPoint-" + getComponentPath());
+                    camelContext.getRouteController().stopRoute("outboundExitPoint-" + getIdentifier());
                 }
                 
                 outboundState = component.getOutboundState();

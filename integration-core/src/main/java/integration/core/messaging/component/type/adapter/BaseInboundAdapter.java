@@ -71,8 +71,8 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
         super.configure();
                 
         // Entry point for an inbound adapters outbound message handling. 
-        from("direct:outboundMessageHandling-" + getComponentPath())
-            .routeId("outboundMessageHandling-" + getComponentPath())
+        from("direct:outboundMessageHandling-" + getIdentifier())
+            .routeId("outboundMessageHandling-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             

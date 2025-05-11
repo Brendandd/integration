@@ -73,7 +73,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
         super.configure();
 
         from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-            .routeId("inboundEntryPoint-" + getComponentPath())
+            .routeId("inboundEntryPoint-" + getIdentifier())
             .routeGroup(getComponentPath())
             .autoStartup(inboundState == ComponentStateEnum.RUNNING)
             .transacted()
@@ -91,8 +91,8 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
  
         
         // Entry point for an inbound adapters outbound message handling. 
-        from("direct:outboundMessageHandling-" + getComponentPath())
-            .routeId("outboundMessageHandling-" + getComponentPath())
+        from("direct:outboundMessageHandling-" + getIdentifier())
+            .routeId("outboundMessageHandling-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             

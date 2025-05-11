@@ -54,7 +54,7 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
 
         // A route to read a file from the defined location, store the file content, store an event all within a single transaction.
         from(getFromUriString())
-            .routeId("inboundEntryPoint-" + getComponentPath())
+            .routeId("inboundEntryPoint-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .autoStartup(inboundState == ComponentStateEnum.RUNNING)

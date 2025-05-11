@@ -87,8 +87,8 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
 
         
         // Entry point for a outbound route connectors outbound message handling. 
-        from("direct:outboundMessageHandling-" + getComponentPath())
-            .routeId("outboundMessageHandling-" + getComponentPath())
+        from("direct:outboundMessageHandling-" + getIdentifier())
+            .routeId("outboundMessageHandling-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
 
