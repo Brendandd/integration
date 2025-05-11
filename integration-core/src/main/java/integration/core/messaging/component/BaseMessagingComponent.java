@@ -310,7 +310,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         
         // A route to add the message flow step id to the inbound message handling complete queue.
         from("direct:processComponentInboundMessageHandlingCompleteEvent-" + getIdentifier())
-            .routeId("-" + getIdentifier())
+            .routeId("processComponentInboundMessageHandlingCompleteEvent-" + getIdentifier())
             .routeGroup(getComponentPath())  
             .transacted()
                 .process(new Processor() {
