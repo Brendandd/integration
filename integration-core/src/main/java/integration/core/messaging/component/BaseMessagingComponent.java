@@ -34,8 +34,8 @@ import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
 import integration.core.messaging.BaseRoute;
-import integration.core.messaging.EventProcessingException;
 import integration.core.messaging.MessageFlowException;
+import integration.core.messaging.OutboxProcessingException;
 import integration.core.messaging.component.annotation.ComponentType;
 import integration.core.messaging.component.annotation.IntegrationComponent;
 import integration.core.messaging.component.type.handler.filter.FilterException;
@@ -179,12 +179,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     public void configure() throws Exception {
         
         // Handled errors processing events from the outbox.
-        onException(EventProcessingException.class)
+        onException(OutboxProcessingException.class)
         .process(exchange -> {
             Long eventId = null;
             boolean isRetryable = true;
             
-            EventProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, EventProcessingException.class);
+            OutboxProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, OutboxProcessingException.class);
             getLogger().error("Event processing exception - " + theException.toString());
             
             
@@ -195,11 +195,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                 eventId = exchange.getIn().getHeader(BaseMessagingComponent.EVENT_ID, Long.class);
             }
             
-            if (!isRetryable && eventId != null) {
+            if (isRetryable && eventId != null) {
                 messagingFlowService.setEventFailed(eventId);
-            } else {
-                exchange.setRollbackOnly(true);
             }
+
+            exchange.setRollbackOnly(true);
         })
         .handled(true); // handled is true but the outbox process will keep retrying.
 
@@ -334,7 +334,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                             List<ExceptionIdentifier>identifiers = new ArrayList<>();
                             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
                             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.EVENT_ID, eventId));
-                            throw new EventProcessingException("Error adding the message flow id to the internal processing queue", identifiers, e, true);
+                            throw new OutboxProcessingException("Error adding the message flow id to the internal processing queue", identifiers, e);
                         }
                     }
                 });
@@ -451,7 +451,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         List<ExceptionIdentifier>identifiers = new ArrayList<>();
                         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
                         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.EVENT_ID, eventId));
-                        throw new EventProcessingException("Error forwarding message from outbox", identifiers, e, true);
+                        throw new OutboxProcessingException("Error forwarding message from outbox", identifiers, e);
                     }
                 }
             });
