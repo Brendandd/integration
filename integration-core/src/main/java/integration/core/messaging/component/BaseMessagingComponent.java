@@ -44,7 +44,6 @@ import integration.core.messaging.component.type.handler.transformation.Transfor
 import integration.core.service.ConfigurationService;
 import integration.core.service.MessageFlowPropertyService;
 import integration.core.service.MessagingFlowService;
-import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -108,8 +107,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * Makes sure each component has the mandatory annotations for its type.
      * @throws ConfigurationException 
      */
-    @PostConstruct
-    public void validateConfiguration() throws ConfigurationException {
+    public void validateAnnotations() throws ConfigurationException {
         // These are common for all components.
         requiredAnnotations.add(IntegrationComponent.class);
         requiredAnnotations.add(ComponentType.class);

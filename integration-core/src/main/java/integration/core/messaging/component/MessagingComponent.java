@@ -38,4 +38,6 @@ public interface MessagingComponent {
     public void setOutboundState(ComponentStateEnum outboundState);
             
     public String getOwner();
+    
+    public void validateAnnotations() throws ConfigurationException;
 }

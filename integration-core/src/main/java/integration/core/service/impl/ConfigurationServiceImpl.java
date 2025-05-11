@@ -178,6 +178,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 component.setInboundState(integrationComponent.getInboundState());
                 component.setOutboundState(integrationComponent.getOutboundState());
                 component.setConfiguration(configLoader.getConfiguration(route.getName(),component.getName()));
+                
+                component.validateAnnotations();
             }
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
