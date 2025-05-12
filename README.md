@@ -51,18 +51,120 @@ java
 public class Hl7MessageTypeFilter extends BaseFilterProcessingStep {
 }
 
+
+@IntegrationComponent(name = "directory-inbound")
+@AdapterOption(key = "idempotent", value = "true")
+@AdapterOption(key = "idempotentRepository", value = "#jpaStore")
+@AdapterOption(key = "move", value = "processed")
+@AdapterOption(key = "noop", value = "false")
+@ForwardingPolicy(name = "forwardAllMessages")
+@AllowedContentType(ContentTypeEnum.HL7)
+public class HL7DirectoryInboundAdapter extends BaseHL7InboundDirectoryAdapter {
+ 
+}
+
 ```
+This integration engine currently supports the following component types and configuration annotations:
 
-- @IntegrationComponent: Identifies the component and provides metadata such as its name.
-
-
-- @AcceptancePolicy: Defines the acceptance criteria for messages (e.g., message types).
+- **Inbound Adapters**
 
 
-- @ForwardingPolicy: Configures how messages will be forwarded after processing.
+  - MLLP Inbound Adapter  
+    - `@ForwardingPolicy`  
+    - `@AdapterOption`  
+    - `@AllowedContentType`  
+    
+    
+
+  - Directory Inbound Adapter  
+    - `@ForwardingPolicy`  
+    - `@AdapterOption`  
+    - `@AllowedContentType`  
+    
 
 
-- @AllowedContentType: Specifies the content types that the component can handle (e.g., HL7). Content type validation will be a future change.
+
+- **Outbound Adapters**
+
+
+  - MLLP Outbound Adapter  
+    - `@AcceptancePolicy`  
+    - `@AllowedContentType` 
+     
+     
+
+  - Directory Outbound Adapter  
+    - `@AcceptancePolicy`  
+    - `@FileNaming`  
+    - `@AllowedContentType`  
+    
+    
+
+
+- **Message Handlers**
+
+
+  - Transformer  
+    - `@ForwardingPolicy`  
+    - `@AcceptancePolicy`  
+    - `@AllowedContentType`  
+    - `@UsesTransformer`  
+    
+    
+
+  - Filter  
+    - `@ForwardingPolicy`  
+    - `@AcceptancePolicy`  
+    - `@AllowedContentType`  
+    - `@UsesFilter`  
+    
+    
+
+  - Splitter  
+    - `@ForwardingPolicy`  
+    - `@AcceptancePolicy`  
+    - `@AllowedContentType`  
+    - `@UsesSplitter`  
+    
+    
+
+
+- **Route Connectors**
+
+
+  - Outbound Route Connector  
+    - `@StaticDestination`  
+    - `@DynamicDestination`  
+    - `@AcceptancePolicy`  
+    - `@AllowedContentType`  
+    
+    
+
+  - Inbound Route Connector  
+    - `@From`  
+    - `@ForwardingPolicy`
+    - `@AllowedContentType`  
+    
+    
+    
+
+
+
+- **Route Connectors**
+
+  - Outbound Route Connector
+    - `@StaticDestination`
+    - `@DynamicDestination`
+    - `@AcceptancePolicy`
+    - `@AllowedContentType` 
+    
+    
+    
+  - Inbound Route Connector
+    - `@From`
+    - `@ForwardingPolicy`
+    - `@AllowedContentType` 
+    
 
 ---
 
@@ -92,9 +194,7 @@ Then, navigate to the **integration/config/samples/scripts** folder and run the 
 
 ```
 run-apache-activemq-artemis
-
 run-apache-ignite
-
 run-mysql
 ```
 
@@ -102,13 +202,9 @@ run-mysql
 
 ```
 run-file-input-route
-
 run-file-output-route
-
 run-mllp-input-route
-
 run-mllp-output-route
-
 run-rest-services
 ```
 
