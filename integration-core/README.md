@@ -1,6 +1,6 @@
 # Integration Core
 
-Core integration engine functionality.
+Core integration engine functionality.  It is still under development.
 
 
 
