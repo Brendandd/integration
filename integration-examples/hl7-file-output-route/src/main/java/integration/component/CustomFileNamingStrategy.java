@@ -19,6 +19,10 @@ public class CustomFileNamingStrategy extends FileNamingStrategy {
     public String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowException {
         String filename = propertyService.getPropertyValue("CamelFileName", messageFlowId);
         
+        if (filename == null) {
+            return null;
+        }
+        
         String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         
         int dotIndex = filename.lastIndexOf('.');

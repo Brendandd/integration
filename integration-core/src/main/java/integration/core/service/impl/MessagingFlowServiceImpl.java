@@ -223,6 +223,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MessageFlowDto recordTransformationError(long componentId, long parentMessageFlowId, TransformationException theException) throws MessageFlowException, ConfigurationException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();
@@ -252,6 +253,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     
     
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MessageFlowDto recordSplitterError(long componentId, long parentMessageFlowId, SplitterException theException) throws MessageFlowException, ConfigurationException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();
@@ -282,6 +284,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     
     
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MessageFlowDto recordFilterError(long componentId, long parentMessageFlowId, FilterException theException) throws MessageFlowException, ConfigurationException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();

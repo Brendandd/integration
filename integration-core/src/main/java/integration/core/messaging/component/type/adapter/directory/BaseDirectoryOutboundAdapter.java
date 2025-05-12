@@ -45,7 +45,6 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
      * @throws RetryableException 
      */
     protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowException, ConfigurationException {
-
         FileNaming annotation = getRequiredAnnotation(FileNaming.class);
                  
         FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
@@ -64,8 +63,11 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
         Map<String, Object> headers = new HashMap<String, Object>();
         
         String fileName = getFilename(exchange, messageFlowId);
-        headers.put(CAMEL_FILE_NAME, fileName);
         
+        if (fileName != null) {
+            headers.put(CAMEL_FILE_NAME, fileName);
+        }
+            
         return headers;
     }
 
