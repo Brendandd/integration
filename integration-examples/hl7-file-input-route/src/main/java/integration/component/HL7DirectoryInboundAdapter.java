@@ -1,9 +1,9 @@
 package integration.component;
 
 import integration.core.domain.configuration.ContentTypeEnum;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.annotation.IntegrationComponent;
-import integration.core.messaging.component.type.adapter.annotation.AdapterOption;
+import integration.core.runtime.messaging.component.AllowedContentType;
+import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
+import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
 import integration.messaging.hl7.component.adapter.directory.BaseHL7InboundDirectoryAdapter;
 
 /**

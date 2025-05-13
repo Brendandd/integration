@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.MessageConsumer;
-import integration.core.messaging.component.MessageProducer;
-import integration.core.messaging.component.annotation.ComponentType;
-import integration.core.messaging.component.type.adapter.BaseOutboundAdapter;
-import integration.core.messaging.component.type.adapter.annotation.AdapterOption;
+import integration.core.runtime.messaging.component.AllowedContentType;
+import integration.core.runtime.messaging.component.MessageConsumer;
+import integration.core.runtime.messaging.component.MessageProducer;
+import integration.core.runtime.messaging.component.annotation.ComponentType;
+import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
+import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.

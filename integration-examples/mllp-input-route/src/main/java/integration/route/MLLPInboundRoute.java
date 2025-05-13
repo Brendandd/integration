@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.component.FromAdelaideHospitalMLLPInboundAdapter;
 import integration.component.OutboundRouteConnector;
-import integration.core.messaging.BaseRoute;
-import integration.core.messaging.IntegrationRoute;
+import integration.core.runtime.messaging.BaseRoute;
+import integration.core.runtime.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
 
 /**

@@ -13,10 +13,10 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.messaging.component.AllowedContentType;
-import integration.core.messaging.component.annotation.ComponentType;
-import integration.core.messaging.component.type.adapter.BaseInboundAdapter;
-import integration.core.messaging.component.type.adapter.annotation.AdapterOption;
+import integration.core.runtime.messaging.component.AllowedContentType;
+import integration.core.runtime.messaging.component.annotation.ComponentType;
+import integration.core.runtime.messaging.component.type.adapter.BaseInboundAdapter;
+import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
 
 /**
  * Base class for all MLLP/HL7 inbound communication points. This components reads the

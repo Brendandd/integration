@@ -1,9 +1,9 @@
 package integration.messaging.hl7.component.handler.filter;
 
 import integration.core.dto.MessageFlowDto;
-import integration.core.messaging.component.type.handler.filter.FilterException;
-import integration.core.messaging.component.type.handler.filter.MessageAcceptancePolicy;
-import integration.core.messaging.component.type.handler.filter.MessageFlowPolicyResult;
+import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
+import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
+import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.messaging.hl7.datamodel.HL7Message;
 
 /**

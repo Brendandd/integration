@@ -5,8 +5,8 @@ import java.util.List;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.RouteDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.messaging.BaseRoute;
-import integration.core.messaging.component.MessagingComponent;
+import integration.core.runtime.messaging.BaseRoute;
+import integration.core.runtime.messaging.component.MessagingComponent;
 import integration.core.service.impl.StatusChangeResponse;
 
 /**
