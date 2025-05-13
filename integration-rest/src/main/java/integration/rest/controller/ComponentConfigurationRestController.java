@@ -1,4 +1,4 @@
-package integration.rest;
+package integration.rest.controller;
 
 import java.util.List;
 
@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import integration.core.dto.ComponentDto;
-import integration.core.dto.RouteDto;
 import integration.core.exception.ConfigurationException;
-import integration.core.service.ConfigurationService;
-import integration.core.service.impl.StatusChangeResponse;
+import integration.core.service.ComponentConfigurationService;
+import integration.rest.service.impl.ComponentStateChangeService;
+import integration.rest.service.impl.StatusChangeResponse;
+
 
 /**
- * A rest controller for route configuration.
+ * A rest controller for component configuration.
  * 
  * TODO add more APIs.
  * 
@@ -28,43 +29,14 @@ import integration.core.service.impl.StatusChangeResponse;
  */
 @RestController
 @RequestMapping("/configuration")
-public class ConfigurationRestController {
+public class ComponentConfigurationRestController {
 
     @Autowired
-    protected ConfigurationService configurationService;
-
+    protected ComponentStateChangeService componentStateChangeService;
     
-    /**
-     * Get all routes.
-     * 
-     * @return
-     * @throws ConfigurationException
-     * @throws integration.core.exception.ConfigurationException 
-     * @throws RetryableException 
-     */
-    @GetMapping(value = "/routes")
-    @ResponseStatus(HttpStatus.OK)
-    public List<RouteDto> getAllRoutes() throws ConfigurationException {
-        return configurationService.getAllRoutes();
-    }
+    @Autowired
+    private ComponentConfigurationService componentConfigurationService;
 
-    
-    /**
-     * Gets a single route by id.
-     * 
-     * @param routeName
-     * @return
-     * @throws RetryableException 
-     * @throws integration.core.exception.ConfigurationException 
-     * @throws ConfigurationException
-     */
-    @GetMapping(value = "/route/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public RouteDto getRoute(@PathVariable("id") long id) throws ConfigurationException  {
-        return configurationService.getRoute(id);
-    }
-
-    
     /**
      * Get all components.
      * 
@@ -75,7 +47,7 @@ public class ConfigurationRestController {
     @GetMapping(value = "/components")
     @ResponseStatus(HttpStatus.OK)
     public List<ComponentDto> getComponents() throws ConfigurationException, ConfigurationException {
-        return configurationService.getAllComponents();
+        return componentConfigurationService.getAllComponents();
     }
 
     
@@ -90,7 +62,7 @@ public class ConfigurationRestController {
     @GetMapping(value = "/component/{id}")
     @ResponseStatus(HttpStatus.OK)
     public ComponentDto getComponent(@PathVariable("id") long id) throws ConfigurationException, ConfigurationException {
-        return configurationService.getComponent(id);
+        return componentConfigurationService.getComponent(id);
     }
 
     
@@ -105,12 +77,11 @@ public class ConfigurationRestController {
     @PostMapping(value = "/component/{id}/stop/inbound")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<StatusChangeResponse> stopComponentInbound(@PathVariable("id") long id) throws ConfigurationException {
-        StatusChangeResponse response = configurationService.stopComponentInbound(id);
+        StatusChangeResponse response = componentStateChangeService.stopComponentInbound(id);
         
         return ResponseEntity.ok(response);
     }
 
-    
     /**
      * Starts the components inbound handler.
      * 
@@ -122,7 +93,7 @@ public class ConfigurationRestController {
     @PostMapping(value = "/component/{id}/start/inbound")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<StatusChangeResponse> startComponentInbound(@PathVariable("id") long id) throws ConfigurationException {
-        StatusChangeResponse response = configurationService.startComponentInbound(id);
+        StatusChangeResponse response = componentStateChangeService.startComponentInbound(id);
         
         return ResponseEntity.ok(response);
     }
@@ -139,7 +110,7 @@ public class ConfigurationRestController {
     @PostMapping(value = "/component/{id}/stop/outbound")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<StatusChangeResponse> stopComponentOutbound(@PathVariable("id") long id) throws ConfigurationException {
-        StatusChangeResponse response = configurationService.stopComponentOutbound(id);
+        StatusChangeResponse response = componentStateChangeService.stopComponentOutbound(id);
         
         return ResponseEntity.ok(response);
     }
@@ -156,7 +127,7 @@ public class ConfigurationRestController {
     @PostMapping(value = "/component/{id}/start/outbound")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<StatusChangeResponse> startComponentOutbound(@PathVariable("id") long id) throws ConfigurationException {
-        StatusChangeResponse response = configurationService.startComponentOutbound(id);
+        StatusChangeResponse response = componentStateChangeService.startComponentOutbound(id);
         
         return ResponseEntity.ok(response);
     }

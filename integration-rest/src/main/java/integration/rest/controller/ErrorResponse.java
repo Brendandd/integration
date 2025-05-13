@@ -1,4 +1,4 @@
-package integration.rest;
+package integration.rest.controller;
 
 public class ErrorResponse {
     private String error;

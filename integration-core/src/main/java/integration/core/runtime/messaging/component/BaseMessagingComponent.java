@@ -21,10 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.ComponentDto;
@@ -43,7 +43,7 @@ import integration.core.runtime.messaging.exception.MessageFlowException;
 import integration.core.runtime.messaging.exception.OutboxProcessingException;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessagingFlowService;
-import integration.core.service.ConfigurationService;
+import integration.core.service.ComponentConfigurationService;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -74,7 +74,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected IntegrationComponentStateEnum outboundState;
     
     @Autowired
-    protected ConfigurationService configurationService;
+    protected ComponentConfigurationService componentConfigurationService;
     
     @Autowired
     protected CamelContext camelContext;
@@ -107,6 +107,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * Makes sure each component has the mandatory annotations for its type.
      * @throws ConfigurationException 
      */
+    @Override
     public void validateAnnotations() throws ConfigurationException {
         // These are common for all components.
         requiredAnnotations.add(IntegrationComponent.class);
@@ -390,7 +391,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         from("timer://stateTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
         .routeId("stateTimer-" + getIdentifier())
         .process(exchange -> {
-            ComponentDto component = configurationService.getComponent(identifier);
+            ComponentDto component = componentConfigurationService.getComponent(identifier);
                 
             // Process inbound state change
             if (component.getInboundState() != inboundState) {

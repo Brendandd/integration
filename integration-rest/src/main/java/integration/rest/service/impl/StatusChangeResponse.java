@@ -1,4 +1,4 @@
-package integration.core.service.impl;
+package integration.rest.service.impl;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 

@@ -18,7 +18,7 @@ import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAda
 import integration.core.runtime.messaging.component.type.connector.BaseInboundRouteConnector;
 import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnector;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
-import integration.core.service.ConfigurationService;
+import integration.core.service.RouteConfigurationService;
 
 /**
  * Base class for all routes. A route is composed of components and determines
@@ -32,7 +32,7 @@ public abstract class BaseRoute {
     protected CamelContext camelContext;
 
     @Autowired
-    protected ConfigurationService configurationService;
+    protected RouteConfigurationService routeConfigurationService;
         
     protected long identifier;
     
@@ -144,7 +144,7 @@ public abstract class BaseRoute {
     
     
     protected void applyConfiguration() throws Exception { 
-        configurationService.configureRoute(this, components);
+        routeConfigurationService.configureRoute(this, components);
 
         for (MessagingComponent component : components) {
             camelContext.addRoutes((RoutesBuilder)component);

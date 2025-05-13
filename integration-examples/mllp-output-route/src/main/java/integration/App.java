@@ -7,14 +7,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = { "integration.core", "integration.messaging.core" })
-@EnableJpaRepositories(basePackages = "integration.core.repository")
-@EntityScan(basePackages = "integration.core.domain")
-@ComponentScan(basePackages = { "integration.core", "integration.route", "integration.component", "integration.messaging",
-        "integration.messaging.hl7" })
-@EnableScheduling
+@SpringBootApplication
+@EnableJpaRepositories(basePackages = "integration.core")
+@EntityScan(basePackages = "integration.core")
+@ComponentScan(basePackages = {"integration"})
 @EnableAsync
 @Configuration
 public class App {
