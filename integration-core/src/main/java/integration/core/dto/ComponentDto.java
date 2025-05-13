@@ -1,5 +1,8 @@
 package integration.core.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
@@ -20,6 +23,8 @@ public class ComponentDto extends BaseDto {
     private String owner;
     private IntegrationComponentStateEnum inboundState;
     private IntegrationComponentStateEnum outboundState;
+    
+    private List<ComponentPropertyDto>properties = new ArrayList<>();
     
     private RouteDto route;
   
@@ -90,5 +95,25 @@ public class ComponentDto extends BaseDto {
 
     public void setRoute(RouteDto route) {
         this.route = route;
+    }
+
+
+    public List<ComponentPropertyDto> getProperties() {
+        return properties;
+    }
+
+
+    public void setProperties(List<ComponentPropertyDto> properties) {
+        this.properties = properties;
     } 
+    
+    public void addProperty(String key, String value) {
+        ComponentPropertyDto property = new ComponentPropertyDto(key, value);
+        properties.add(property);
+    }
+    
+    
+    public void addProperty(ComponentPropertyDto property) {
+        properties.add(property);
+    }
 }

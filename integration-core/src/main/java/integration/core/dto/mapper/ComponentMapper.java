@@ -1,7 +1,9 @@
 package integration.core.dto.mapper;
 
 import integration.core.domain.configuration.IntegrationComponent;
+import integration.core.domain.configuration.IntegrationComponentProperty;
 import integration.core.dto.ComponentDto;
+import integration.core.dto.ComponentPropertyDto;
 import integration.core.dto.RouteDto;
 
 /**
@@ -27,7 +29,14 @@ public class ComponentMapper extends BaseMapper<ComponentDto, IntegrationCompone
         routeDto.setName(source.getRoute().getName());
         
         destination.setRoute(routeDto);
-
+        
+        for (IntegrationComponentProperty property : source.getProperties()) {
+            if (property.getEndDate() == null) {
+                ComponentPropertyDto propertyDto = new ComponentPropertyDto(property.getKey(), property.getValue());
+                destination.addProperty(propertyDto);
+            }
+        }
+        
         return destination;
     }
 }

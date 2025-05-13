@@ -9,6 +9,8 @@ import org.apache.camel.Processor;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.dto.ComponentDto;
+import integration.core.dto.ComponentPropertyDto;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ConfigurationException;
 import integration.core.runtime.messaging.component.MessageConsumer;
@@ -102,6 +104,18 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                         messagingFlowService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
+
+        
+        // Timer to update the outbound connection details from the database.
+        from("timer://outboundConnectionDetailsChangeTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
+        .routeId("connectionDetailsChangeTimer-" + getIdentifier())
+        .process(exchange -> {
+            ComponentDto component = componentConfigurationService.getComponent(identifier);
+                
+            for (ComponentPropertyDto property : component.getProperties()) {               
+                this.componentProperties.put(property.getKey(), property.getValue());
+            }
+        });
     }
 
     
