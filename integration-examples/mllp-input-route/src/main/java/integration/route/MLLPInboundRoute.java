@@ -14,7 +14,6 @@ import jakarta.annotation.PostConstruct;
  * 
  * In the MLLPOutboundRoute module there are 2 routes which have been configured to receive messages from this route.
  * 
- * 
  * @author Brendan Douglas
  */
 @IntegrationRoute(name = "Inbound-MLLP-from-Adelaide-Hospital")

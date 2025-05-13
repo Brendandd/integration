@@ -2,6 +2,7 @@ package integration.core.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationRoute;
 import integration.core.dto.ComponentDto;
@@ -156,7 +158,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     
             for (MessagingComponent component : components) {
                 
-                // If the component already exists then ignore and is the same type and category then it is probably just being configured part of another route which is fine.
+                // See if the component already exists for the route and module.
                 IntegrationComponent integrationComponent = componentRepository.getByNameAndRoute(component.getName(),integrationRoute.getName(), owner);
                                
                 if (integrationComponent == null) { // Doesn't exist so create a new component
@@ -166,8 +168,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                     integrationComponent.setType(component.getType());
                     integrationComponent.setCreatedUserId(owner);
                     integrationComponent = componentRepository.save(integrationComponent);
-                    integrationComponent.setInboundState(ComponentStateEnum.RUNNING);
-                    integrationComponent.setOutboundState(ComponentStateEnum.RUNNING);
+                    integrationComponent.setInboundState(IntegrationComponentStateEnum.RUNNING);
+                    integrationComponent.setOutboundState(IntegrationComponentStateEnum.RUNNING);
                     integrationComponent.setOwner(owner);
                     integrationComponent.setRoute(route);
                 } 
@@ -177,8 +179,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                        
                 component.setInboundState(integrationComponent.getInboundState());
                 component.setOutboundState(integrationComponent.getOutboundState());
-                component.setConfiguration(configLoader.getConfiguration(route.getName(),component.getName()));
                 
+                Map<String,String>configProperties = configLoader.getConfiguration(route.getName(),component.getName());
+                component.setConfiguration(configProperties);
+                
+                // Add outbound adapter details to the component so they get written to the database.  Inbound adapter and other component properties are not dynamic.
+                for (Map.Entry<String, String> entry : configProperties.entrySet()) {
+                    if (integrationComponent.getCategory() == IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER) {
+                        integrationComponent.addProperty(entry.getKey(), entry.getValue());
+                    }
+                }
+
                 component.validateAnnotations();
             }
         } catch(DataAccessException e) {
@@ -202,14 +213,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             
             IntegrationComponent component = componentOptional.get();
             
-            if (component.getInboundState() == ComponentStateEnum.RUNNING) {
-                component.setInboundState(ComponentStateEnum.STOPPED);
+            if (component.getInboundState() == IntegrationComponentStateEnum.RUNNING) {
+                component.setInboundState(IntegrationComponentStateEnum.STOPPED);
                 componentRepository.save(component);
                 
-                return new StatusChangeResponse(true, "Inbound State Change", id, ComponentStateEnum.RUNNING, ComponentStateEnum.STOPPED);
+                return new StatusChangeResponse(true, "Inbound State Change", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.STOPPED);
             } 
     
-            return new StatusChangeResponse(true, "Inbound already stopped", id, ComponentStateEnum.STOPPED, ComponentStateEnum.STOPPED);
+            return new StatusChangeResponse(true, "Inbound already stopped", id, IntegrationComponentStateEnum.STOPPED, IntegrationComponentStateEnum.STOPPED);
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
@@ -231,14 +242,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             
             IntegrationComponent component = componentOptional.get();
             
-            if (component.getInboundState() == ComponentStateEnum.STOPPED) {
-                component.setInboundState(ComponentStateEnum.RUNNING);
+            if (component.getInboundState() == IntegrationComponentStateEnum.STOPPED) {
+                component.setInboundState(IntegrationComponentStateEnum.RUNNING);
                 componentRepository.save(component);
                 
-                return new StatusChangeResponse(true, "Inbound State Change", id, ComponentStateEnum.STOPPED, ComponentStateEnum.RUNNING);
+                return new StatusChangeResponse(true, "Inbound State Change", id, IntegrationComponentStateEnum.STOPPED, IntegrationComponentStateEnum.RUNNING);
             } 
             
-            return new StatusChangeResponse(true, "Inbound already started", id, ComponentStateEnum.RUNNING, ComponentStateEnum.RUNNING);
+            return new StatusChangeResponse(true, "Inbound already started", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.RUNNING);
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
@@ -260,14 +271,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             
             IntegrationComponent component = componentOptional.get();
             
-            if (component.getOutboundState() == ComponentStateEnum.RUNNING) {
-                component.setOutboundState(ComponentStateEnum.STOPPED);
+            if (component.getOutboundState() == IntegrationComponentStateEnum.RUNNING) {
+                component.setOutboundState(IntegrationComponentStateEnum.STOPPED);
                 componentRepository.save(component);
                 
-                return new StatusChangeResponse(true, "Outbound State Change", id, ComponentStateEnum.RUNNING, ComponentStateEnum.STOPPED);
+                return new StatusChangeResponse(true, "Outbound State Change", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.STOPPED);
             }  
             
-            return new StatusChangeResponse(true, "Outbound already stopped", id, ComponentStateEnum.STOPPED, ComponentStateEnum.STOPPED);
+            return new StatusChangeResponse(true, "Outbound already stopped", id, IntegrationComponentStateEnum.STOPPED, IntegrationComponentStateEnum.STOPPED);
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
@@ -289,14 +300,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             
             IntegrationComponent component = componentOptional.get();
             
-            if (component.getOutboundState() == ComponentStateEnum.STOPPED) {
-                component.setOutboundState(ComponentStateEnum.RUNNING);
+            if (component.getOutboundState() == IntegrationComponentStateEnum.STOPPED) {
+                component.setOutboundState(IntegrationComponentStateEnum.RUNNING);
                 componentRepository.save(component);
                 
-                return new StatusChangeResponse(true, "Outbound State Change", id, ComponentStateEnum.STOPPED, ComponentStateEnum.RUNNING);
+                return new StatusChangeResponse(true, "Outbound State Change", id, IntegrationComponentStateEnum.STOPPED, IntegrationComponentStateEnum.RUNNING);
             } 
             
-            return new StatusChangeResponse(true, "Outbound already started", id, ComponentStateEnum.RUNNING, ComponentStateEnum.RUNNING);
+            return new StatusChangeResponse(true, "Outbound already started", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.RUNNING);
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));

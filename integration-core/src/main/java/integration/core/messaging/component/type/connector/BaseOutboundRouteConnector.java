@@ -8,8 +8,8 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentStateEnum;
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -30,7 +30,7 @@ import integration.core.messaging.component.type.handler.filter.annotation.Accep
  * 
  * @author Brendan Douglas
  */
-@ComponentType(type = ComponentTypeEnum.OUTBOUND_ROUTE_CONNECTOR)
+@ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_ROUTE_CONNECTOR)
 @AcceptancePolicy(name = "acceptAllMessages")
 public abstract class BaseOutboundRouteConnector extends BaseRouteConnector implements MessageConsumer  {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseOutboundRouteConnector.class);
@@ -83,7 +83,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("inboundEntryPoint-" + getIdentifier())
                 .routeGroup(getComponentPath())
-                .autoStartup(inboundState == ComponentStateEnum.RUNNING)
+                .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
                 .transacted()
                     .process(new Processor() {
                     

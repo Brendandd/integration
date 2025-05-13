@@ -2,18 +2,18 @@ package integration.core.messaging.component;
 
 import java.util.Map;
 
-import integration.core.domain.configuration.ComponentCategoryEnum;
-import integration.core.domain.configuration.ComponentStateEnum;
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.BaseRoute;
 
 public interface MessagingComponent {
     public String getName() throws ConfigurationException;
 
-    public ComponentTypeEnum getType() throws ConfigurationException;
+    public IntegrationComponentTypeEnum getType() throws ConfigurationException;
     
-    public ComponentCategoryEnum getCategory() throws ConfigurationException;
+    public IntegrationComponentCategoryEnum getCategory() throws ConfigurationException;
     
     public String getComponentPath() throws ConfigurationException;
     
@@ -29,13 +29,13 @@ public interface MessagingComponent {
     
     public void setConfiguration(Map<String, String> configuration);
     
-    public ComponentStateEnum getInboundState();
+    public IntegrationComponentStateEnum getInboundState();
 
-    public void setInboundState(ComponentStateEnum inboundState);
+    public void setInboundState(IntegrationComponentStateEnum inboundState);
 
-    public ComponentStateEnum getOutboundState();
+    public IntegrationComponentStateEnum getOutboundState();
 
-    public void setOutboundState(ComponentStateEnum outboundState);
+    public void setOutboundState(IntegrationComponentStateEnum outboundState);
             
     public String getOwner();
     

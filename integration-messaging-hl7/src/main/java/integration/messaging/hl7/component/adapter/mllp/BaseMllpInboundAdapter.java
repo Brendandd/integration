@@ -7,8 +7,8 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentStateEnum;
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
@@ -29,7 +29,7 @@ import integration.core.messaging.component.type.adapter.annotation.AdapterOptio
 @AdapterOption(key = "encoders", value = "#hl7encoder")
 @AdapterOption(key = "decoders", value = "#hl7decoder")
 @AllowedContentType(ContentTypeEnum.HL7)
-@ComponentType(type = ComponentTypeEnum.INBOUND_MLLP_ADAPTER)
+@ComponentType(type = IntegrationComponentTypeEnum.INBOUND_MLLP_ADAPTER)
 public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpInboundAdapter.class);
    
@@ -65,7 +65,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
             .routeId("inboundEntryPoint-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(inboundState == ComponentStateEnum.RUNNING)
+            .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
             .transacted()
             
                 .process(new Processor() {

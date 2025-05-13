@@ -5,7 +5,7 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -20,7 +20,7 @@ import integration.core.messaging.component.type.handler.splitter.annotation.Use
  * only responsible for splitting a message and no transformations should be
  * done as part of the splitting process.
  */
-@ComponentType(type = ComponentTypeEnum.SPLITTER)
+@ComponentType(type = IntegrationComponentTypeEnum.SPLITTER)
 public abstract class BaseSplitterProcessingStep extends MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterProcessingStep.class);
 

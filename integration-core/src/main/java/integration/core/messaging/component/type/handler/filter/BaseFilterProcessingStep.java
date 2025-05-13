@@ -5,7 +5,7 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -15,7 +15,7 @@ import integration.core.messaging.component.type.handler.MessageHandler;
 /**
  * Base class for all filter processing steps.
  */
-@ComponentType(type = ComponentTypeEnum.FILTER)
+@ComponentType(type = IntegrationComponentTypeEnum.FILTER)
 public abstract class BaseFilterProcessingStep extends MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseFilterProcessingStep.class);
 

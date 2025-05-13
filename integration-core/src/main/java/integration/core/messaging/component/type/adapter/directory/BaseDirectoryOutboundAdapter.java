@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.apache.camel.Exchange;
 
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.exception.ConfigurationException;
 import integration.core.messaging.MessageFlowException;
 import integration.core.messaging.component.annotation.ComponentType;
@@ -19,7 +19,7 @@ import integration.core.messaging.component.type.adapter.directory.annotation.Fi
  * @author Brendan Douglas
  *
  */
-@ComponentType(type = ComponentTypeEnum.OUTBOUND_DIRECTORY_ADAPTER)
+@ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_DIRECTORY_ADAPTER)
 @FileNaming(strategy = "originalFilename")
 public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     private static final String CAMEL_FILE_NAME = "CamelFileName";

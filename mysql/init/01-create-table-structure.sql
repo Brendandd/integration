@@ -33,6 +33,17 @@ CREATE TABLE `component` (
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
+CREATE TABLE `component_property` (
+  `id` int NOT NULL,
+  `component_id` int DEFAULT NULL,
+  `property_key` varchar(100) DEFAULT NULL,
+  `value` varchar(100) DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `created_date` datetime DEFAULT NULL,
+  `created_by_user_id` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 CREATE TABLE `event` (
   `id` int NOT NULL AUTO_INCREMENT,

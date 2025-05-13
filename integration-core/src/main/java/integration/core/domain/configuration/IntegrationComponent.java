@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
  * A component which can be an adapter point or a procesing step (filter, splitter, transformer etc).
@@ -29,31 +30,34 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     private String owner;
     private IntegrationRoute route;
     
-    private ComponentStateEnum inboundState;
-    private ComponentStateEnum outboundState;
+    private IntegrationComponentStateEnum inboundState;
+    private IntegrationComponentStateEnum outboundState;
     
-    private ComponentTypeEnum type;
-    private ComponentCategoryEnum category;
+    private IntegrationComponentTypeEnum type;
+    private IntegrationComponentCategoryEnum category;
+    
     
     private List<MessageFlowEvent>events = new ArrayList<>();
+    private List<IntegrationComponentProperty>properties = new ArrayList<>();
+    
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    public ComponentTypeEnum getType() {
+    public IntegrationComponentTypeEnum getType() {
         return type;
     }
 
-    public void setType(ComponentTypeEnum type) {
+    public void setType(IntegrationComponentTypeEnum type) {
         this.type = type;
     }
     
     @Column(name = "category")
     @Enumerated(EnumType.STRING)
-    public ComponentCategoryEnum getCategory() {
+    public IntegrationComponentCategoryEnum getCategory() {
         return category;
     }
     
-    public void setCategory(ComponentCategoryEnum category) {
+    public void setCategory(IntegrationComponentCategoryEnum category) {
         this.category = category;
     }
 
@@ -88,24 +92,24 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     
     @Column(name = "inbound_state")
     @Enumerated(EnumType.STRING)
-    public ComponentStateEnum getInboundState() {
+    public IntegrationComponentStateEnum getInboundState() {
         return inboundState;
     }
     
     
-    public void setInboundState(ComponentStateEnum inboundState) {
+    public void setInboundState(IntegrationComponentStateEnum inboundState) {
         this.inboundState = inboundState;
     }
     
     
     @Column(name = "outbound_state")
     @Enumerated(EnumType.STRING)
-    public ComponentStateEnum getOutboundState() {
+    public IntegrationComponentStateEnum getOutboundState() {
         return outboundState;
     }
 
     
-    public void setOutboundState(ComponentStateEnum outboundState) {
+    public void setOutboundState(IntegrationComponentStateEnum outboundState) {
         this.outboundState = outboundState;
     }
 
@@ -114,9 +118,52 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     public List<MessageFlowEvent> getEvents() {
         return events;
     }
-    
+
     
     public void setEvents(List<MessageFlowEvent> events) {
         this.events = events;
+    }
+
+    
+    @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
+    public List<IntegrationComponentProperty> getProperties() {
+        return properties;
+    }
+
+    
+    public void setProperties(List<IntegrationComponentProperty> properties) {
+        this.properties = properties;
+    } 
+
+    
+    /**
+     * Adds a new property to this component.
+     * 
+     * @param key
+     * @param value
+     */
+    public void addProperty(String key, String value) {
+        IntegrationComponentProperty property = new IntegrationComponentProperty(key, value);
+        this.getProperties().add(property);
+        
+        property.setComponent(this);
+    }
+
+    
+    /**
+     * Gets a property by key
+     * 
+     * @param key
+     * @return
+     */
+    @Transient
+    public String getProperty(String key) {
+        for (IntegrationComponentProperty property : properties) {
+            if (property.getKey().equals(key)) {
+                return property.getValue();
+            }
+        }
+        
+        return null;
     }
 }

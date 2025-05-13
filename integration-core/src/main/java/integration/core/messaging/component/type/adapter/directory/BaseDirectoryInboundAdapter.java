@@ -6,8 +6,8 @@ import org.apache.camel.processor.idempotent.jpa.JpaMessageIdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import integration.core.domain.configuration.ComponentStateEnum;
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -25,7 +25,7 @@ import jakarta.persistence.EntityManagerFactory;
  *
  */
 @StoreHeader(name = "CamelFileName")
-@ComponentType(type = ComponentTypeEnum.INBOUND_DIRECTORY_ADAPTER)
+@ComponentType(type = IntegrationComponentTypeEnum.INBOUND_DIRECTORY_ADAPTER)
 public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
     
     @Autowired
@@ -57,7 +57,7 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
             .routeId("inboundEntryPoint-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
-            .autoStartup(inboundState == ComponentStateEnum.RUNNING)
+            .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
             .transacted()
             
                 .process(new Processor() {

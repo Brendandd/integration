@@ -5,7 +5,7 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -18,7 +18,7 @@ import integration.core.messaging.component.type.handler.transformation.annotati
 /**
  * Base class for all transformation processing steps.
  */
-@ComponentType(type = ComponentTypeEnum.TRANSFORMER)
+@ComponentType(type = IntegrationComponentTypeEnum.TRANSFORMER)
 public abstract class BaseTransformationProcessingStep extends MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformationProcessingStep.class);
 

@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
-import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -61,7 +61,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
                 .routeId("inboundEntryPoint-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
-                .autoStartup(inboundState == ComponentStateEnum.RUNNING)
+                .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
                 .transacted()
                     .process(new Processor() {
                     

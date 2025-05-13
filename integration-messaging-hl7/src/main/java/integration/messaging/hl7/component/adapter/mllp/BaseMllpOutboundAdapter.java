@@ -7,7 +7,7 @@ import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.messaging.component.AllowedContentType;
 import integration.core.messaging.component.MessageConsumer;
@@ -23,7 +23,7 @@ import integration.core.messaging.component.type.adapter.annotation.AdapterOptio
 @AdapterOption(key = "encoders", value = "#hl7encoder")
 @AdapterOption(key = "decoders", value = "#hl7decoder")
 @AllowedContentType(ContentTypeEnum.HL7)
-@ComponentType(type = ComponentTypeEnum.OUTBOUND_MLLP_ADAPTER)
+@ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_MLLP_ADAPTER)
 public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpOutboundAdapter.class);
     

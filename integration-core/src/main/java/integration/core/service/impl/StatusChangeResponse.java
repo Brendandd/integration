@@ -1,15 +1,15 @@
 package integration.core.service.impl;
 
-import integration.core.domain.configuration.ComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
 
 public class StatusChangeResponse {
     private boolean success;
     private String message;
     private long componentId;
-    private ComponentStateEnum oldState;
-    private ComponentStateEnum newState;
+    private IntegrationComponentStateEnum oldState;
+    private IntegrationComponentStateEnum newState;
     
-    public StatusChangeResponse(boolean success, String message, long componentId, ComponentStateEnum oldState, ComponentStateEnum newState) {
+    public StatusChangeResponse(boolean success, String message, long componentId, IntegrationComponentStateEnum oldState, IntegrationComponentStateEnum newState) {
         this.success = success;
         this.message = message;
         this.componentId = componentId;
@@ -54,25 +54,25 @@ public class StatusChangeResponse {
 
 
 
-    public ComponentStateEnum getOldState() {
+    public IntegrationComponentStateEnum getOldState() {
         return oldState;
     }
 
 
 
-    public void setOldState(ComponentStateEnum oldState) {
+    public void setOldState(IntegrationComponentStateEnum oldState) {
         this.oldState = oldState;
     }
 
 
 
-    public ComponentStateEnum getNewState() {
+    public IntegrationComponentStateEnum getNewState() {
         return newState;
     }
 
 
 
-    public void setNewState(ComponentStateEnum newState) {
+    public void setNewState(IntegrationComponentStateEnum newState) {
         this.newState = newState;
     }
 

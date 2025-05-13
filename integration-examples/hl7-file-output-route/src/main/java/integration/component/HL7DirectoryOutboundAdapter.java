@@ -11,8 +11,6 @@ import integration.messaging.hl7.component.adapter.directory.BaseHL7OutboundDire
  * 
  * @author Brendan Douglas
  * 
- *         TODO filename not retained in all situations.
- * 
  */
 @IntegrationComponent(name = "To-Sydney-Hospital-Directory-Outbound-Adapter")
 @AllowedContentType(ContentTypeEnum.HL7)

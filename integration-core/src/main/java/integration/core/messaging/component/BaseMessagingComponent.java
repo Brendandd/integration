@@ -21,9 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
-import integration.core.domain.configuration.ComponentCategoryEnum;
-import integration.core.domain.configuration.ComponentStateEnum;
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
+import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
@@ -70,8 +70,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected BaseRoute route;
     protected String owner;
     
-    protected ComponentStateEnum inboundState;
-    protected ComponentStateEnum outboundState;
+    protected IntegrationComponentStateEnum inboundState;
+    protected IntegrationComponentStateEnum outboundState;
     
     @Autowired
     protected ConfigurationService configurationService;
@@ -394,7 +394,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                 
             // Process inbound state change
             if (component.getInboundState() != inboundState) {
-                if (component.getInboundState() == ComponentStateEnum.RUNNING) {
+                if (component.getInboundState() == IntegrationComponentStateEnum.RUNNING) {
                     camelContext.getRouteController().startRoute("inboundEntryPoint-" + getIdentifier());
                 } else {
                     camelContext.getRouteController().stopRoute("inboundEntryPoint-" + getIdentifier());
@@ -405,7 +405,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             
             // Process outbound state change
             if (component.getOutboundState() != outboundState) {
-                if (component.getOutboundState() == ComponentStateEnum.RUNNING) {
+                if (component.getOutboundState() == IntegrationComponentStateEnum.RUNNING) {
                     camelContext.getRouteController().startRoute("outboundExitPoint-" + getIdentifier());
                 } else {
                     camelContext.getRouteController().stopRoute("outboundExitPoint-" + getIdentifier());
@@ -420,7 +420,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         from("direct:processComponentOutboundMessageHandlingCompleteEvent-" + getIdentifier())
             .routeId("outboundExitPoint-" + getIdentifier())
             .routeGroup(getComponentPath())
-            .autoStartup(outboundState == ComponentStateEnum.RUNNING)
+            .autoStartup(outboundState == IntegrationComponentStateEnum.RUNNING)
             .transacted()
             .process(new Processor() {
 
@@ -505,25 +505,25 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     @Override
-    public ComponentStateEnum getInboundState() {
+    public IntegrationComponentStateEnum getInboundState() {
         return inboundState;
     }
 
 
     @Override
-    public void setInboundState(ComponentStateEnum inboundState) {
+    public void setInboundState(IntegrationComponentStateEnum inboundState) {
         this.inboundState = inboundState;
     }
 
     
     @Override
-    public ComponentStateEnum getOutboundState() {
+    public IntegrationComponentStateEnum getOutboundState() {
         return outboundState;
     }
 
     
     @Override
-    public void setOutboundState(ComponentStateEnum outboundState) {
+    public void setOutboundState(IntegrationComponentStateEnum outboundState) {
         this.outboundState = outboundState;
     }
 
@@ -535,7 +535,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     @Override
-    public ComponentCategoryEnum getCategory() throws ConfigurationException {
+    public IntegrationComponentCategoryEnum getCategory() throws ConfigurationException {
         return getType().getCategory();
     }
 
@@ -555,7 +555,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * Returns the component type.
      */
     @Override
-    public ComponentTypeEnum getType() throws ConfigurationException {
+    public IntegrationComponentTypeEnum getType() throws ConfigurationException {
         ComponentType annotation = getRequiredAnnotation(ComponentType.class);
 
         return annotation.type();

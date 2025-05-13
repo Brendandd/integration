@@ -11,7 +11,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.core.domain.configuration.ComponentTypeEnum;
+import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -20,6 +20,6 @@ import integration.core.domain.configuration.ComponentTypeEnum;
 @Inherited
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public @interface ComponentType {
-    ComponentTypeEnum type();
+    IntegrationComponentTypeEnum type();
 }
 
