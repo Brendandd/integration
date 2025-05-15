@@ -10,8 +10,8 @@ import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
  * 
  * @author Brendan Douglas
  */
-@IntegrationComponent(name = "From-Adelaide-Hospital-MLLP-Inbound-Adapter")
+@IntegrationComponent(name = "MLLP-Inbound-Adapter")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class FromAdelaideHospitalMLLPInboundAdapter extends BaseMllpInboundAdapter {
+public class MLLPInboundAdapter extends BaseMllpInboundAdapter {
 
 }

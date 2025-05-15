@@ -91,7 +91,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected Ignite ignite;
     
     @Autowired
-    private Environment env;
+    protected Environment env;
     
     @Autowired
     protected ProducerTemplate producerTemplate;

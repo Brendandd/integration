@@ -2,8 +2,8 @@ package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.component.DirectoryOutboundRouteConnector;
-import integration.component.HL7DirectoryInboundAdapter;
+import integration.component.OutboundRouteConnector;
+import integration.component.SMBInboundAdapter;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
@@ -13,19 +13,19 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@IntegrationRoute(name = "Inbound-Directory-from-Adelaide-Hospital")
-public class DirectoryInboundRoute extends BaseRoute {
+@IntegrationRoute(name = "Read-File-Using-SMB")
+public class ReadFileUsingSMBRoute extends BaseRoute {
 
     @Autowired
-    private HL7DirectoryInboundAdapter directoryInboundAdapter;
+    private SMBInboundAdapter smbInboundAdapter;
 
     @Autowired
-    private DirectoryOutboundRouteConnector directoryOutboundRouteConnector;
+    private OutboundRouteConnector outboundRouteConnector;
 
     @Override
     @PostConstruct
     public void configureRoute() throws Exception {
-        addDirectFlow(directoryInboundAdapter, directoryOutboundRouteConnector);
+        addDirectFlow(smbInboundAdapter, outboundRouteConnector);
 
         applyConfiguration();
     }

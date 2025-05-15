@@ -2,7 +2,7 @@ package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.component.FromAdelaideHospitalMLLPInboundAdapter;
+import integration.component.MLLPInboundAdapter;
 import integration.component.OutboundRouteConnector;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.IntegrationRoute;
@@ -16,19 +16,19 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@IntegrationRoute(name = "Inbound-MLLP-from-Adelaide-Hospital")
-public class MLLPInboundRoute extends BaseRoute {
+@IntegrationRoute(name = "Receive-Message-Via-MLLP")
+public class ReceiveMessageViaMLLPRoute extends BaseRoute {
 
     @Autowired
-    private FromAdelaideHospitalMLLPInboundAdapter mllpInboundAdapter;
+    private MLLPInboundAdapter mllpInboundAdapter;
 
     @Autowired
-    private OutboundRouteConnector toMllpOutboundRouteConnector;
+    private OutboundRouteConnector outboundRouteConnector;
     
     @Override
     @PostConstruct
     public void configureRoute() throws Exception {
-        addDirectFlow(mllpInboundAdapter, toMllpOutboundRouteConnector);
+        addDirectFlow(mllpInboundAdapter, outboundRouteConnector);
         
         applyConfiguration();
     }

@@ -4,8 +4,8 @@ package integration.core.domain.configuration;
  * The types of components.
  */
 public enum IntegrationComponentTypeEnum {
-    INBOUND_DIRECTORY_ADAPTER(IntegrationComponentCategoryEnum.INBOUND_ADAPTER),
-    OUTBOUND_DIRECTORY_ADAPTER(IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER),
+    INBOUND_SMB_ADAPTER(IntegrationComponentCategoryEnum.INBOUND_ADAPTER),
+    OUTBOUND_SMB_ADAPTER(IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER),
     
     INBOUND_MLLP_ADAPTER(IntegrationComponentCategoryEnum.INBOUND_ADAPTER),
     OUTBOUND_MLLP_ADAPTER(IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER),

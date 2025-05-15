@@ -99,6 +99,11 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
+        
+        <dependency>
+             <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-smb-starter</artifactId>
+        </dependency>
             
     </dependencies>
 

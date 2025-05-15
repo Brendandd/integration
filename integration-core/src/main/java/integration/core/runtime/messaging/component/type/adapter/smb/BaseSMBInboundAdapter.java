@@ -1,4 +1,4 @@
-package integration.core.runtime.messaging.component.type.adapter.directory;
+package integration.core.runtime.messaging.component.type.adapter.smb;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -17,7 +17,7 @@ import integration.core.runtime.messaging.component.type.adapter.annotation.Stor
 import jakarta.persistence.EntityManagerFactory;
 
 /**
- * Base class for all directory/file input adapters. This components
+ * Base class for all SMB inbound adapters. This components
  * reads the file, stores it and writes and event No other processing should be
  * done here.
  * 
@@ -25,8 +25,8 @@ import jakarta.persistence.EntityManagerFactory;
  *
  */
 @StoreHeader(name = "CamelFileName")
-@ComponentType(type = IntegrationComponentTypeEnum.INBOUND_DIRECTORY_ADAPTER)
-public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
+@ComponentType(type = IntegrationComponentTypeEnum.INBOUND_SMB_ADAPTER)
+public abstract class BaseSMBInboundAdapter extends BaseInboundAdapter {
     
     @Autowired
     private EntityManagerFactory emf;
@@ -35,10 +35,14 @@ public abstract class BaseDirectoryInboundAdapter extends BaseInboundAdapter {
         return componentProperties.get("SOURCE_FOLDER");
     }
     
+    public String getHost() {
+        return componentProperties.get("HOST");
+    }
+
     
     @Override
     public String getFromUriString() {
-        return "file:" + getSourceFolder() + constructOptions();
+        return "smb:" + getHost() + "/" + getSourceFolder() + constructOptions();
     }
 
     

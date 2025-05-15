@@ -7,14 +7,14 @@ import integration.core.runtime.messaging.component.type.connector.BaseInboundRo
 import integration.core.runtime.messaging.component.type.connector.annotation.From;
 
 /**
- * Joins this route to the MLLP inbound route.
+ * Receives messages from an outbound route connector with connector name "xyx"
  * 
  * @author Brendan Douglas
  * 
  */
-@IntegrationComponent(name = "From-Adelaide-Hospital-Route-Connector")
-@From(connectorName = "mllpRouteConnector")
+@IntegrationComponent(name = "Inbound-Route-Connector-1")
+@From(connectorName = "xyz")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class FromAdelaideHospitalRouteConnector extends BaseInboundRouteConnector {
+public class InboundRouteConnector1 extends BaseInboundRouteConnector {
 
 }

@@ -1,4 +1,4 @@
-package integration.core.runtime.messaging.component.type.adapter.directory.annotation;
+package integration.core.runtime.messaging.component.type.adapter.smb.annotation;
 
 import org.apache.camel.Exchange;
 import org.springframework.beans.factory.annotation.Autowired;

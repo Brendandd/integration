@@ -1,12 +1,13 @@
 {
   "routes": [
     {
-      "name": "Outbound-Directory-to-Sydney-Hospital",
+      "name": "Write-File-Using-SMB",
       "components": [
         {
-          "name": "To-Sydney-Hospital-Directory-Outbound-Adapter",
+          "name": "SMB-Outbound-Adapter",
           "properties": {
-            "TARGET_FOLDER": "/app/host-files/out"
+            "TARGET_FOLDER": "shared-out",
+            "HOST": "host.docker.internal"
           }
         }
       ]

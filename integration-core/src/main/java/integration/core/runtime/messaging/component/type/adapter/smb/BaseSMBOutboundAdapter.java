@@ -1,4 +1,4 @@
-package integration.core.runtime.messaging.component.type.adapter.directory;
+package integration.core.runtime.messaging.component.type.adapter.smb;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,19 +9,19 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.exception.ConfigurationException;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
-import integration.core.runtime.messaging.component.type.adapter.directory.annotation.FileNaming;
-import integration.core.runtime.messaging.component.type.adapter.directory.annotation.FileNamingStrategy;
+import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
+import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
 import integration.core.runtime.messaging.exception.MessageFlowException;
 
 /**
- * Base class for all directory output communication points.
+ * Base class for all SMB outbound communication points.
  * 
  * @author Brendan Douglas
  *
  */
-@ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_DIRECTORY_ADAPTER)
+@ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_SMB_ADAPTER)
 @FileNaming(strategy = "originalFilename")
-public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
+public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
     private static final String CAMEL_FILE_NAME = "CamelFileName";
 
     public String getDestinationFolder() {
@@ -29,9 +29,14 @@ public abstract class BaseDirectoryOutboundAdapter extends BaseOutboundAdapter {
     }
     
     
+    public String getHost() {
+        return componentProperties.get("HOST");
+    }
+    
+    
     @Override
     public String getMessageForwardingUriString(Exchange exchange) {
-        return "file:" + getDestinationFolder() + constructOptions();
+        return "smb:" + getHost() + "/" + getDestinationFolder() + constructOptions();
     }
 
     

@@ -13,12 +13,14 @@ services:
       ACTIVEMQ_PASSWORD: ${ACTIVEMQ_PASSWORD}
       IGNITE_HOST: ${IGNITE_HOST}
       IGNITE_PORT: ${IGNITE_PORT}
+      JAVA_OPTS: >-
+        -Djcifs.smb.client.enableSMB1=true
+        -Djcifs.smb.client.disableSMB2=true
     networks:
       - backend
       - integration-net
     volumes:
       - ${HL7_FILE_OUTPUT_ROUTE_CONFIG_FILE}:/app/route-config.json
-      - /c/dev/NE/file-out:/app/host-files/out
 
 networks:
   backend:

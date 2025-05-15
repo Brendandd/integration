@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 
-import integration.core.runtime.messaging.component.type.adapter.directory.annotation.FileNamingStrategy;
+import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
 import integration.core.runtime.messaging.exception.MessageFlowException;
 
 /**

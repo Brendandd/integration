@@ -1,12 +1,13 @@
 {
   "routes": [
     {
-      "name": "Inbound-Directory-from-Adelaide-Hospital",
+      "name": "Read-File-Using-SMB",
       "components": [
         {
-          "name": "directory-inbound",
+          "name": "SMB-Inbound-Adapter",
           "properties": {
-            "SOURCE_FOLDER": "/app/host-files/in"
+            "SOURCE_FOLDER": "shared-in",
+            "HOST": "host.docker.internal"
           }
         }
       ]

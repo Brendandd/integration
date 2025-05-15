@@ -11,9 +11,9 @@ import integration.core.runtime.messaging.component.type.connector.annotation.St
  * 
  * @author Brendan Douglas
  */
-@IntegrationComponent(name = "From-Adelaide-Hospital-Directory-Inbound-Adapter")
-@StaticDestination(connectorName = "directoryRouteConnector")
+@IntegrationComponent(name = "Outbound-Route-Connector")
+@StaticDestination(connectorName = "abcd")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class DirectoryOutboundRouteConnector extends BaseOutboundRouteConnector {
+public class OutboundRouteConnector extends BaseOutboundRouteConnector {
         
 }

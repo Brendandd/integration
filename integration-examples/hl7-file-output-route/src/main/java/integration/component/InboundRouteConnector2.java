@@ -13,9 +13,9 @@ import integration.core.runtime.messaging.component.type.connector.annotation.Fr
  * 
  * 
  */
-@IntegrationComponent(name = "From-Adelaide-Hospital-Directory-Route-Connector")
-@From(connectorName = "directoryRouteConnector")
+@IntegrationComponent(name = "Inbound-Route-Connector-2")
+@From(connectorName = "abcd")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class DirectoryInboundRouteConnector extends BaseInboundRouteConnector {
+public class InboundRouteConnector2 extends BaseInboundRouteConnector {
 
 }

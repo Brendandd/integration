@@ -5,8 +5,8 @@ import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
 import integration.messaging.hl7.component.adapter.mllp.BaseMllpOutboundAdapter;
 
-@IntegrationComponent(name = "To-Melbourne-Hospital-MLLP-Outbound-Adapter")
+@IntegrationComponent(name = "MLLP-Outbound-Adapter-1")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class MelbourneHospitalMLLPOutboundAdapter extends BaseMllpOutboundAdapter {
+public class MLLPOutboundAdapter1 extends BaseMllpOutboundAdapter {
 
 }

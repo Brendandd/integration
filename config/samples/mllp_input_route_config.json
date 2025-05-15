@@ -1,10 +1,10 @@
 {
   "routes": [
     {
-      "name": "Inbound-MLLP-from-Adelaide-Hospital",
+      "name": "Receive-Message-Via-MLLP",
       "components": [
         {
-          "name": "From-Adelaide-Hospital-MLLP-Inbound-Adapter",
+          "name": "MLLP-Inbound-Adapter",
           "properties": {
             "PORT": "8888"
           }

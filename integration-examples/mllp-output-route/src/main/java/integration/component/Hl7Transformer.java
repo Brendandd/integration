@@ -9,6 +9,6 @@ import integration.core.runtime.messaging.component.type.handler.transformation.
 @IntegrationComponent(name = "Transform-to-version-2-5")
 @UsesTransformer(name = "changeVersionTo2.5")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class Hl7Transformation extends BaseTransformationProcessingStep {
+public class Hl7Transformer extends BaseTransformationProcessingStep {
 
 }

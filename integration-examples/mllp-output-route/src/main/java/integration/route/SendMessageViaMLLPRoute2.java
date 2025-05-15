@@ -2,12 +2,12 @@ package integration.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.component.DirectoryInboundRouteConnector;
-import integration.component.FromAdelaideHospitalRouteConnector;
 import integration.component.Hl7MessageTypeFilter;
 import integration.component.Hl7Splitter;
-import integration.component.Hl7Transformation;
-import integration.component.SydneyHospitalMLLPOutboundAdapter;
+import integration.component.Hl7Transformer;
+import integration.component.InboundRouteConnector1;
+import integration.component.InboundRouteConnector2;
+import integration.component.MLLPOutboundAdapter2;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.IntegrationRoute;
 import jakarta.annotation.PostConstruct;
@@ -16,7 +16,7 @@ import jakarta.annotation.PostConstruct;
  * An example route which accepts messages from an inbound route connector, filters, transforms and splits and then dispatches using
  * an outbound MLLP adapter.
  * 
- * This route shared the route connector and filter with the Melbourne hospital route.  They both gets the same
+ * This route shared the route connector and filter with the the other route in this example.  They both gets the same
  * messages from the inbound route connector but have different message processing.
  * 
  * This is an example of:
@@ -27,37 +27,37 @@ import jakarta.annotation.PostConstruct;
  * 
  * @author Brendan Douglas
  */
-@IntegrationRoute(name = "Outbound-MLLP-to-Sydney-Hospital")
-public class ToSydneyHospitalRoute extends BaseRoute {
+@IntegrationRoute(name = "Send-Message-Via-MLLP-2")
+public class SendMessageViaMLLPRoute2 extends BaseRoute {
 
     @Autowired
-    private FromAdelaideHospitalRouteConnector fromAdelaideHospitalInboundRouteConnector;
+    private InboundRouteConnector1 inboundRouteConnector1;
 
     @Autowired
     private Hl7Splitter splitter;
 
     @Autowired
-    private Hl7Transformation transformation;
+    private Hl7Transformer transformer;
 
     @Autowired
     private Hl7MessageTypeFilter filter;
 
     @Autowired
-    private SydneyHospitalMLLPOutboundAdapter mllpOutboundAdapter;
+    private MLLPOutboundAdapter2 mllpOutboundAdapter;
     
     @Autowired
-    private DirectoryInboundRouteConnector fromDirectoryInboundRouteConnector;
+    private InboundRouteConnector2 inboundRouteConnector2;
 
     // TODO accepts ACK from destination system.
 
     @Override
     @PostConstruct
     public void configureRoute() throws Exception {
-        addInboundFlow(fromAdelaideHospitalInboundRouteConnector, transformation, filter);
-        addInternalFlow(transformation, splitter);
+        addInboundFlow(inboundRouteConnector1, transformer, filter);
+        addInternalFlow(transformer, splitter);
         addInternalFlow(filter, splitter);
         addOutboundFlow(splitter, mllpOutboundAdapter);
-        addDirectFlow(fromDirectoryInboundRouteConnector, mllpOutboundAdapter);
+        addDirectFlow(inboundRouteConnector2, mllpOutboundAdapter);
         
         applyConfiguration();
     }

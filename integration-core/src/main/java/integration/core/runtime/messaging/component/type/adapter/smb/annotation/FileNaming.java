@@ -1,4 +1,4 @@
-package integration.core.runtime.messaging.component.type.adapter.directory.annotation;
+package integration.core.runtime.messaging.component.type.adapter.smb.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
