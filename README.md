@@ -90,7 +90,7 @@ This integration engine currently supports the following component types and con
     
     
 
-  - Directory Inbound Adapter  
+  - SMB Inbound Adapter  
     - `@ForwardingPolicy`  
     - `@AdapterOption`  
     - `@AllowedContentType`  
@@ -107,7 +107,7 @@ This integration engine currently supports the following component types and con
      
      
 
-  - Directory Outbound Adapter  
+  - SMB Outbound Adapter  
     - `@AcceptancePolicy`  
     - `@FileNaming`  
     - `@AllowedContentType`  
