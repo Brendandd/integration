@@ -85,13 +85,24 @@ public abstract class IntegrationException extends Exception {
             sb.append("]");
         }
 
-        Throwable cause = getCause();
         
-        if (cause != null) {
-            sb.append(" | Cause: ").append(cause.getClass().getSimpleName()).append(": ").append(cause.getMessage());
+        Throwable root = getCause();
+        if (root != null) {
+            sb.append(" | Cause: ").append(root.getClass().getSimpleName()).append(": ").append(root.getMessage());
+
+            // Traverse to the root cause
+            Throwable next = root.getCause();
+            while (next != null && next != root) {
+                root = next;
+                next = root.getCause();
+            }
+
+            if (root != getCause()) {
+                sb.append(" | Root Cause: ").append(root.getClass().getSimpleName()).append(": ").append(root.getMessage());
+            }
         }
 
-        return sb.toString(); 
+        return sb.toString();
     }
 
 

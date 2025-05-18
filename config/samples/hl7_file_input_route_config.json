@@ -6,8 +6,8 @@
         {
           "name": "SMB-Inbound-Adapter",
           "properties": {
-            "SOURCE_FOLDER": "shared-in",
-            "HOST": "host.docker.internal"
+            "SOURCE_FOLDER": "file-in",
+            "HOST": "smb-in"
           }
         }
       ]

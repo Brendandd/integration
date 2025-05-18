@@ -14,8 +14,8 @@ import integration.messaging.hl7.component.adapter.smb.BaseHL7OutboundSMBAdapter
  * 
  */
 @IntegrationComponent(name = "SMB-Outbound-Adapter")
-@AdapterOption(key = "username", value = "admin") //testing only. 
-@AdapterOption(key = "password", value = "admin") //testing only
+@AdapterOption(key = "username", value = "testOut") //testing only. 
+@AdapterOption(key = "password", value = "testpass") //testing only
 @AllowedContentType(ContentTypeEnum.HL7)
 @FileNaming(strategy = "customNamingStrategy")
 public class SMBOutboundAdapter extends BaseHL7OutboundSMBAdapter {

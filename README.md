@@ -202,7 +202,7 @@ From the **integration** folder
 mvn clean install
 ```
 
-Then, navigate to the **integration/config/samples/scripts** folder and run the following:
+Then, navigate to the **integration/config/samples/scripts** folder and run the following using the provided .bat files:
 
 ### First, run these services:
 
@@ -210,6 +210,7 @@ Then, navigate to the **integration/config/samples/scripts** folder and run the 
 run-apache-activemq-artemis
 run-apache-ignite
 run-mysql
+run-samba (creates two containers: one for the inbound adapter and one for the outbound adapter)
 ```
 
 ### Then, proceed with running the integration services:

@@ -6,8 +6,8 @@
         {
           "name": "SMB-Outbound-Adapter",
           "properties": {
-            "TARGET_FOLDER": "shared-out",
-            "HOST": "host.docker.internal"
+            "TARGET_FOLDER": "file-out",
+            "HOST": "smb-out"
           }
         }
       ]
