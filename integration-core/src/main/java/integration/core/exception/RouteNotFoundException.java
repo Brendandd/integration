@@ -10,9 +10,9 @@ import java.util.List;
 public class RouteNotFoundException extends ConfigurationException {
     private static final long serialVersionUID = -8219003265184923387L;
     
-    private static String MESSAGE = "Route not found";
+    private static String MESSAGE = "Route not found. Id: ";
     
-    public RouteNotFoundException(long componentId) {
-        super(MESSAGE, List.of(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, componentId)), false);
+    public RouteNotFoundException(long routeId) {
+        super(MESSAGE + routeId , List.of(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId)), false);
     }
 }

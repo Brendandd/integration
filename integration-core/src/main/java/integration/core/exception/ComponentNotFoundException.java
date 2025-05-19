@@ -10,9 +10,9 @@ import java.util.List;
 public class ComponentNotFoundException extends ConfigurationException {
     private static final long serialVersionUID = -8219003265184923387L;
     
-    private static String MESSAGE = "Component not found";
+    private static String MESSAGE = "Component not found. Id: ";
     
     public ComponentNotFoundException(long componentId) {
-        super(MESSAGE, List.of(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId)),false);
+        super(MESSAGE + componentId, List.of(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId)),false);
     }
 }

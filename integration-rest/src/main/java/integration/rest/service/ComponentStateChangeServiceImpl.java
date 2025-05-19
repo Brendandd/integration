@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.exception.ComponentNotFoundException;
 import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
@@ -33,9 +34,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
             if (componentOptional.isEmpty()) {
-                List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-                throw new ConfigurationException("Component not found", identifiers,false);
+                throw new ComponentNotFoundException(id);
             }
             
             IntegrationComponent component = componentOptional.get();
@@ -62,9 +61,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
             if (componentOptional.isEmpty()) {
-                List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-                throw new ConfigurationException("Component not found", identifiers, false);
+                throw new ComponentNotFoundException(id);
             }
             
             IntegrationComponent component = componentOptional.get();
@@ -91,9 +88,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
             if (componentOptional.isEmpty()) {
-                List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-                throw new ConfigurationException("Component not found", identifiers, false);
+                throw new ComponentNotFoundException(id);
             }
             
             IntegrationComponent component = componentOptional.get();
@@ -120,9 +115,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
             if (componentOptional.isEmpty()) {
-                List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-                throw new ConfigurationException("Component not found", identifiers, false);
+                throw new ComponentNotFoundException(id);
             }
             
             IntegrationComponent component = componentOptional.get();
