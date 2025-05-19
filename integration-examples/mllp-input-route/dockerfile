@@ -6,8 +6,6 @@ WORKDIR /app
 # Copy the built jar into the container
 COPY target/mllp-input-route-1.0.0-SNAPSHOT.jar app.jar
 
-EXPOSE 8888
-
 # Run the app with all --add-opens JVM options for Apache Ignite
 CMD ["java", \
 "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED", \
