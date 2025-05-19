@@ -140,6 +140,11 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     public void setProperties(Map<String, IntegrationComponentProperty> properties) {
         this.properties = properties;
     }   
+    
+    
+    public IntegrationComponentProperty getProperty(String key) {
+        return properties.get(key);
+    }
 
     
     /**

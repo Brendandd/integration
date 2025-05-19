@@ -115,8 +115,8 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
     
             for (MessagingComponent component : components) {
                 
-                // See if the component already exists for the route and module.
-                IntegrationComponent integrationComponent = componentRepository.getByNameAndRoute(component.getName(),integrationRoute.getName(), owner);
+                // See if the component already exists for the route.  Each component can only exist once.
+                IntegrationComponent integrationComponent = componentRepository.getByNameAndRoute(component.getName(),route.getId());
                                
                 if (integrationComponent == null) { // Doesn't exist so create a new component
                     integrationComponent = new IntegrationComponent();
@@ -129,6 +129,22 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
                     integrationComponent.setOutboundState(IntegrationComponentStateEnum.RUNNING);
                     integrationComponent.setOwner(owner);
                     integrationComponent.setRoute(route);
+                    
+                    // New component so set properties.
+                    Map<String,String>configProperties = configLoader.getConfiguration(route.getName(),component.getName());
+                    
+                    for (Map.Entry<String, String> entry : configProperties.entrySet()) {
+                        if (integrationComponent.getCategory() == IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER || integrationComponent.getCategory() == IntegrationComponentCategoryEnum.INBOUND_ADAPTER) {
+                            
+                            if (integrationComponent.getProperty(entry.getKey()) == null) {
+                                integrationComponent.addProperty(entry.getKey(), entry.getValue());
+                            }
+                        }
+                    }
+                    
+                    component.setConfiguration(configProperties);
+                    
+                    componentRepository.save(integrationComponent);
                 } 
                 
                 component.setIdentifier(integrationComponent.getId()); 
@@ -136,15 +152,6 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
                        
                 component.setInboundState(integrationComponent.getInboundState());
                 component.setOutboundState(integrationComponent.getOutboundState());
-                
-                Map<String,String>configProperties = configLoader.getConfiguration(route.getName(),component.getName());
-                component.setConfiguration(configProperties);
-                
-                for (Map.Entry<String, String> entry : configProperties.entrySet()) {
-                    if (integrationComponent.getCategory() == IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER || integrationComponent.getCategory() == IntegrationComponentCategoryEnum.INBOUND_ADAPTER) {
-                        integrationComponent.addProperty(entry.getKey(), entry.getValue());
-                    }
-                }
 
                 component.validateAnnotations();
             }
