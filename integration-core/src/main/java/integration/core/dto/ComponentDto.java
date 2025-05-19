@@ -1,7 +1,7 @@
 package integration.core.dto;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
@@ -24,7 +24,7 @@ public class ComponentDto extends BaseDto {
     private IntegrationComponentStateEnum inboundState;
     private IntegrationComponentStateEnum outboundState;
     
-    private Map<String, String>properties = new HashMap<>();
+    private List<ComponentPropertyDto>properties = new ArrayList<>();
     
     private RouteDto route;
   
@@ -98,17 +98,17 @@ public class ComponentDto extends BaseDto {
     }
     
     
-    public void addProperty(String key, String value) {  
-        properties.put(key, value);
+    public void addProperty(ComponentPropertyDto componentProperty) {
+        this.properties.add(componentProperty);
     }
 
-    
-    public Map<String, String> getProperties() {
+
+    public List<ComponentPropertyDto> getProperties() {
         return properties;
     }
 
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(List<ComponentPropertyDto> properties) {
         this.properties = properties;
     }
 }

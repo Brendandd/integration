@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import integration.core.dto.ComponentDto;
+import integration.core.dto.ComponentPropertyDto;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
 
@@ -55,8 +56,7 @@ public abstract class BaseAdapter extends BaseMessagingComponent {
 
         return uriBuilder.toString();
     }
-    
-    
+
     
     @Override
     public void configure() throws Exception {
@@ -67,10 +67,9 @@ public abstract class BaseAdapter extends BaseMessagingComponent {
         .routeId("connectionDetailsChangeTimer-" + getIdentifier())
         .process(exchange -> {
             ComponentDto component = componentConfigurationService.getComponent(identifier);
-                
-            
-            for (Map.Entry<String, String> entry : component.getProperties().entrySet()) {
-                this.componentProperties.put(entry.getKey(), entry.getValue());
+
+            for (ComponentPropertyDto property : component.getProperties()) {
+                this.componentProperties.put(property.getKey(), property.getValue());
             }
         });
     }

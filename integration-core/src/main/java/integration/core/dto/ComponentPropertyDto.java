@@ -5,13 +5,7 @@ public class ComponentPropertyDto extends BaseDto {
     
     private String key;
     private String value;
-    
-    public ComponentPropertyDto(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
-    
-    
+
     public String getKey() {
         return key;
     }

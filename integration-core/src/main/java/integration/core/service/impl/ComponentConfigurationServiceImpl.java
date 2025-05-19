@@ -16,6 +16,7 @@ import integration.core.dto.mapper.ComponentMapper;
 import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
+import integration.core.exception.ResourceNotFoundException;
 import integration.core.repository.ComponentRepository;
 import integration.core.service.ComponentConfigurationService;
 import jakarta.persistence.EntityManager;
@@ -56,10 +57,10 @@ public class ComponentConfigurationServiceImpl implements ComponentConfiguration
         try {
             Optional<IntegrationComponent> componentOptional = componentRepository.findById(componentId);
     
-            if (componentOptional == null) {
+            if (componentOptional.isEmpty()) {
                 List<ExceptionIdentifier>identifiers = new ArrayList<>();
                 identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-                throw new ConfigurationException("Component does not exist", identifiers, false);
+                throw new ResourceNotFoundException("Component does not exist", identifiers, false);
             }
             
             ComponentMapper mapper = new ComponentMapper();
@@ -71,4 +72,11 @@ public class ComponentConfigurationServiceImpl implements ComponentConfiguration
             throw new ConfigurationException("Database error while getting a component", identifiers, e);
         }
     }
+
+    
+//    @Override
+//    public void updateProperty(long componentId, long propertyId) {
+//        // TODO Auto-generated method stub
+//        
+//    }
 }

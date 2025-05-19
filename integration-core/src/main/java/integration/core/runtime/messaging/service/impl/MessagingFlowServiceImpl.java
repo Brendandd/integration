@@ -32,6 +32,7 @@ import integration.core.dto.mapper.MessageFlowMapper;
 import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
+import integration.core.exception.ResourceNotFoundException;
 import integration.core.repository.ComponentRepository;
 import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
@@ -71,7 +72,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             if (integrationComponent.isEmpty()) {
                 List<ExceptionIdentifier>identifiers = new ArrayList<>();
                 identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-                throw new ConfigurationException("Component not found", identifiers, false);
+                throw new ResourceNotFoundException("Component not found", identifiers, false);
             }
             
             event.setComponent(integrationComponent.get());
@@ -422,7 +423,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             if (integrationComponent.isEmpty()) {
                 List<ExceptionIdentifier>identifiers = new ArrayList<>();
                 identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-                throw new ConfigurationException("Component not found", identifiers,false);
+                throw new ResourceNotFoundException("Component not found", identifiers,false);
             }
 
             MessageFlow messageFlow = new MessageFlow();

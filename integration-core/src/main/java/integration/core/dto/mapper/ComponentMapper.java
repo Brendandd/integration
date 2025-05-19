@@ -34,7 +34,8 @@ public class ComponentMapper extends BaseMapper<ComponentDto, IntegrationCompone
         for (Map.Entry<String, IntegrationComponentProperty> entry : source.getProperties().entrySet()) {
             IntegrationComponentProperty property = entry.getValue();
             if (property.getEndDate() == null) {
-                destination.addProperty(property.getKey(), property.getValue());
+                ComponentPropertyMapper componentPropertyMapper = new ComponentPropertyMapper();
+                destination.addProperty(componentPropertyMapper.doMapping(property));
             }
         }
                 
