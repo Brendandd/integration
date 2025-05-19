@@ -1,7 +1,9 @@
 package integration.core.domain.configuration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import integration.core.domain.BaseIntegrationDomain;
 import integration.core.domain.messaging.MessageFlowEvent;
@@ -12,9 +14,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKey;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 
 /**
  * A component which can be an adapter point or a procesing step (filter, splitter, transformer etc).
@@ -38,7 +40,7 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     
     
     private List<MessageFlowEvent>events = new ArrayList<>();
-    private List<IntegrationComponentProperty>properties = new ArrayList<>();
+    private Map<String, IntegrationComponentProperty> properties = new HashMap<>();
     
 
     @Column(name = "type")
@@ -126,14 +128,15 @@ public class IntegrationComponent extends BaseIntegrationDomain {
 
     
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
-    public List<IntegrationComponentProperty> getProperties() {
+    @MapKey(name = "key")
+    public Map<String, IntegrationComponentProperty> getProperties() {
         return properties;
     }
-
     
-    public void setProperties(List<IntegrationComponentProperty> properties) {
+    
+    public void setProperties(Map<String, IntegrationComponentProperty> properties) {
         this.properties = properties;
-    } 
+    }   
 
     
     /**
@@ -144,26 +147,8 @@ public class IntegrationComponent extends BaseIntegrationDomain {
      */
     public void addProperty(String key, String value) {
         IntegrationComponentProperty property = new IntegrationComponentProperty(key, value);
-        this.getProperties().add(property);
-        
         property.setComponent(this);
-    }
-
-    
-    /**
-     * Gets a property by key
-     * 
-     * @param key
-     * @return
-     */
-    @Transient
-    public String getProperty(String key) {
-        for (IntegrationComponentProperty property : properties) {
-            if (property.getKey().equals(key)) {
-                return property.getValue();
-            }
-        }
         
-        return null;
+        this.getProperties().put(key, property);
     }
 }

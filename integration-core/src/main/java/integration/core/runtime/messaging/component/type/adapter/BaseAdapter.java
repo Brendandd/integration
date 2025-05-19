@@ -3,6 +3,7 @@ package integration.core.runtime.messaging.component.type.adapter;
 import java.util.HashMap;
 import java.util.Map;
 
+import integration.core.dto.ComponentDto;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
 
@@ -53,5 +54,24 @@ public abstract class BaseAdapter extends BaseMessagingComponent {
         }
 
         return uriBuilder.toString();
+    }
+    
+    
+    
+    @Override
+    public void configure() throws Exception {
+        super.configure();
+        
+        // Timer to update the outbound connection details from the database.
+        from("timer://outboundConnectionDetailsChangeTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
+        .routeId("connectionDetailsChangeTimer-" + getIdentifier())
+        .process(exchange -> {
+            ComponentDto component = componentConfigurationService.getComponent(identifier);
+                
+            
+            for (Map.Entry<String, String> entry : component.getProperties().entrySet()) {
+                this.componentProperties.put(entry.getKey(), entry.getValue());
+            }
+        });
     }
 }

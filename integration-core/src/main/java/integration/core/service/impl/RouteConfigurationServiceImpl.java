@@ -139,9 +139,8 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
                 Map<String,String>configProperties = configLoader.getConfiguration(route.getName(),component.getName());
                 component.setConfiguration(configProperties);
                 
-                // Add outbound adapter details to the component so they get written to the database.  Inbound adapter and other component properties are not dynamic.
                 for (Map.Entry<String, String> entry : configProperties.entrySet()) {
-                    if (integrationComponent.getCategory() == IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER) {
+                    if (integrationComponent.getCategory() == IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER || integrationComponent.getCategory() == IntegrationComponentCategoryEnum.INBOUND_ADAPTER) {
                         integrationComponent.addProperty(entry.getKey(), entry.getValue());
                     }
                 }
