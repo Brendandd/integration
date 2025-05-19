@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.annotations.Where;
+
 import integration.core.domain.BaseIntegrationDomain;
 import integration.core.domain.messaging.MessageFlowEvent;
 import jakarta.persistence.CascadeType;
@@ -129,6 +131,7 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
     @MapKey(name = "key")
+    @Where(clause = "end_date IS NULL")
     public Map<String, IntegrationComponentProperty> getProperties() {
         return properties;
     }
