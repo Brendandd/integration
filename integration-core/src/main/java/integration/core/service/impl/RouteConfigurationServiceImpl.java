@@ -114,6 +114,8 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
             integrationRoute.setIdentifier(route.getId());
     
             for (MessagingComponent component : components) {
+                Map<String,String>configProperties = configLoader.getConfiguration(route.getName(),component.getName());
+                component.setConfiguration(configProperties);
                 
                 // See if the component already exists for the route.  Each component can only exist once.
                 IntegrationComponent integrationComponent = componentRepository.getByNameAndRoute(component.getName(),route.getId());
@@ -127,12 +129,9 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
                     integrationComponent = componentRepository.save(integrationComponent);
                     integrationComponent.setInboundState(IntegrationComponentStateEnum.RUNNING);
                     integrationComponent.setOutboundState(IntegrationComponentStateEnum.RUNNING);
-                    integrationComponent.setOwner(owner);
                     integrationComponent.setRoute(route);
                     
-                    // New component so set properties.
-                    Map<String,String>configProperties = configLoader.getConfiguration(route.getName(),component.getName());
-                    
+                    // New component so save properties in the database
                     for (Map.Entry<String, String> entry : configProperties.entrySet()) {
                         if (integrationComponent.getCategory() == IntegrationComponentCategoryEnum.OUTBOUND_ADAPTER || integrationComponent.getCategory() == IntegrationComponentCategoryEnum.INBOUND_ADAPTER) {
                             
@@ -142,11 +141,9 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
                         }
                     }
                     
-                    component.setConfiguration(configProperties);
-                    
                     componentRepository.save(integrationComponent);
                 } 
-                
+
                 component.setIdentifier(integrationComponent.getId()); 
                 component.setRoute(integrationRoute);
                        

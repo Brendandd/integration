@@ -36,8 +36,6 @@ public interface MessagingComponent {
     public IntegrationComponentStateEnum getOutboundState();
 
     public void setOutboundState(IntegrationComponentStateEnum outboundState);
-            
-    public String getOwner();
-    
+                
     public void validateAnnotations() throws ConfigurationException;
 }

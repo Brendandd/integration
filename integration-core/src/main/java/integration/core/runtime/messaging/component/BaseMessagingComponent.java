@@ -68,7 +68,6 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     protected long identifier;
     protected BaseRoute route;
-    protected String owner;
     
     protected IntegrationComponentStateEnum inboundState;
     protected IntegrationComponentStateEnum outboundState;
@@ -154,11 +153,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     /**
-     * The full component path.  owner-route-path
+     * The full component path.  route-path
      */
     @Override
     public String getComponentPath() throws ConfigurationException {
-        return getOwner() + "-" + route.getName() + "-" + getName();
+        return route.getName() + "-" + getName();
     }
 
     
@@ -526,12 +525,6 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     @Override
     public void setOutboundState(IntegrationComponentStateEnum outboundState) {
         this.outboundState = outboundState;
-    }
-
-    
-    @Override
-    public String getOwner() {
-        return env.getProperty("owner");
     }
 
     

@@ -22,7 +22,6 @@ CREATE TABLE `component` (
   `name` varchar(100) DEFAULT NULL,
   `type` varchar(45) DEFAULT NULL,
   `category` varchar(45) DEFAULT NULL,
-  `owner` varchar(45) DEFAULT NULL,
   `route_id` int DEFAULT NULL,
   `inbound_state` varchar(45) DEFAULT NULL,
   `outbound_state` varchar(45) DEFAULT NULL,

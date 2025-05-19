@@ -31,7 +31,6 @@ import jakarta.persistence.Table;
 @Table(name = "component")
 public class IntegrationComponent extends BaseIntegrationDomain {
     private String name;
-    private String owner;
     private IntegrationRoute route;
     
     private IntegrationComponentStateEnum inboundState;
@@ -75,15 +74,6 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     }
 
     
-    @Column(name = "owner")
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "route_id")
     public IntegrationRoute getRoute() {

@@ -20,7 +20,6 @@ public class ComponentDto extends BaseDto {
     private String name;
     private IntegrationComponentTypeEnum type;
     private IntegrationComponentCategoryEnum category;
-    private String owner;
     private IntegrationComponentStateEnum inboundState;
     private IntegrationComponentStateEnum outboundState;
     
@@ -57,17 +56,7 @@ public class ComponentDto extends BaseDto {
         this.category = category;
     }
 
-
-    public String getOwner() {
-        return owner;
-    }
-
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-
+    
     public IntegrationComponentStateEnum getInboundState() {
         return inboundState;
     }
