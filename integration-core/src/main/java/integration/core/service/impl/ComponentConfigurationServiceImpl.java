@@ -13,10 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.mapper.ComponentMapper;
+import integration.core.exception.ComponentNotFoundException;
 import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
-import integration.core.exception.ResourceNotFoundException;
 import integration.core.repository.ComponentRepository;
 import integration.core.service.ComponentConfigurationService;
 import jakarta.persistence.EntityManager;
@@ -58,9 +58,7 @@ public class ComponentConfigurationServiceImpl implements ComponentConfiguration
             Optional<IntegrationComponent> componentOptional = componentRepository.findById(componentId);
     
             if (componentOptional.isEmpty()) {
-                List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-                throw new ResourceNotFoundException("Component does not exist", identifiers, false);
+                throw new ComponentNotFoundException(componentId);
             }
             
             ComponentMapper mapper = new ComponentMapper();

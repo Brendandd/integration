@@ -21,7 +21,7 @@ import integration.core.dto.mapper.RouteMapper;
 import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
-import integration.core.exception.ResourceNotFoundException;
+import integration.core.exception.RouteNotFoundException;
 import integration.core.repository.ComponentRepository;
 import integration.core.repository.RouteRepository;
 import integration.core.runtime.messaging.BaseRoute;
@@ -80,7 +80,7 @@ public class RouteConfigurationServiceImpl implements RouteConfigurationService 
             if (routeOptional.isEmpty()) {
                 List<ExceptionIdentifier>identifiers = new ArrayList<>();
                 identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId));
-                throw new ResourceNotFoundException("Route does not exist", identifiers, false);
+                throw new RouteNotFoundException(routeId);
             }
             
             RouteMapper mapper = new RouteMapper();
