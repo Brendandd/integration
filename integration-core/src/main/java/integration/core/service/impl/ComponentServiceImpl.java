@@ -13,18 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.mapper.ComponentMapper;
+import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.ConfigurationException;
-import integration.core.exception.ExceptionIdentifier;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.repository.ComponentRepository;
-import integration.core.service.ComponentConfigurationService;
+import integration.core.service.ComponentService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
-public class ComponentConfigurationServiceImpl implements ComponentConfigurationService {
+public class ComponentServiceImpl implements ComponentService {
     
     @PersistenceContext
     private EntityManager entityManager;
@@ -33,7 +31,7 @@ public class ComponentConfigurationServiceImpl implements ComponentConfiguration
     private ComponentRepository componentRepository;
            
     @Override
-    public List<ComponentDto> getAllComponents() throws ConfigurationException {
+    public List<ComponentDto> getAllComponents() throws ComponentAccessException {
         try {
             List<IntegrationComponent>components = componentRepository.getAllComponents();
             
@@ -47,13 +45,13 @@ public class ComponentConfigurationServiceImpl implements ComponentConfiguration
             }
             return componentDtos;
         } catch(DataAccessException e) {
-            throw new ConfigurationException("Database error while getting all components", new ArrayList<>(), e);
+            throw new ComponentAccessException("Database error while getting all components", e);
         }
     }
 
     
     @Override
-    public ComponentDto getComponent(long componentId) throws ConfigurationException {
+    public ComponentDto getComponent(long componentId) throws ComponentNotFoundException, ComponentAccessException {
         try {
             Optional<IntegrationComponent> componentOptional = componentRepository.findById(componentId);
     
@@ -65,9 +63,7 @@ public class ComponentConfigurationServiceImpl implements ComponentConfiguration
             
             return mapper.doMapping(componentOptional.get());
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new ConfigurationException("Database error while getting a component", identifiers, e);
+            throw new ComponentAccessException("Database error while getting a component", componentId, e);
         }
     }
 

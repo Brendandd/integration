@@ -22,10 +22,8 @@ public class OutboxProcessingException extends IntegrationException {
     }
 
     
-    public OutboxProcessingException(String message, long eventId, List<ExceptionIdentifier>otherIdentifiers, Throwable cause) {
-        super(message, otherIdentifiers, cause, true);
-        
-        identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.EVENT_ID, eventId));
+    public OutboxProcessingException(String message, long componentId, Throwable cause) {
+        super(message, List.of(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId)), cause, true);
     }
 
     

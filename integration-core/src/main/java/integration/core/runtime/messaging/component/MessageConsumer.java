@@ -1,5 +1,6 @@
 package integration.core.runtime.messaging.component;
 
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.exception.ConfigurationException;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 
@@ -20,6 +21,7 @@ public interface MessageConsumer extends MessagingComponent {
      * Gets the message acceptance policy for this message consumer.
      * 
      * @return
+     * @throws AnnotationConfigurationException 
      */
-    MessageAcceptancePolicy getMessageAcceptancePolicy() throws ConfigurationException;
+    MessageAcceptancePolicy getMessageAcceptancePolicy() throws ConfigurationException, AnnotationConfigurationException;
 }

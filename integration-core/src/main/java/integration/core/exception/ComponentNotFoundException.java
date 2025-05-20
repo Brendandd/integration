@@ -7,7 +7,7 @@ import java.util.List;
  * 
  * @author Brendan Douglas
  */
-public class ComponentNotFoundException extends ConfigurationException {
+public class ComponentNotFoundException extends IntegrationException {
     private static final long serialVersionUID = -8219003265184923387L;
     
     private static String MESSAGE = "Component not found. Id: ";

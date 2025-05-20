@@ -13,7 +13,7 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
@@ -40,7 +40,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
     }
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
     
@@ -61,7 +61,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
 
     
     @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() throws ConfigurationException {
+    public MessageForwardingPolicy getMessageForwardingPolicy() throws AnnotationConfigurationException {
         ForwardingPolicy annotation = getRequiredAnnotation(ForwardingPolicy.class);
 
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
@@ -86,7 +86,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                         // An inbound route connector always accepts the message form the outbound route connector.
                         MessageFlowDto messageFlowDto  = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId,MessageFlowActionType.ACCEPTED);
                         
-                        messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);               }
+                        messageFlowEventService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);               }
                 });
  
         
@@ -109,7 +109,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
                             MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                            messagingFlowService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE);
+                            messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE);
                         } else {
                             messagingFlowService.recordMessageNotForwarded(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                         }
@@ -118,7 +118,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
     }
 
     
-    public String getConnectorName() throws ConfigurationException {
+    public String getConnectorName() throws AnnotationConfigurationException {
         From annotation = getRequiredAnnotation(From.class);
                 
         return annotation.connectorName();

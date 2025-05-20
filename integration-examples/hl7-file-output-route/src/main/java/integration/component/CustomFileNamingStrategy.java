@@ -7,7 +7,7 @@ import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 
 /**
  * A custom file naming strategy which appends a date time to the original file name.
@@ -16,7 +16,7 @@ import integration.core.runtime.messaging.exception.MessageFlowException;
 public class CustomFileNamingStrategy extends FileNamingStrategy {
 
     @Override
-    public String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowException {
+    public String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException {
         String filename = propertyService.getPropertyValue("CamelFileName", messageFlowId);
         
         if (filename == null) {

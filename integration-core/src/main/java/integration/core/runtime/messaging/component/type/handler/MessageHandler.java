@@ -10,7 +10,7 @@ import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
@@ -37,7 +37,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
     protected List<MessageProducer> messageProducers = new ArrayList<>();
         
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 
@@ -60,7 +60,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
 
     
     @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() throws ConfigurationException {
+    public MessageForwardingPolicy getMessageForwardingPolicy() throws AnnotationConfigurationException {
         ForwardingPolicy annotation = getRequiredAnnotation(ForwardingPolicy.class);
           
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
@@ -68,7 +68,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
 
     
     @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws ConfigurationException {
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws AnnotationConfigurationException {
         AcceptancePolicy annotation = getRequiredAnnotation(AcceptancePolicy.class);
                
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
@@ -108,7 +108,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                                 MessageFlowDto acceptedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.ACCEPTED);
                             
                                 // Record an event so the message can be forwarded to other components for processing.
-                                messagingFlowService.recordMessageFlowEvent(acceptedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                messageFlowEventService.recordMessageFlowEvent(acceptedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                             } else {
                                 messagingFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
                             }

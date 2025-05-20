@@ -9,14 +9,14 @@ import org.apache.camel.Processor;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.adapter.annotation.StoreHeader;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 
 /**
  * Base class for all inbound adapters.
@@ -38,7 +38,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() throws ConfigurationException {
+    public MessageForwardingPolicy getMessageForwardingPolicy() throws AnnotationConfigurationException {
         ForwardingPolicy annotation = getRequiredAnnotation(ForwardingPolicy.class);
                
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
@@ -61,7 +61,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 
@@ -88,7 +88,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
                             MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                            messagingFlowService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {
                             messagingFlowService.recordMessageNotForwarded(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                         }
@@ -103,7 +103,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     }
 
     
-    protected void addProperties(Exchange exchange, long messageFlowId) throws MessageFlowException {
+    protected void addProperties(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException {
         Class<?> clazz = this.getClass();
         
         while (clazz != null) {

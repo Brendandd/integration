@@ -7,8 +7,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.RoutesBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.core.exception.ConfigurationException;
-import integration.core.exception.ExceptionIdentifier;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
@@ -18,7 +17,7 @@ import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAda
 import integration.core.runtime.messaging.component.type.connector.BaseInboundRouteConnector;
 import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnector;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
-import integration.core.service.RouteConfigurationService;
+import integration.core.service.StartupService;
 
 /**
  * Base class for all routes. A route is composed of components and determines
@@ -32,7 +31,7 @@ public abstract class BaseRoute {
     protected CamelContext camelContext;
 
     @Autowired
-    protected RouteConfigurationService routeConfigurationService;
+    protected StartupService routeConfigurationService;
         
     protected long identifier;
     
@@ -152,13 +151,11 @@ public abstract class BaseRoute {
     }
 
     
-    public String getName() throws ConfigurationException {
+    public String getName() throws AnnotationConfigurationException {
         IntegrationRoute annotation = this.getClass().getAnnotation(IntegrationRoute.class);
         
         if (annotation == null) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, getIdentifier()));
-            throw new ConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes", identifiers, false);
+            throw new AnnotationConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes", ExceptionIdentifierType.ROUTE_ID, getIdentifier());
         }
         
         return annotation.name();

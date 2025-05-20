@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import integration.core.dto.ComponentDto;
+import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.ConfigurationException;
-import integration.core.service.ComponentConfigurationService;
+import integration.core.service.ComponentService;
 import integration.rest.service.impl.ComponentStateChangeService;
 import integration.rest.service.impl.StatusChangeResponse;
 
@@ -38,7 +38,7 @@ public class ComponentConfigurationRestController {
     protected ComponentStateChangeService componentStateChangeService;
     
     @Autowired
-    private ComponentConfigurationService componentConfigurationService;
+    private ComponentService componentConfigurationService;
     
     @ExceptionHandler(ComponentNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(ComponentNotFoundException ex) {
@@ -53,10 +53,10 @@ public class ComponentConfigurationRestController {
      * Get all components.
      * 
      * @return
-     * @throws ConfigurationException
+     * @throws ComponentAccessException 
      */
     @GetMapping(value = "/components")
-    public List<ComponentDto> getComponents() throws ConfigurationException {
+    public List<ComponentDto> getComponents() throws ComponentAccessException {
         return componentConfigurationService.getAllComponents();
     }
 
@@ -66,10 +66,11 @@ public class ComponentConfigurationRestController {
      * 
      * @param routeName
      * @return
-     * @throws ConfigurationException
+     * @throws ComponentAccessException 
+     * @throws ComponentNotFoundException 
      */
     @GetMapping(value = "/component/{id}")
-    public ComponentDto getComponent(@PathVariable("id") long id) throws ConfigurationException {
+    public ComponentDto getComponent(@PathVariable("id") long id) throws ComponentNotFoundException, ComponentAccessException {
         return componentConfigurationService.getComponent(id);
     }
 
@@ -79,10 +80,11 @@ public class ComponentConfigurationRestController {
      * 
      * @param id
      * @return
-     * @throws ConfigurationException
+     * @throws ComponentAccessException 
+     * @throws ComponentNotFoundException 
      */
     @PostMapping(value = "/component/{id}/stop/inbound")
-    public ResponseEntity<StatusChangeResponse> stopComponentInbound(@PathVariable("id") long id) throws ConfigurationException {
+    public ResponseEntity<StatusChangeResponse> stopComponentInbound(@PathVariable("id") long id) throws ComponentNotFoundException, ComponentAccessException {
         StatusChangeResponse response = componentStateChangeService.stopComponentInbound(id);
         
         return ResponseEntity.ok(response);
@@ -93,10 +95,11 @@ public class ComponentConfigurationRestController {
      * 
      * @param id
      * @return
-     * @throws ConfigurationException
+     * @throws ComponentAccessException 
+     * @throws ComponentNotFoundException 
      */
     @PostMapping(value = "/component/{id}/start/inbound")
-    public ResponseEntity<StatusChangeResponse> startComponentInbound(@PathVariable("id") long id) throws ConfigurationException {
+    public ResponseEntity<StatusChangeResponse> startComponentInbound(@PathVariable("id") long id) throws ComponentNotFoundException, ComponentAccessException  {
         StatusChangeResponse response = componentStateChangeService.startComponentInbound(id);
         
         return ResponseEntity.ok(response);
@@ -108,10 +111,11 @@ public class ComponentConfigurationRestController {
      * 
      * @param id
      * @return
-     * @throws ConfigurationException
+     * @throws ComponentAccessException 
+     * @throws ComponentNotFoundException 
      */
     @PostMapping(value = "/component/{id}/stop/outbound")
-    public ResponseEntity<StatusChangeResponse> stopComponentOutbound(@PathVariable("id") long id) throws ConfigurationException {
+    public ResponseEntity<StatusChangeResponse> stopComponentOutbound(@PathVariable("id") long id) throws ComponentNotFoundException, ComponentAccessException {
         StatusChangeResponse response = componentStateChangeService.stopComponentOutbound(id);
         
         return ResponseEntity.ok(response);
@@ -123,10 +127,11 @@ public class ComponentConfigurationRestController {
      * 
      * @param id
      * @return
-     * @throws ConfigurationException
+     * @throws ComponentAccessException 
+     * @throws ComponentNotFoundException 
      */
     @PostMapping(value = "/component/{id}/start/outbound")
-    public ResponseEntity<StatusChangeResponse> startComponentOutbound(@PathVariable("id") long id) throws ConfigurationException {
+    public ResponseEntity<StatusChangeResponse> startComponentOutbound(@PathVariable("id") long id) throws ComponentNotFoundException, ComponentAccessException {
         StatusChangeResponse response = componentStateChangeService.startComponentOutbound(id);
         
         return ResponseEntity.ok(response);

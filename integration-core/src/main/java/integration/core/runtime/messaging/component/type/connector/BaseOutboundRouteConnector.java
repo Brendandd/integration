@@ -13,8 +13,7 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ConfigurationException;
-import integration.core.exception.ExceptionIdentifier;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
@@ -44,7 +43,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
 
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
         return "jms:topic:VirtualTopic." + getConnectorName(exchange);
     }
 
@@ -59,7 +58,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
 
     
     @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws ConfigurationException {
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws AnnotationConfigurationException {
         AcceptancePolicy annotation = getRequiredAnnotation(AcceptancePolicy.class);
         
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
@@ -101,7 +100,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                                 MessageFlowDto messageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.ACCEPTED);
                             
                                 // Record an event so the message can be forwarded to other components for processing.
-                                messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);
+                                messageFlowEventService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);
                             } else {
                                 messagingFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
                             }
@@ -124,7 +123,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
                         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
                         
                         MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING);
-                        messagingFlowService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(),MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(),MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }
@@ -136,22 +135,17 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
      * 
      * @param exchange
      * @return
-     * @throws ConfigurationException
      */
-    public String getConnectorName(Exchange exchange) throws ConfigurationException {
+    public String getConnectorName(Exchange exchange) throws AnnotationConfigurationException {
         StaticDestination staticAnnotation = this.getClass().getAnnotation(StaticDestination.class);
         DynamicDestination dynamicAnnotation = this.getClass().getAnnotation(DynamicDestination.class);
         
         if (staticAnnotation != null && dynamicAnnotation != null) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
-            throw new ConfigurationException("Both @StaticDestination and @DynamicDestination annotations found.  One one is allowed.", identifiers, false);
+            throw new AnnotationConfigurationException("Both @StaticDestination and @DynamicDestination annotations found.  One one is allowed.", ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
         }
         
         if (staticAnnotation == null && dynamicAnnotation == null) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
-            throw new ConfigurationException("Neither @StaticDestination and @DynamicDestination annotations found.  One is required.", identifiers, false);
+            throw new AnnotationConfigurationException("Neither @StaticDestination and @DynamicDestination annotations found.  One is required.", ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
         }
         
         if (staticAnnotation != null) {

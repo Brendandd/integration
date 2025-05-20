@@ -2,7 +2,7 @@ package integration.core.runtime.messaging.component.type.handler.splitter;
 
 import java.util.ArrayList;
 
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 
 /**
  * A message splitter exception
@@ -10,7 +10,7 @@ import integration.core.runtime.messaging.exception.MessageFlowException;
  * @author brendan_douglas_a
  *
  */
-public class SplitterException extends MessageFlowException {
+public class SplitterException extends MessageFlowProcessingException {
 
     private static final long serialVersionUID = 200520031395049131L;
 

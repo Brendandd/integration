@@ -12,31 +12,31 @@ import integration.core.exception.IntegrationException;
  * @author Brendan Douglas
  *
  */
-public class MessageFlowException extends IntegrationException {
+public class MessageFlowProcessingException extends IntegrationException {
     private static final long serialVersionUID = -1639485569289392443L;
            
-    public MessageFlowException(String message, long messageFlowId, List<ExceptionIdentifier>otherIdentifiers, boolean isRetryable) {
+    public MessageFlowProcessingException(String message, long messageFlowId, List<ExceptionIdentifier>otherIdentifiers, boolean isRetryable) {
         super(message, otherIdentifiers, isRetryable);
         
         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
     }
 
     
-    public MessageFlowException(String message, long messageFlowId, List<ExceptionIdentifier>otherIdentifiers, Throwable cause) {
+    public MessageFlowProcessingException(String message, long messageFlowId, List<ExceptionIdentifier>otherIdentifiers, Throwable cause) {
         super(message, otherIdentifiers, cause);
         
         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
     }
     
     
-    public MessageFlowException(String message, long messageFlowId, List<ExceptionIdentifier>otherIdentifiers, Throwable cause, boolean isRetryable) {
+    public MessageFlowProcessingException(String message, long messageFlowId, List<ExceptionIdentifier>otherIdentifiers, Throwable cause, boolean isRetryable) {
         super(message, otherIdentifiers, cause, isRetryable);
         
         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
     }
 
     
-    public MessageFlowException(String message, List<ExceptionIdentifier>otherIdentifiers, Throwable cause, boolean isRetryable) {
+    public MessageFlowProcessingException(String message, List<ExceptionIdentifier>otherIdentifiers, Throwable cause, boolean isRetryable) {
         super(message, otherIdentifiers, cause, isRetryable);
     }
 }

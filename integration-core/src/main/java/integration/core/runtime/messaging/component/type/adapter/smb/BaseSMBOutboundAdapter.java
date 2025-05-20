@@ -6,12 +6,12 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 
 /**
  * Base class for all SMB outbound communication points.
@@ -46,10 +46,10 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
      * @param exchange
      * @param messageFlowId
      * @return
-     * @throws ConfigurationException 
+     * @throws AnnotationConfigurationException 
      * @throws RetryableException 
      */
-    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowException, ConfigurationException {
+    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, AnnotationConfigurationException {
         FileNaming annotation = getRequiredAnnotation(FileNaming.class);
                  
         FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
@@ -64,7 +64,7 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowException, ConfigurationException {
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, AnnotationConfigurationException {
         Map<String, Object> headers = new HashMap<String, Object>();
         
         String fileName = getFilename(exchange, messageFlowId);

@@ -2,7 +2,7 @@ package integration.core.runtime.messaging.component.type.handler.transformation
 
 import java.util.ArrayList;
 
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 
 /**
  * A transformation exception
@@ -10,7 +10,7 @@ import integration.core.runtime.messaging.exception.MessageFlowException;
  * @author brendan_douglas_a
  *
  */
-public class TransformationException extends MessageFlowException {
+public class TransformationException extends MessageFlowProcessingException {
     private static final long serialVersionUID = -8122323055739569340L;
 
 

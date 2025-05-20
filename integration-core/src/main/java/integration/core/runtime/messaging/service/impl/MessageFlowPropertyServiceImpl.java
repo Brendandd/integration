@@ -14,7 +14,7 @@ import integration.core.domain.messaging.MessageFlow;
 import integration.core.domain.messaging.MessageFlowProperty;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 
@@ -27,7 +27,7 @@ public class MessageFlowPropertyServiceImpl implements MessageFlowPropertyServic
 
     
     @Override
-    public String getPropertyValue(String key, long messageFlowId) throws MessageFlowException {
+    public String getPropertyValue(String key, long messageFlowId) throws MessageFlowProcessingException {
         try {
             Optional<MessageFlow>messageFlowOptional = messageFlowRepository.findById(messageFlowId);
             
@@ -42,13 +42,13 @@ public class MessageFlowPropertyServiceImpl implements MessageFlowPropertyServic
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
             otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key));
-            throw new MessageFlowException("Database error while getting a message flow property", messageFlowId, otherIdentifiers, e);
+            throw new MessageFlowProcessingException("Database error while getting a message flow property", messageFlowId, otherIdentifiers, e);
         }
     }
 
     
     @Override
-    public void addProperty(String key, String value, long messageFlowId) throws MessageFlowException {   
+    public void addProperty(String key, String value, long messageFlowId) throws MessageFlowProcessingException {   
         try {
             Optional<MessageFlow>messageFlowOptional = messageFlowRepository.findById(messageFlowId);
             
@@ -59,7 +59,7 @@ public class MessageFlowPropertyServiceImpl implements MessageFlowPropertyServic
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
             otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key));
-            throw new MessageFlowException("Database error while saving a message flow property",messageFlowId, otherIdentifiers, e);
+            throw new MessageFlowProcessingException("Database error while saving a message flow property",messageFlowId, otherIdentifiers, e);
         }
     }
 }

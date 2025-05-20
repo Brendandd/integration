@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import integration.core.dto.RouteDto;
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.RouteAccessException;
 import integration.core.exception.RouteNotFoundException;
-import integration.core.service.RouteConfigurationService;
+import integration.core.service.RouteService;
 
 
 /**
@@ -32,7 +32,7 @@ import integration.core.service.RouteConfigurationService;
 public class RouteConfigurationRestController {
    
     @Autowired
-    private RouteConfigurationService routeConfigurationService;
+    private RouteService routeService;
 
     
     @ExceptionHandler(RouteNotFoundException.class)
@@ -42,19 +42,18 @@ public class RouteConfigurationRestController {
         error.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
-    
+
     
     /**
      * Get all routes.
      * 
      * @return
-     * @throws ConfigurationException
-     * @throws integration.core.exception.ConfigurationException 
+     * @throws RouteAccessException 
      * @throws RetryableException 
      */
     @GetMapping(value = "/routes")
-    public List<RouteDto> getAllRoutes() throws ConfigurationException {
-        return routeConfigurationService.getAllRoutes();
+    public List<RouteDto> getAllRoutes() throws RouteAccessException {
+        return routeService.getAllRoutes();
     }
 
     
@@ -64,11 +63,11 @@ public class RouteConfigurationRestController {
      * @param routeName
      * @return
      * @throws RetryableException 
-     * @throws integration.core.exception.ConfigurationException 
-     * @throws ConfigurationException
+     * @throws RouteNotFoundException 
+     * @throws RouteAccessException 
      */
     @GetMapping(value = "/route/{id}")
-    public RouteDto getRoute(@PathVariable("id") long id) throws ConfigurationException  {
-        return routeConfigurationService.getRoute(id);
+    public RouteDto getRoute(@PathVariable("id") long id) throws RouteNotFoundException, RouteAccessException  {
+        return routeService.getRoute(id);
     }
 }

@@ -77,7 +77,7 @@ public abstract class BaseSMBInboundAdapter extends BaseInboundAdapter {
                         addProperties(exchange, messageFlowDto.getId());
                         
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
-                        messagingFlowService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messageFlowEventService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }

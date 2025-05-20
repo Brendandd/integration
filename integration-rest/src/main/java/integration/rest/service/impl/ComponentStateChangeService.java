@@ -1,6 +1,7 @@
 package integration.rest.service.impl;
 
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.ComponentAccessException;
+import integration.core.exception.ComponentNotFoundException;
 
 /**
  * @author Brendan Douglas
@@ -8,13 +9,13 @@ import integration.core.exception.ConfigurationException;
  */
 public interface ComponentStateChangeService {
     
-    StatusChangeResponse stopComponentInbound(long id) throws ConfigurationException;
+    StatusChangeResponse stopComponentInbound(long id) throws ComponentNotFoundException,ComponentAccessException; 
     
-    StatusChangeResponse startComponentInbound(long id) throws ConfigurationException;  
+    StatusChangeResponse startComponentInbound(long id) throws ComponentNotFoundException,ComponentAccessException;  
     
-    StatusChangeResponse stopComponentOutbound(long id) throws ConfigurationException;
+    StatusChangeResponse stopComponentOutbound(long id) throws ComponentNotFoundException,ComponentAccessException; 
     
-    StatusChangeResponse startComponentOutbound(long id) throws ConfigurationException;
+    StatusChangeResponse startComponentOutbound(long id) throws ComponentNotFoundException,ComponentAccessException; 
 }
 
 

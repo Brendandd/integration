@@ -30,20 +30,24 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowEventDto;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.exception.ConfigurationException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
+import integration.core.exception.MessageForwardingException;
+import integration.core.exception.QueuePublishingException;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
 import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
 import integration.core.runtime.messaging.component.type.handler.splitter.SplitterException;
 import integration.core.runtime.messaging.component.type.handler.transformation.TransformationException;
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 import integration.core.runtime.messaging.exception.OutboxProcessingException;
+import integration.core.runtime.messaging.service.MessageFlowEventService;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessagingFlowService;
-import integration.core.service.ComponentConfigurationService;
+import integration.core.service.ComponentService;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -73,7 +77,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected IntegrationComponentStateEnum outboundState;
     
     @Autowired
-    protected ComponentConfigurationService componentConfigurationService;
+    protected ComponentService componentConfigurationService;
     
     @Autowired
     protected CamelContext camelContext;
@@ -83,6 +87,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected MessagingFlowService messagingFlowService;
+    
+    @Autowired
+    protected MessageFlowEventService messageFlowEventService;
     
     protected Map<String,String>componentProperties;
 
@@ -101,13 +108,13 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
 
     public abstract Logger getLogger();
-
+    
     /**
      * Makes sure each component has the mandatory annotations for its type.
-     * @throws ConfigurationException 
+     * @throws AnnotationConfigurationException 
      */
     @Override
-    public void validateAnnotations() throws ConfigurationException {
+    public void validateAnnotations() throws AnnotationConfigurationException {
         // These are common for all components.
         requiredAnnotations.add(IntegrationComponent.class);
         requiredAnnotations.add(ComponentType.class);
@@ -127,9 +134,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         // Check if all required annotations are present
         for (Class<? extends Annotation> required : requiredAnnotations) {
             if (!foundAnnotations.contains(required)) {
-                List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
-                throw new ConfigurationException("Missing required annotation @" + required.getSimpleName() + " on class " + this.getClass().getName() + " or its hierarchy.", identifiers, false);
+                throw new AnnotationConfigurationException("Missing required annotation", ExceptionIdentifierType.COMPONENT_ID, getIdentifier(), required.getSimpleName());
             }
         }
         
@@ -147,16 +152,17 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * Where to forward the message too.  This is a Camel uri. 
      * 
      * @return
-     * @throws ConfigurationException 
+     * @throws AnnotationConfigurationException 
      */
-    public abstract String getMessageForwardingUriString(Exchange exchange) throws ConfigurationException;
+    public abstract String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException;
 
     
     /**
      * The full component path.  route-path
+     * @throws AnnotationConfigurationException 
      */
     @Override
-    public String getComponentPath() throws ConfigurationException {
+    public String getComponentPath() throws AnnotationConfigurationException {
         return route.getName() + "-" + getName();
     }
 
@@ -176,7 +182,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     @Override
     public void configure() throws Exception {
         
-        // Handled errors processing events from the outbox.
+        // Handled errors processing events from the outbox. //TODO can't retry everything.
         onException(OutboxProcessingException.class)
         .process(exchange -> {
             Long eventId = null;
@@ -185,16 +191,17 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             OutboxProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, OutboxProcessingException.class);
             getLogger().error("Event processing exception - " + theException.toString());
             
+            isRetryable = theException.isRetryable();
             
             if (theException.hasIdentifier(ExceptionIdentifierType.EVENT_ID)) {
                 eventId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.EVENT_ID);
-                isRetryable = theException.isRetryable();
             } else {
                 eventId = exchange.getIn().getHeader(BaseMessagingComponent.EVENT_ID, Long.class);
             }
             
+            // Set the event as failed so it can be picked up again later.
             if (isRetryable && eventId != null) {
-                messagingFlowService.setEventFailed(eventId);
+                messageFlowEventService.setEventFailed(eventId);
             }
 
             exchange.setRollbackOnly(true);
@@ -281,12 +288,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
         
         // Handled errors processing events from the outbox.
-        onException(MessageFlowException.class)
+        onException(MessageFlowProcessingException.class)
         .process(exchange -> {
             Long messageFlowId = null;
             boolean isRetryable = true;
             
-            MessageFlowException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowException.class);
+            MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
             getLogger().error("Message flow exception - " + theException.toString());
             
             isRetryable = theException.isRetryable();
@@ -318,21 +325,23 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         Long eventId = null;
                         Long messageFlowId = null;
                         
+                        // Delete the event.
+                        eventId = exchange.getMessage().getBody(Long.class);
+                        messageFlowEventService.deleteEvent(eventId);
+                        
+                        // Get the message flow step id.
+                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
+
+                        // Add the message to the queue
                         try {
-                            // Delete the event.
-                            eventId = exchange.getMessage().getBody(Long.class);
-                            messagingFlowService.deleteEvent(eventId);
-                            
-                            // Get the message flow step id.
-                            messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
-    
-                            // Add the message to the queue
                             producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             List<ExceptionIdentifier>identifiers = new ArrayList<>();
                             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
+                            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
                             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.EVENT_ID, eventId));
-                            throw new OutboxProcessingException("Error adding the message flow id to the internal processing queue", identifiers, e);
+                            
+                            throw new QueuePublishingException("Error adding the message flow to the queue", identifiers, e);
                         }
                     }
                 });
@@ -353,13 +362,15 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
         .routeId("eventProcessorTimer-" + getIdentifier())
         .process(exchange -> {
-            IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
-            Lock lock = cache.lock(getComponentPath());
-
-            lock.lock(); // Lock acquired
-
+            Lock lock = null;
+            
             try {
-                List<MessageFlowEventDto> events = messagingFlowService.getEventsForComponent(getIdentifier(), 400);
+                IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
+                lock = cache.lock(getComponentPath());
+    
+                lock.lock(); // Lock acquired
+    
+                List<MessageFlowEventDto> events = messageFlowEventService.getEventsForComponent(getIdentifier(), 400);
 
                 for (MessageFlowEventDto event : events) {
                     Exchange subExchange = exchange.copy();
@@ -379,7 +390,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
                     exchange.getContext().createProducerTemplate().send("direct:" + uri, subExchange);
                 }
-
+            } catch(Exception e) {
+                throw new OutboxProcessingException("Error processing the outbox", getIdentifier(), e);
             } finally {
                 lock.unlock(); // Release lock after all events processed
             }
@@ -429,27 +441,28 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                     Long eventId = null;
                     Long messageFlowId = null;
                     
-                    try {
-                        // Delete the event.
-                        eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
-                        messagingFlowService.deleteEvent(eventId);
+                    // Delete the event.
+                    eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
+                    messageFlowEventService.deleteEvent(eventId);
+                
+                    messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
+                    MessageFlowDto messageFlowDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
                     
-                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
-                        MessageFlowDto messageFlowDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
-                        
-                        // Change the status of the message flow from pending forwarding to forwarded
-                        messagingFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);
-                        
-                        
-                        // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
-                        preForwardingProcessing(exchange);
-                        
+                    // Change the status of the message flow from pending forwarding to forwarded
+                    messagingFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);
+                    
+                    // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
+                    preForwardingProcessing(exchange);
+                    
+                    try {
                         producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
                     } catch(Exception e) {
                         List<ExceptionIdentifier>identifiers = new ArrayList<>();
                         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
+                        identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
                         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.EVENT_ID, eventId));
-                        throw new OutboxProcessingException("Error forwarding message from outbox", identifiers, e);
+                        
+                        throw new MessageForwardingException("Error forwarding the message", identifiers, e);
                     }
                 }
             });
@@ -461,12 +474,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * 
      * @param exchange
      */
-    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowException, ConfigurationException {
+    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowProcessingException, ConfigurationException {
         // The default is nothing.
     }
 
     
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowException, ConfigurationException {
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ConfigurationException, AnnotationConfigurationException {
         return new HashMap<String, Object>();
     }
 
@@ -529,16 +542,17 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     @Override
-    public IntegrationComponentCategoryEnum getCategory() throws ConfigurationException {
+    public IntegrationComponentCategoryEnum getCategory() throws AnnotationConfigurationException {
         return getType().getCategory();
     }
 
     
     /**
      * Returns the component name.
+     * @throws AnnotationConfigurationException 
      */
     @Override
-    public String getName() throws ConfigurationException {
+    public String getName() throws AnnotationConfigurationException {
         IntegrationComponent annotation = getRequiredAnnotation(IntegrationComponent.class);
 
         return annotation.name();
@@ -547,9 +561,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     /**
      * Returns the component type.
+     * @throws AnnotationConfigurationException 
      */
     @Override
-    public IntegrationComponentTypeEnum getType() throws ConfigurationException {
+    public IntegrationComponentTypeEnum getType() throws AnnotationConfigurationException {
         ComponentType annotation = getRequiredAnnotation(ComponentType.class);
 
         return annotation.type();
@@ -560,9 +575,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * Returns the content type handled by this component.
      * 
      * @return
-     * @throws ConfigurationException 
+     * @throws AnnotationConfigurationException 
      */
-    public ContentTypeEnum getContentType() throws ConfigurationException {
+    public ContentTypeEnum getContentType() throws AnnotationConfigurationException {
         AllowedContentType annotation = getRequiredAnnotation(AllowedContentType.class);
         return annotation.value();
     }
@@ -574,15 +589,14 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @param <T>
      * @param annotationClass
      * @return
-     * @throws ConfigurationException If the annotation is not found.
      */
-    protected <T extends Annotation> T getRequiredAnnotation(Class<T> annotationClass) throws ConfigurationException {
+    protected <T extends Annotation> T getRequiredAnnotation(Class<T> annotationClass) throws AnnotationConfigurationException {
         T annotation = this.getClass().getAnnotation(annotationClass);
 
         if (annotation == null) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
-            throw new ConfigurationException("@" + annotationClass.getSimpleName() + " annotation not found. It is mandatory for all components", identifiers, false);
+            throw new AnnotationConfigurationException("Mandatory annotation not found", ExceptionIdentifierType.COMPONENT_ID, getIdentifier(), annotationClass.getSimpleName());
         }
 
         return annotation;

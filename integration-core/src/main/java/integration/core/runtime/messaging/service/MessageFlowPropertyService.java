@@ -1,6 +1,6 @@
 package integration.core.runtime.messaging.service;
 
-import integration.core.runtime.messaging.exception.MessageFlowException;
+import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
 
 public interface MessageFlowPropertyService {
     
@@ -11,7 +11,7 @@ public interface MessageFlowPropertyService {
      * @param messageFlowId
      * @return
      */
-    String getPropertyValue(String key, long messageFlowId) throws MessageFlowException;
+    String getPropertyValue(String key, long messageFlowId) throws MessageFlowProcessingException;
     
     /**
      * Add a property to the message flow.
@@ -20,5 +20,5 @@ public interface MessageFlowPropertyService {
      * @param value
      * @param messageFlowId
      */
-    void addProperty(String key, String value, long messageFlowId) throws MessageFlowException;
+    void addProperty(String key, String value, long messageFlowId) throws MessageFlowProcessingException;
 }

@@ -7,7 +7,7 @@ import java.util.List;
  * 
  * @author Brendan Douglas
  */
-public class RouteNotFoundException extends ConfigurationException {
+public class RouteNotFoundException extends IntegrationException {
     private static final long serialVersionUID = -8219003265184923387L;
     
     private static String MESSAGE = "Route not found. Id: ";

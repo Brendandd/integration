@@ -9,7 +9,7 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ConfigurationException;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
@@ -34,7 +34,7 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
      * 
      * @return
      */
-    public MessageTransformer getTransformer() throws ConfigurationException {
+    public MessageTransformer getTransformer() throws AnnotationConfigurationException {
         UsesTransformer annotation = getRequiredAnnotation(UsesTransformer.class);
         
         return springContext.getBean(annotation.name(), MessageTransformer.class);  
@@ -72,7 +72,7 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                         // Apply the message forwarding rules and either write an event for further processing or filter the message.
                         if (result.isSuccess()) {
                             MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                            messagingFlowService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
                         } else {
                             messagingFlowService.recordMessageNotForwarded(getIdentifier(), transformedMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                         }

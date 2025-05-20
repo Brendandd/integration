@@ -1,7 +1,5 @@
 package integration.rest.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
+import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.ConfigurationException;
-import integration.core.exception.ExceptionIdentifier;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.repository.ComponentRepository;
 import integration.rest.service.impl.ComponentStateChangeService;
 import integration.rest.service.impl.StatusChangeResponse;
@@ -29,7 +25,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
        
    
     @Override
-    public StatusChangeResponse stopComponentInbound(long id) throws ConfigurationException {
+    public StatusChangeResponse stopComponentInbound(long id) throws ComponentNotFoundException, ComponentAccessException {
         try {
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
@@ -48,15 +44,13 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
     
             return new StatusChangeResponse(true, "Inbound already stopped", id, IntegrationComponentStateEnum.STOPPED, IntegrationComponentStateEnum.STOPPED);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-            throw new ConfigurationException("Database error while stopping a components inbound", identifiers, e);
+            throw new ComponentAccessException("Database error while stopping a components inbound", id, e);
         }
     }
 
     
     @Override
-    public StatusChangeResponse startComponentInbound(long id) throws ConfigurationException {
+    public StatusChangeResponse startComponentInbound(long id) throws ComponentNotFoundException, ComponentAccessException {
         try {
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
@@ -75,15 +69,13 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             
             return new StatusChangeResponse(true, "Inbound already started", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.RUNNING);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-            throw new ConfigurationException("Database error while starting a components inbound", identifiers,e);
+            throw new ComponentAccessException("Database error while starting a components inbound", id,e);
         }
     }
 
     
     @Override
-    public StatusChangeResponse stopComponentOutbound(long id) throws ConfigurationException {
+    public StatusChangeResponse stopComponentOutbound(long id) throws ComponentNotFoundException, ComponentAccessException {
         try {
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
@@ -102,15 +94,13 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             
             return new StatusChangeResponse(true, "Outbound already stopped", id, IntegrationComponentStateEnum.STOPPED, IntegrationComponentStateEnum.STOPPED);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-            throw new ConfigurationException("Database error while stopping a components outbound", identifiers, e);
+            throw new ComponentAccessException("Database error while stopping a components outbound", id, e);
         }
     }
 
     
     @Override
-    public StatusChangeResponse startComponentOutbound(long id) throws ConfigurationException {
+    public StatusChangeResponse startComponentOutbound(long id) throws ComponentNotFoundException, ComponentAccessException {
         try {
             Optional<IntegrationComponent>componentOptional = componentRepository.findById(id);
             
@@ -129,9 +119,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             
             return new StatusChangeResponse(true, "Outbound already started", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.RUNNING);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, id));
-            throw new ConfigurationException("Database error while stopping a components outbound", identifiers, e);
+            throw new ComponentAccessException("Database error while stopping a components outbound", id, e);
         }
     }
 }

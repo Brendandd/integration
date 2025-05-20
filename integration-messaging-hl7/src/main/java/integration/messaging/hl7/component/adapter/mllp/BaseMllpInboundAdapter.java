@@ -7,9 +7,9 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
@@ -93,7 +93,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                         messagingFlowService.recordMessageFlow(ackContent, getIdentifier(), inboundMessageFlowId, ContentTypeEnum.HL7_ACK, MessageFlowActionType.ACKNOWLEDGMENT_SENT);
                                                 
                         // Final step in the inbound message handling is to write an event which will put the message onto a queue for this components outbound message handler to pick up and process.
-                        messagingFlowService.recordMessageFlowEvent(inboundMessageFlowId,getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        messageFlowEventService.recordMessageFlowEvent(inboundMessageFlowId,getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
                     }
                 });
     }        

@@ -5,17 +5,18 @@ import java.util.Map;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
+import integration.core.exception.AnnotationConfigurationException;
 import integration.core.exception.ConfigurationException;
 import integration.core.runtime.messaging.BaseRoute;
 
 public interface MessagingComponent {
-    public String getName() throws ConfigurationException;
+    public String getName() throws AnnotationConfigurationException;
 
-    public IntegrationComponentTypeEnum getType() throws ConfigurationException;
+    public IntegrationComponentTypeEnum getType() throws AnnotationConfigurationException;
     
-    public IntegrationComponentCategoryEnum getCategory() throws ConfigurationException;
+    public IntegrationComponentCategoryEnum getCategory() throws AnnotationConfigurationException;
     
-    public String getComponentPath() throws ConfigurationException;
+    public String getComponentPath() throws ConfigurationException, AnnotationConfigurationException;
     
     public long getIdentifier();
     
@@ -37,5 +38,5 @@ public interface MessagingComponent {
 
     public void setOutboundState(IntegrationComponentStateEnum outboundState);
                 
-    public void validateAnnotations() throws ConfigurationException;
+    public void validateAnnotations() throws AnnotationConfigurationException;
 }

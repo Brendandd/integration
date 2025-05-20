@@ -3,7 +3,7 @@ package integration.core.exception;
 import java.util.List;
 
 /**
- * An exception which is thrown during component configuration or reading component configuration.
+ * An exception which is thrown during app startup
  * 
  * @author Brendan Douglas
  */
