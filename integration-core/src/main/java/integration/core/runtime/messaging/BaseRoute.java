@@ -7,8 +7,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.RoutesBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.core.exception.AnnotationConfigurationException;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.MessagingComponent;
@@ -17,6 +15,7 @@ import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAda
 import integration.core.runtime.messaging.component.type.connector.BaseInboundRouteConnector;
 import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnector;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.service.StartupService;
 
 /**
@@ -151,11 +150,11 @@ public abstract class BaseRoute {
     }
 
     
-    public String getName() throws AnnotationConfigurationException {
+    public String getName() throws RouteConfigurationException {
         IntegrationRoute annotation = this.getClass().getAnnotation(IntegrationRoute.class);
         
         if (annotation == null) {
-            throw new AnnotationConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes", ExceptionIdentifierType.ROUTE_ID, getIdentifier());
+            throw new RouteConfigurationException("@IntegrationRoute annotation not found.  It is mandatory for all routes", getIdentifier());
         }
         
         return annotation.name();

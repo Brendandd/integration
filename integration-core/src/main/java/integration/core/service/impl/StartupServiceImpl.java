@@ -1,6 +1,5 @@
 package integration.core.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,15 +14,13 @@ import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationRoute;
-import integration.core.exception.AnnotationConfigurationException;
-import integration.core.exception.ConfigurationException;
-import integration.core.exception.ExceptionIdentifier;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.repository.ComponentRepository;
 import integration.core.repository.RouteRepository;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.component.MessagingComponent;
 import integration.core.runtime.messaging.component.RouteConfigLoader;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.service.StartupService;
 
 @Component
@@ -44,7 +41,7 @@ public class StartupServiceImpl implements StartupService {
 
     
     @Override
-    public void configureRoute(BaseRoute integrationRoute, List<MessagingComponent> components) throws ConfigurationException, AnnotationConfigurationException{   
+    public void configureRoute(BaseRoute integrationRoute, List<MessagingComponent> components) throws RouteConfigurationException, ComponentConfigurationException{   
         try {
             String owner = env.getProperty("owner");       
             
@@ -102,9 +99,7 @@ public class StartupServiceImpl implements StartupService {
                 component.validateAnnotations();
             }
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, integrationRoute.getIdentifier()));
-            throw new ConfigurationException("Database error while configuring a component route association", identifiers, e);
+            throw new RouteConfigurationException("Database error while configuring a component route association", integrationRoute.getIdentifier(), e);
         }
     }
 }

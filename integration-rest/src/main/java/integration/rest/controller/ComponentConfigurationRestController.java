@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import integration.core.dto.ComponentDto;
-import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.ComponentAccessException;
 import integration.core.service.ComponentService;
 import integration.rest.service.impl.ComponentStateChangeService;
 import integration.rest.service.impl.StatusChangeResponse;

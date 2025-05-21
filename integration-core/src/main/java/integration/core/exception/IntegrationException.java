@@ -1,5 +1,6 @@
 package integration.core.exception;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.dao.RecoverableDataAccessException;
@@ -14,54 +15,49 @@ import org.springframework.dao.TransientDataAccessException;
 public abstract class IntegrationException extends Exception {
     private static final long serialVersionUID = -1639485569289392443L;
         
-    protected final List<ExceptionIdentifier> identifiers;
-    protected boolean isRetryable;
-
+    protected final List<ExceptionIdentifier> identifiers = new ArrayList<>();
     
-    public IntegrationException(String message, List<ExceptionIdentifier>identifiers, boolean isRetryable) {
+    public IntegrationException(String message) {
         super(message);
-        
-        this.identifiers = identifiers;
-        this.isRetryable = isRetryable;
     }
 
     
-    public IntegrationException(String message, List<ExceptionIdentifier>identifiers, Throwable cause) {
+    public IntegrationException(String message, Throwable cause) {
         super(message, cause);
-        
-        this.identifiers = identifiers;
-        
-        this.isRetryable = isRetryableCause(cause);
     }
 
     
-    public IntegrationException(String message, List<ExceptionIdentifier>identifiers, Throwable cause, boolean isRetryable) {
-        super(message, cause);
-        
-        this.identifiers = identifiers;
-        this.isRetryable = isRetryable;
+    private boolean isExplicitlyRetryableException(Throwable t) {
+        return t instanceof TransientDataAccessException ||
+               t instanceof RecoverableDataAccessException;
     }
-
     
-    protected static boolean isRetryableCause(Throwable cause) {
-        while (cause != null) {
-            if (cause instanceof TransientDataAccessException) {
+    public boolean isRetryable() {
+        Throwable current = this;
+
+        while (current != null) {
+            if (current instanceof NonRetryableException) {
+                return false;
+            }
+
+            if (isExplicitlyRetryableException(current)) {
                 return true;
             }
-            
-            if (cause instanceof RecoverableDataAccessException) {
-                return true;
-            } 
-            
-            if (cause instanceof IntegrationException) {
-                return ((IntegrationException)cause).isRetryable;
+
+            if (current instanceof IntegrationException && current != this) {
+                return ((IntegrationException) current).isRetryable();
             }
-            
-            
-            cause = cause.getCause();
+
+            current = current.getCause();
         }
-            
+
         return false;
+    }
+
+    
+    public IntegrationException addOtherIdentifier(ExceptionIdentifierType type, Object value) {
+        identifiers.add(new ExceptionIdentifier(type, value));
+        return this;
     }
 
     
@@ -69,7 +65,7 @@ public abstract class IntegrationException extends Exception {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getClass().getSimpleName()).append(": ").append(getMessage());
-        sb.append(" | Retryable: ").append(isRetryable);
+        sb.append(" | Retryable: ").append(isRetryable());
         
         if (identifiers != null && !identifiers.isEmpty()) {
             sb.append(" | Identifiers: [");
@@ -103,11 +99,6 @@ public abstract class IntegrationException extends Exception {
         }
 
         return sb.toString();
-    }
-
-
-    public boolean isRetryable() {
-        return isRetryable;
     }
 
     

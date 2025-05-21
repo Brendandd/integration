@@ -6,12 +6,13 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Base class for all SMB outbound communication points.
@@ -46,10 +47,10 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
      * @param exchange
      * @param messageFlowId
      * @return
-     * @throws AnnotationConfigurationException 
+     * @throws RouteConfigurationException 
      * @throws RetryableException 
      */
-    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, AnnotationConfigurationException {
+    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ComponentConfigurationException {
         FileNaming annotation = getRequiredAnnotation(FileNaming.class);
                  
         FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
@@ -64,7 +65,7 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, AnnotationConfigurationException {
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ComponentConfigurationException {
         Map<String, Object> headers = new HashMap<String, Object>();
         
         String fileName = getFilename(exchange, messageFlowId);

@@ -1,8 +1,6 @@
 package integration.core.runtime.messaging.component.type.handler.filter;
 
-import java.util.ArrayList;
-
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * An exception thrown from the filtering logic
@@ -10,12 +8,12 @@ import integration.core.runtime.messaging.exception.MessageFlowProcessingExcepti
 public class FilterException extends MessageFlowProcessingException {
     private static final long serialVersionUID = -6535976021157034699L;
 
-    public FilterException(String message, long messageFlowId, boolean isRetryable) {
-        super(message, messageFlowId, new ArrayList<>(), isRetryable);
+    public FilterException(String message, long messageFlowId) {
+        super(message, messageFlowId);
     }
 
     
     public FilterException(String message, long messageFlowId, Throwable cause) {
-        super(message, messageFlowId, new ArrayList<>(), cause);
+        super(message, messageFlowId,cause);
     }
 }

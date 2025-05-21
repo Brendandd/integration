@@ -1,6 +1,6 @@
 package integration.core.runtime.messaging.service;
 
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 public interface MessageFlowPropertyService {
     

@@ -9,11 +9,11 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.transformation.annotation.UsesTransformer;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 
 /**
  * Base class for all transformation processing steps.
@@ -34,7 +34,7 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
      * 
      * @return
      */
-    public MessageTransformer getTransformer() throws AnnotationConfigurationException {
+    public MessageTransformer getTransformer() throws ComponentConfigurationException {
         UsesTransformer annotation = getRequiredAnnotation(UsesTransformer.class);
         
         return springContext.getBean(annotation.name(), MessageTransformer.class);  

@@ -13,8 +13,6 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.AnnotationConfigurationException;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
@@ -23,6 +21,7 @@ import integration.core.runtime.messaging.component.type.connector.annotation.St
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 
 /**
  * Outbound route connector. Sends messages to other routes.
@@ -43,7 +42,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
 
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws ComponentConfigurationException {
         return "jms:topic:VirtualTopic." + getConnectorName(exchange);
     }
 
@@ -58,7 +57,7 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
 
     
     @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws AnnotationConfigurationException {
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws ComponentConfigurationException {
         AcceptancePolicy annotation = getRequiredAnnotation(AcceptancePolicy.class);
         
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
@@ -135,17 +134,18 @@ public abstract class BaseOutboundRouteConnector extends BaseRouteConnector impl
      * 
      * @param exchange
      * @return
+     * @throws ComponentConfigurationException 
      */
-    public String getConnectorName(Exchange exchange) throws AnnotationConfigurationException {
+    public String getConnectorName(Exchange exchange) throws ComponentConfigurationException {
         StaticDestination staticAnnotation = this.getClass().getAnnotation(StaticDestination.class);
         DynamicDestination dynamicAnnotation = this.getClass().getAnnotation(DynamicDestination.class);
         
         if (staticAnnotation != null && dynamicAnnotation != null) {
-            throw new AnnotationConfigurationException("Both @StaticDestination and @DynamicDestination annotations found.  One one is allowed.", ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
+            throw new ComponentConfigurationException("Both @StaticDestination and @DynamicDestination annotations found.  One one is allowed.", getIdentifier());
         }
         
         if (staticAnnotation == null && dynamicAnnotation == null) {
-            throw new AnnotationConfigurationException("Neither @StaticDestination and @DynamicDestination annotations found.  One is required.", ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
+            throw new ComponentConfigurationException("Neither @StaticDestination and @DynamicDestination annotations found.  One is required.", getIdentifier());
         }
         
         if (staticAnnotation != null) {

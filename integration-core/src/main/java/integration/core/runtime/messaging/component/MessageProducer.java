@@ -1,7 +1,8 @@
 package integration.core.runtime.messaging.component;
 
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 /**
  * A producer of a message.
@@ -20,9 +21,9 @@ public interface MessageProducer extends MessagingComponent {
      * Gets the message forwarding policy for this message producer.
      * 
      * @return
-     * @throws AnnotationConfigurationException 
+     * @throws RouteConfigurationException 
      * @throws  
      * @throws  
      */
-    MessageForwardingPolicy getMessageForwardingPolicy() throws AnnotationConfigurationException;
+    MessageForwardingPolicy getMessageForwardingPolicy() throws ComponentConfigurationException;
 }

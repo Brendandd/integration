@@ -7,7 +7,8 @@ public enum ExceptionIdentifierType {
     COMPONENT_ID,
     ROUTE_ID,
     COMPONENT_PATH,
-    EVENT_ID,
+    MESSAGE_FLOW_EVENT_ID,
     MESSAGE_FLOW_ID,
-    PROPERTY_KEY;
+    PROPERTY_KEY,
+    NO_ID;
 }

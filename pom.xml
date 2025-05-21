@@ -24,6 +24,7 @@
         <apache.ignite.version>2.17.0</apache.ignite.version>
         <apache.common.version>3.14.0</apache.common.version>
         <apache.camel.version>4.11.0</apache.camel.version>
+        <junit.version>5.10.0</junit.version>
     </properties>
 
     <!-- Centralized dependency versions -->
@@ -139,6 +140,13 @@
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-timer-starter</artifactId>
                  <version>${apache.camel.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
             </dependency>
             
         </dependencies>

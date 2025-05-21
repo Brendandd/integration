@@ -3,8 +3,8 @@ package integration.core.service;
 import java.util.List;
 
 import integration.core.dto.ComponentDto;
-import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.ComponentAccessException;
 
 /**
  * A service for components

@@ -1,8 +1,6 @@
 package integration.core.runtime.messaging.component.type.handler.transformation;
 
-import java.util.ArrayList;
-
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * A transformation exception
@@ -14,12 +12,12 @@ public class TransformationException extends MessageFlowProcessingException {
     private static final long serialVersionUID = -8122323055739569340L;
 
 
-    public TransformationException(String message, long messageFlowId, boolean isRetryable) {
-        super(message, messageFlowId, new ArrayList<>(), isRetryable);
+    public TransformationException(String message, long messageFlowId) {
+        super(message, messageFlowId);
     }
 
     
     public TransformationException(String message, long messageFlowId, Throwable cause) {
-        super(message, messageFlowId, new ArrayList<>(), cause);
+        super(message, messageFlowId, cause);
     }
 }

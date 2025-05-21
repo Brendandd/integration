@@ -1,7 +1,7 @@
 package integration.rest.service.impl;
 
-import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.ComponentAccessException;
 
 /**
  * @author Brendan Douglas

@@ -15,9 +15,9 @@ import integration.core.dto.RouteDto;
 import integration.core.dto.mapper.RouteMapper;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
-import integration.core.exception.RouteAccessException;
 import integration.core.exception.RouteNotFoundException;
 import integration.core.repository.RouteRepository;
+import integration.core.runtime.messaging.exception.retryable.RouteAccessException;
 import integration.core.service.RouteService;
 
 @Component
@@ -44,7 +44,7 @@ public class RouteServiceImpl implements RouteService {
             
             return routeDtos;
         } catch(DataAccessException e) {
-            throw new RouteAccessException("Database error while getting all routes",e);
+            throw new RouteAccessException("Database error while getting all routes", e);
         }
     }
 

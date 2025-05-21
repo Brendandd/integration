@@ -9,14 +9,15 @@ import org.apache.camel.Processor;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.adapter.annotation.StoreHeader;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Base class for all inbound adapters.
@@ -38,7 +39,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() throws AnnotationConfigurationException {
+    public MessageForwardingPolicy getMessageForwardingPolicy() throws ComponentConfigurationException {
         ForwardingPolicy annotation = getRequiredAnnotation(ForwardingPolicy.class);
                
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
@@ -61,7 +62,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws ComponentConfigurationException, RouteConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 

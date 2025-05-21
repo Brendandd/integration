@@ -1,18 +1,18 @@
 package integration.core.exception;
 
-import java.util.List;
-
 /**
- * An exception which is thrown when a route is not found
+ * An exception which is thrown when a route is not found.  This type of exception cannot be retried.
  * 
  * @author Brendan Douglas
  */
-public class RouteNotFoundException extends IntegrationException {
+public class RouteNotFoundException extends NonRetryableException {
     private static final long serialVersionUID = -8219003265184923387L;
     
-    private static String MESSAGE = "Route not found. Id: ";
+    private static String MESSAGE = "Route not found";
     
     public RouteNotFoundException(long routeId) {
-        super(MESSAGE + routeId , List.of(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId)), false);
+        super(MESSAGE);
+        
+        addOtherIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId);
     }
 }

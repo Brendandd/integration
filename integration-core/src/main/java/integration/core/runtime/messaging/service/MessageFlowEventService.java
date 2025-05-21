@@ -5,10 +5,10 @@ import java.util.List;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.EventNotFoundException;
-import integration.core.exception.MessageFlowNotFoundException;
-import integration.core.runtime.messaging.exception.EventProcessingException;
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.nonretryable.MessageFlowEventNotFoundException;
+import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowEventProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Service to process message flow events.
@@ -27,7 +27,7 @@ public interface MessageFlowEventService {
      * @throws ComponentNotFoundException 
      * @throws RetryableException 
      */
-    void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws MessageFlowProcessingException, EventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws MessageFlowProcessingException, MessageFlowEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -40,7 +40,7 @@ public interface MessageFlowEventService {
      * @throws EventProcessingException 
      * @throws RetryableException 
      */
-    List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowProcessingException, EventProcessingException;
+    List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowProcessingException, MessageFlowEventProcessingException;
 
     
     /**
@@ -53,10 +53,10 @@ public interface MessageFlowEventService {
      * @throws EventProcessingException 
      * @throws RetryableException 
      */
-    List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowProcessingException, EventProcessingException;
+    List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowProcessingException, MessageFlowEventProcessingException;
     
     
-    void setEventFailed(long eventId) throws MessageFlowProcessingException, EventProcessingException, EventNotFoundException;
+    void setEventFailed(long eventId) throws MessageFlowProcessingException, MessageFlowEventProcessingException, MessageFlowEventNotFoundException;
     
     
     /**
@@ -64,8 +64,8 @@ public interface MessageFlowEventService {
      * 
      * @param eventId
      * @throws EventProcessingException 
-     * @throws EventNotFoundException 
+     * @throws MessageFlowEventNotFoundException 
      * @throws RetryableException 
      */
-    void deleteEvent(long eventId) throws EventProcessingException, EventNotFoundException;
+    void deleteEvent(long eventId) throws MessageFlowEventProcessingException, MessageFlowEventNotFoundException;
 }

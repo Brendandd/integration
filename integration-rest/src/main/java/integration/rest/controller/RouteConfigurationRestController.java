@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import integration.core.dto.RouteDto;
-import integration.core.exception.RouteAccessException;
 import integration.core.exception.RouteNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.RouteAccessException;
 import integration.core.service.RouteService;
 
 

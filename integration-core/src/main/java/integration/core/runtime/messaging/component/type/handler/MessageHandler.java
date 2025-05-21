@@ -10,7 +10,6 @@ import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
@@ -19,6 +18,8 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageF
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 /**
  * Base class for all message handlers. A message handler is a component which is not an inbound or outbound adapter.
@@ -37,7 +38,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
     protected List<MessageProducer> messageProducers = new ArrayList<>();
         
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws AnnotationConfigurationException {
+    public String getMessageForwardingUriString(Exchange exchange) throws ComponentConfigurationException, RouteConfigurationException {
         return "jms:topic:VirtualTopic." + getComponentPath();
     }
 
@@ -60,7 +61,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
 
     
     @Override
-    public MessageForwardingPolicy getMessageForwardingPolicy() throws AnnotationConfigurationException {
+    public MessageForwardingPolicy getMessageForwardingPolicy() throws ComponentConfigurationException {
         ForwardingPolicy annotation = getRequiredAnnotation(ForwardingPolicy.class);
           
         return springContext.getBean(annotation.name(), MessageForwardingPolicy.class);
@@ -68,7 +69,7 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
 
     
     @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws AnnotationConfigurationException {
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws ComponentConfigurationException {
         AcceptancePolicy annotation = getRequiredAnnotation(AcceptancePolicy.class);
                
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);

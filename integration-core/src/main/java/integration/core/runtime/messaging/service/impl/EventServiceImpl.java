@@ -21,13 +21,13 @@ import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.dto.mapper.MessageFlowEventMapper;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.EventNotFoundException;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
-import integration.core.exception.MessageFlowNotFoundException;
 import integration.core.repository.ComponentRepository;
-import integration.core.runtime.messaging.exception.EventProcessingException;
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.nonretryable.MessageFlowEventNotFoundException;
+import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowEventProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowEventRepository;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
 import integration.core.runtime.messaging.service.MessageFlowEventService;
@@ -48,7 +48,7 @@ public class EventServiceImpl implements MessageFlowEventService {
 
     
     @Override
-    public void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws EventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
+    public void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws MessageFlowEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         try {
             Optional<MessageFlow> messageFlowOptional = messageFlowRepository.findById(messageFlowId);
         
@@ -72,13 +72,13 @@ public class EventServiceImpl implements MessageFlowEventService {
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
             otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new EventProcessingException("Database error while retrieving message flow", messageFlowId, otherIdentifiers, e);
+            throw new MessageFlowEventProcessingException("Database error while retrieving message flow", e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         }
     }
 
     
     @Override
-    public List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowProcessingException, EventProcessingException {
+    public List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowEventProcessingException {
         try  {
             MessageFlowEventMapper mapper = new MessageFlowEventMapper();
             List<MessageFlowEventDto> eventDtos = new ArrayList<>();
@@ -95,13 +95,13 @@ public class EventServiceImpl implements MessageFlowEventService {
             // There is no event id to put in the exception
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new EventProcessingException("Database error while retrieving events for component", identifiers, e);
+            throw new MessageFlowEventProcessingException("Database error while retrieving events for component", e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         } 
     }
 
     
     @Override
-    public List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowProcessingException, EventProcessingException {
+    public List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowEventProcessingException {
         try {
             MessageFlowEventMapper mapper = new MessageFlowEventMapper();
             List<MessageFlowEventDto> eventDtos = new ArrayList<>();
@@ -117,33 +117,33 @@ public class EventServiceImpl implements MessageFlowEventService {
             // There is no event id to put in the exception
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new EventProcessingException("Database error while retrieving events for component", identifiers, e);
+            throw new MessageFlowEventProcessingException("Database error while retrieving events for component", e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         }
     }
 
     
     @Override
-    public void deleteEvent(long eventId) throws EventProcessingException, EventNotFoundException {
+    public void deleteEvent(long eventId) throws MessageFlowEventProcessingException, MessageFlowEventNotFoundException {
         try {
             boolean eventExists = eventRepository.existsById(eventId);
             if (!eventExists) {
-                throw new EventNotFoundException(eventId);
+                throw new MessageFlowEventNotFoundException(eventId);
             }
             
             eventRepository.deleteById(eventId);
         } catch(DataAccessException e) {
-            throw new EventProcessingException("Database error while deleting an event.", eventId, new ArrayList<>(),e);
+            throw new MessageFlowEventProcessingException("Database error while deleting an event.", eventId ,e);
         }
     }
 
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void setEventFailed(long eventId) throws MessageFlowProcessingException, EventProcessingException, EventNotFoundException {
+    public void setEventFailed(long eventId) throws MessageFlowProcessingException, MessageFlowEventNotFoundException, MessageFlowEventProcessingException {
         try {
             Optional<MessageFlowEvent> eventOptional =  eventRepository.findById(eventId);
             if (eventOptional.isEmpty()) {
-                throw new EventNotFoundException(eventId);
+                throw new MessageFlowEventNotFoundException(eventId);
             }
             
             MessageFlowEvent event = eventOptional.get();
@@ -164,9 +164,7 @@ public class EventServiceImpl implements MessageFlowEventService {
             
             eventRepository.save(event);  
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.EVENT_ID, eventId));
-            throw new EventProcessingException("Database error while setting the event to failed", eventId, new ArrayList<>(), e);
+            throw new MessageFlowEventProcessingException("Database error while setting the event to failed", eventId, e);
         }
     }
 }

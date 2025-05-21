@@ -9,11 +9,11 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 
 /**
  * Base class for splitting a message into 1 or more messages. A splitter is
@@ -30,7 +30,7 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
     }
 
     
-    public MessageSplitter getSplitter() throws AnnotationConfigurationException {
+    public MessageSplitter getSplitter() throws ComponentConfigurationException {
         UsesSplitter annotation = getRequiredAnnotation(UsesSplitter.class);
         
         return springContext.getBean(annotation.name(), MessageSplitter.class);  

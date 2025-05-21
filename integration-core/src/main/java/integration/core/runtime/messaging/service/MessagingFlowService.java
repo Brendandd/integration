@@ -4,12 +4,12 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.splitter.SplitterException;
 import integration.core.runtime.messaging.component.type.handler.transformation.TransformationException;
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Service to store messages/message flows.

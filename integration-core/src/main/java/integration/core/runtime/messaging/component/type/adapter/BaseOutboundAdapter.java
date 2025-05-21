@@ -10,12 +10,12 @@ import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.AnnotationConfigurationException;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 
 /**
  * Base class for all outbound adapters.
@@ -43,7 +43,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     
     
     @Override
-    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws AnnotationConfigurationException {
+    public MessageAcceptancePolicy getMessageAcceptancePolicy() throws ComponentConfigurationException {
         AcceptancePolicy annotation = getRequiredAnnotation(AcceptancePolicy.class);
                        
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);

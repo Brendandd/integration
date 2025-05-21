@@ -1,7 +1,5 @@
 package integration.core.runtime.messaging.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import integration.core.domain.messaging.MessageFlow;
 import integration.core.domain.messaging.MessageFlowProperty;
-import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 
@@ -40,9 +37,7 @@ public class MessageFlowPropertyServiceImpl implements MessageFlowPropertyServic
             
             return null;
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key));
-            throw new MessageFlowProcessingException("Database error while getting a message flow property", messageFlowId, otherIdentifiers, e);
+            throw new MessageFlowProcessingException("Database error while getting a message flow property", messageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key);
         }
     }
 
@@ -57,9 +52,7 @@ public class MessageFlowPropertyServiceImpl implements MessageFlowPropertyServic
             
             messageFlowRepository.save(messageFlow); 
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key));
-            throw new MessageFlowProcessingException("Database error while saving a message flow property",messageFlowId, otherIdentifiers, e);
+            throw new MessageFlowProcessingException("Database error while saving a message flow property",messageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key);
         }
     }
 }

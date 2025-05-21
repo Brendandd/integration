@@ -1,8 +1,6 @@
 package integration.core.runtime.messaging.component.type.handler.splitter;
 
-import java.util.ArrayList;
-
-import integration.core.runtime.messaging.exception.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * A message splitter exception
@@ -14,12 +12,12 @@ public class SplitterException extends MessageFlowProcessingException {
 
     private static final long serialVersionUID = 200520031395049131L;
 
-    public SplitterException(String message, long messageFlowId, boolean isRetryable) {
-        super(message, messageFlowId, new ArrayList<>(), isRetryable);
+    public SplitterException(String message, long messageFlowId) {
+        super(message, messageFlowId);
     }
 
     
     public SplitterException(String message, long messageFlowId, Throwable cause) {
-        super(message, messageFlowId, new ArrayList<>(), cause);
+        super(message, messageFlowId, cause);
     }
 }

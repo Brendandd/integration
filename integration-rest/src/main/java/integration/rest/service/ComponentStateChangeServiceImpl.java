@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
-import integration.core.exception.ComponentAccessException;
 import integration.core.exception.ComponentNotFoundException;
 import integration.core.repository.ComponentRepository;
+import integration.core.runtime.messaging.exception.retryable.ComponentAccessException;
 import integration.rest.service.impl.ComponentStateChangeService;
 import integration.rest.service.impl.StatusChangeResponse;
 
@@ -69,7 +69,7 @@ public class ComponentStateChangeServiceImpl implements ComponentStateChangeServ
             
             return new StatusChangeResponse(true, "Inbound already started", id, IntegrationComponentStateEnum.RUNNING, IntegrationComponentStateEnum.RUNNING);
         } catch(DataAccessException e) {
-            throw new ComponentAccessException("Database error while starting a components inbound", id,e);
+            throw new ComponentAccessException("Database error while starting a components inbound", id, e);
         }
     }
 

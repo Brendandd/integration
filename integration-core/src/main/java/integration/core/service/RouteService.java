@@ -3,8 +3,8 @@ package integration.core.service;
 import java.util.List;
 
 import integration.core.dto.RouteDto;
-import integration.core.exception.RouteAccessException;
 import integration.core.exception.RouteNotFoundException;
+import integration.core.runtime.messaging.exception.retryable.RouteAccessException;
 
 /**
  * A service for routes.
