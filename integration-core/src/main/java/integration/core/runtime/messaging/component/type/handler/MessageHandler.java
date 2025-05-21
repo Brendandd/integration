@@ -10,6 +10,7 @@ import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
@@ -20,6 +21,7 @@ import integration.core.runtime.messaging.component.type.handler.filter.annotati
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowRouteProcessingException;
 
 /**
  * Base class for all message handlers. A message handler is a component which is not an inbound or outbound adapter.
@@ -99,19 +101,25 @@ public abstract class MessageHandler extends BaseMessagingComponent implements M
                     
                         @Override
                         public void process(Exchange exchange) throws Exception {
-                            // Replace the message flow id with the actual message from the database.
-                            Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
+                            Long parentMessageFlowId = null;
                             
-                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
-                            if (result.isSuccess()) {
-                                // Record the content received by this component.
-                                MessageFlowDto acceptedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.ACCEPTED);
-                            
-                                // Record an event so the message can be forwarded to other components for processing.
-                                messageFlowEventService.recordMessageFlowEvent(acceptedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
-                            } else {
-                                messagingFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
+                            try {
+                                // Replace the message flow id with the actual message from the database.
+                                parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                                MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
+                                                                
+                                MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
+                                if (result.isSuccess()) {
+                                    // Record the content received by this component.
+                                    MessageFlowDto acceptedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.ACCEPTED);
+                                
+                                    // Record an event so the message can be forwarded to other components for processing.
+                                    messageFlowEventService.recordMessageFlowEvent(acceptedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
+                                } else {
+                                    messagingFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
+                                }
+                            } catch(Exception e) {
+                                throw new MessageFlowRouteProcessingException("Error processing message flow received from the topic", parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
                             }
                         }
                     });

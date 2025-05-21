@@ -1,6 +1,6 @@
 package integration.core.runtime.messaging.component.type.handler.splitter;
 
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
 
 /**
  * A message splitter exception
@@ -8,7 +8,7 @@ import integration.core.runtime.messaging.exception.retryable.MessageFlowProcess
  * @author brendan_douglas_a
  *
  */
-public class SplitterException extends MessageFlowProcessingException {
+public class SplitterException extends MessageFlowServiceProcessingException {
 
     private static final long serialVersionUID = 200520031395049131L;
 

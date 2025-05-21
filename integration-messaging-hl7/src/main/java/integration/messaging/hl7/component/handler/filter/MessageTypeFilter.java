@@ -22,7 +22,7 @@ public abstract class MessageTypeFilter extends MessageAcceptancePolicy {
 
     @Override
     public MessageFlowPolicyResult applyPolicy(MessageFlowDto messageFlow) throws FilterException {
-        
+
         try {
             HL7Message source = new HL7Message(messageFlow.getMessage().getContent());
             

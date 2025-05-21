@@ -27,7 +27,7 @@ import integration.core.repository.ComponentRepository;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowEventNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowEventProcessingException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowEventRepository;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
 import integration.core.runtime.messaging.service.MessageFlowEventService;
@@ -139,7 +139,7 @@ public class EventServiceImpl implements MessageFlowEventService {
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void setEventFailed(long eventId) throws MessageFlowProcessingException, MessageFlowEventNotFoundException, MessageFlowEventProcessingException {
+    public void setEventFailed(long eventId) throws MessageFlowServiceProcessingException, MessageFlowEventNotFoundException, MessageFlowEventProcessingException {
         try {
             Optional<MessageFlowEvent> eventOptional =  eventRepository.findById(eventId);
             if (eventOptional.isEmpty()) {

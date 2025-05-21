@@ -41,7 +41,8 @@ import integration.core.runtime.messaging.component.type.handler.transformation.
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowRouteProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
 import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 import integration.core.runtime.messaging.exception.retryable.OutboxProcessingException;
 import integration.core.runtime.messaging.exception.retryable.QueuePublishingException;
@@ -211,92 +212,14 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         })
         .handled(true); // handled is true but the outbox process will keep retrying.
 
-        
-        // Handle transformation errors.
-        onException(TransformationException.class)
-        .process(exchange -> {
-            Long messageFlowId = null;
-            boolean isRetryable = true;
-            
-            TransformationException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
-            getLogger().error("Transformation exception - " + theException.toString());
-            
-            isRetryable = theException.isRetryable();
-            
-            if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID)) {
-                messageFlowId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_ID);
-            } else {
-                messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
-            }
-            
-            if (!isRetryable && messageFlowId != null) {
-                messagingFlowService.recordTransformationError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true); 
-            }
-        })
-        .handled(true); 
-
-        
-        // Handle splitter errors
-        onException(SplitterException.class)
-        .process(exchange -> {
-            Long messageFlowId = null;
-            boolean isRetryable = true;
-            
-            SplitterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, SplitterException.class);
-            getLogger().error("Splitter exception - " + theException.toString());
-            
-            isRetryable = theException.isRetryable();
-            
-            if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID)) {
-                messageFlowId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_ID);
-            } else {
-                messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
-            }
-            
-            if (!isRetryable && messageFlowId != null) {
-                messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true); 
-            }
-        })
-        .handled(true); 
-
-        
-        // Handle filter errors
-        onException(FilterException.class)
-        .process(exchange -> {
-            Long messageFlowId = null;
-            boolean isRetryable = true;
-            
-            FilterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, FilterException.class);
-            getLogger().error("Filter exception - " + theException.toString());
-            
-            isRetryable = theException.isRetryable();
-            
-            if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID)) {
-                messageFlowId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_ID);
-            } else {
-                messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
-            }
-            
-            if (!isRetryable && messageFlowId != null) {
-                messagingFlowService.recordFilterError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true); 
-            }
-        })
-        .handled(true); 
-
-        
+                
         // Handled errors processing events from the outbox.
-        onException(MessageFlowProcessingException.class)
+        onException(MessageFlowRouteProcessingException.class)
         .process(exchange -> {
             Long messageFlowId = null;
             boolean isRetryable = true;
             
-            MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
+            MessageFlowRouteProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowRouteProcessingException.class);
             getLogger().error("Message flow exception - " + theException.toString());
             
             isRetryable = theException.isRetryable();
@@ -308,7 +231,15 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             }
             
             if (!isRetryable && messageFlowId != null) {
-                // call the service to fail the flow.
+                if (theException.getCause() instanceof FilterException) {
+                    messagingFlowService.recordFilterError(getIdentifier(), messageFlowId, (FilterException)theException.getCause());
+                } else if (theException.getCause() instanceof SplitterException) {
+                    messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, (SplitterException)theException.getCause());
+                } else if (theException.getCause() instanceof TransformationException) {
+                    messagingFlowService.recordTransformationError(getIdentifier(), messageFlowId, (TransformationException)theException.getCause());   
+                } else {
+                    messagingFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
+                }
             } else {
                 exchange.setRollbackOnly(true); 
             }
@@ -471,12 +402,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * 
      * @param exchange
      */
-    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowProcessingException, ConfigurationException {
+    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowServiceProcessingException, ConfigurationException {
         // The default is nothing.
     }
 
     
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ConfigurationException, ComponentConfigurationException {
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowServiceProcessingException, ConfigurationException, ComponentConfigurationException {
         return new HashMap<String, Object>();
     }
 

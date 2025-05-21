@@ -1,6 +1,5 @@
 package integration.core.runtime.messaging.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,15 +23,15 @@ import integration.core.domain.messaging.MessageFlowProperty;
 import integration.core.dto.MessageFlowDto;
 import integration.core.dto.mapper.MessageFlowMapper;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
+import integration.core.exception.IntegrationException;
 import integration.core.repository.ComponentRepository;
 import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.splitter.SplitterException;
 import integration.core.runtime.messaging.component.type.handler.transformation.TransformationException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
 import integration.core.runtime.messaging.service.MessagingFlowService;
 
@@ -53,10 +52,10 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * 
      * @param messageFlowId
      * @return
-     * @throws MessageFlowProcessingException
+     * @throws MessageFlowServiceProcessingException
      * @throws MessageFlowNotFoundException 
      */
-    private MessageFlow retrieveMandatoryMessageFlow(long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException {    
+    private MessageFlow retrieveMandatoryMessageFlow(long messageFlowId) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException {    
         try {
             Optional<MessageFlow> messageFlow = messageFlowRepository.findById(messageFlowId);
     
@@ -67,7 +66,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             
             return messageFlow.get();
         } catch(DataAccessException e) {
-            throw new MessageFlowProcessingException("Message flow not found", messageFlowId, e);
+            throw new MessageFlowServiceProcessingException("Message flow not found", messageFlowId, e);
         }
     }
 
@@ -77,7 +76,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * @throws MessageFlowNotFoundException 
      */
     @Override
-    public MessageFlowDto retrieveMessageFlow(long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException {    
+    public MessageFlowDto retrieveMessageFlow(long messageFlowId) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException {    
         MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId);
         
         MessageFlowMapper mapper = new MessageFlowMapper();
@@ -87,18 +86,18 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
-    public MessageFlowDto recordMessageNotAccepted(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
+    public MessageFlowDto recordMessageNotAccepted(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
         return filterMessage(componentId, parentMessageFlowId, policyResult, action);
     }
 
     
     @Override
-    public MessageFlowDto recordMessageNotForwarded(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
+    public MessageFlowDto recordMessageNotForwarded(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
         return filterMessage(componentId, parentMessageFlowId, policyResult, action);
     }
 
     
-    private MessageFlowDto filterMessage(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
+    private MessageFlowDto filterMessage(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();
             request.setComponentId(componentId);
@@ -120,15 +119,14 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             MessageFlowMapper mapper = new MessageFlowMapper();
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            throw new MessageFlowProcessingException("Database error while filtering a message",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            throw new MessageFlowServiceProcessingException("Database error while filtering a message",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         }
     }
 
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public MessageFlowDto recordTransformationError(long componentId, long parentMessageFlowId, TransformationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
+    public MessageFlowDto recordTransformationError(long componentId, long parentMessageFlowId, TransformationException theException) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();
             request.setComponentId(componentId);
@@ -149,16 +147,14 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             MessageFlowMapper mapper = new MessageFlowMapper();
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new MessageFlowProcessingException("Database error while transfotrming a message",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            throw new MessageFlowServiceProcessingException("Database error while recording a transformation error",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         }
     }
     
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public MessageFlowDto recordSplitterError(long componentId, long parentMessageFlowId, SplitterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
+    public MessageFlowDto recordSplitterError(long componentId, long parentMessageFlowId, SplitterException theException) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();
             request.setComponentId(componentId);
@@ -179,9 +175,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             MessageFlowMapper mapper = new MessageFlowMapper();
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new MessageFlowProcessingException("Database error while splitting a message",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            throw new MessageFlowServiceProcessingException("Database error while recording a splitter error",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         }
     }
     
@@ -189,7 +183,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public MessageFlowDto recordFilterError(long componentId, long parentMessageFlowId, FilterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
+    public MessageFlowDto recordFilterError(long componentId, long parentMessageFlowId, FilterException theException) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
         try {
             MessageFlowRequest request = new MessageFlowRequest();
             request.setComponentId(componentId);
@@ -210,9 +204,35 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             MessageFlowMapper mapper = new MessageFlowMapper();
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
-            List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new MessageFlowProcessingException("Database error while filtering a message flow",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            throw new MessageFlowServiceProcessingException("Database error while recording a filter error",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+        }
+    }
+
+    
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public MessageFlowDto recordMessageFlowError(long componentId, long parentMessageFlowId, IntegrationException theException) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
+        try {
+            MessageFlowRequest request = new MessageFlowRequest();
+            request.setComponentId(componentId);
+            request.setParentMessageFlowId(parentMessageFlowId);
+            request.setAction(MessageFlowActionType.PROCESSING_ERROR);
+            
+            MessageFlowDto messageFlowDto = recordMessageFlow(request);
+            
+            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId());
+                   
+            // Create the error object.
+            MessageFlowError error = new MessageFlowError();
+            error.setDetails(theException.toString());
+            error.setMessageFlow(messageFlow);
+            
+            messageFlow = messageFlowRepository.save(messageFlow);
+            
+            MessageFlowMapper mapper = new MessageFlowMapper();
+            return mapper.doMapping(messageFlow);
+        } catch(DataAccessException e) {
+            throw new MessageFlowServiceProcessingException("Database error while recording a message flow error",parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
         }
     }
 
@@ -224,10 +244,10 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
      * @param messageFlowId
      * @return
      * @throws MessageFlowNotFoundException 
-     * @throws MessageFlowProcessingException 
+     * @throws MessageFlowServiceProcessingException 
      */
     @Override
-    public String getMessageFlowProperty(String key, Long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException {
+    public String getMessageFlowProperty(String key, Long messageFlowId) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException {
         try {
             MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId);
             
@@ -241,13 +261,13 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             
             return null;
         } catch(DataAccessException e) {
-            throw new MessageFlowProcessingException("Database error while getting a message flow property", messageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key);
+            throw new MessageFlowServiceProcessingException("Database error while getting a message flow property", messageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.PROPERTY_KEY, key);
         }
     }
 
     
     @Override
-    public MessageFlowDto recordMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {       
+    public MessageFlowDto recordMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {       
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setMessageContent(messageContent);
@@ -260,7 +280,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
-    public MessageFlowDto recordMessageFlow(String messageContent, long componentId, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
+    public MessageFlowDto recordMessageFlow(String messageContent, long componentId, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setMessageContent(messageContent);
@@ -274,7 +294,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
 
     
     @Override
-    public MessageFlowDto recordMessageFlow(long componentId, long parentMessageFlowId, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
+    public MessageFlowDto recordMessageFlow(long componentId, long parentMessageFlowId, MessageFlowActionType action) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         MessageFlowRequest request = new MessageFlowRequest();
         
         request.setComponentId(componentId);
@@ -285,7 +305,7 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
     }
 
     
-    private MessageFlowDto recordMessageFlow(MessageFlowRequest request) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
+    private MessageFlowDto recordMessageFlow(MessageFlowRequest request) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         MessageFlow savedStep = null;
         
         try {
@@ -356,13 +376,13 @@ public class MessagingFlowServiceImpl implements MessagingFlowService {
             MessageFlowMapper mapper = new MessageFlowMapper();
             return mapper.doMapping(savedStep);
         }  catch(DataAccessException e) {
-            throw new MessageFlowProcessingException("Database error while recording a message flow", request.getComponentId(),  e);
+            throw new MessageFlowServiceProcessingException("Database error while recording a message flow", request.getComponentId(),  e);
         }
     }
 
     
     @Override
-    public void updateAction(Long messageFlowId, MessageFlowActionType newAction) throws MessageFlowProcessingException, MessageFlowNotFoundException {
+    public void updateAction(Long messageFlowId, MessageFlowActionType newAction) throws MessageFlowServiceProcessingException, MessageFlowNotFoundException {
         MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId);
         
         messageFlow.setAction(newAction);

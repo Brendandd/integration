@@ -8,7 +8,7 @@ import integration.core.exception.ComponentNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowEventNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowEventProcessingException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
 
 /**
  * Service to process message flow events.
@@ -27,7 +27,7 @@ public interface MessageFlowEventService {
      * @throws ComponentNotFoundException 
      * @throws RetryableException 
      */
-    void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws MessageFlowProcessingException, MessageFlowEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws MessageFlowServiceProcessingException, MessageFlowEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -40,7 +40,7 @@ public interface MessageFlowEventService {
      * @throws EventProcessingException 
      * @throws RetryableException 
      */
-    List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowProcessingException, MessageFlowEventProcessingException;
+    List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowServiceProcessingException, MessageFlowEventProcessingException;
 
     
     /**
@@ -53,10 +53,10 @@ public interface MessageFlowEventService {
      * @throws EventProcessingException 
      * @throws RetryableException 
      */
-    List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowProcessingException, MessageFlowEventProcessingException;
+    List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowServiceProcessingException, MessageFlowEventProcessingException;
     
     
-    void setEventFailed(long eventId) throws MessageFlowProcessingException, MessageFlowEventProcessingException, MessageFlowEventNotFoundException;
+    void setEventFailed(long eventId) throws MessageFlowServiceProcessingException, MessageFlowEventProcessingException, MessageFlowEventNotFoundException;
     
     
     /**
