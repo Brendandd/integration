@@ -12,7 +12,7 @@ import integration.core.runtime.messaging.component.type.adapter.smb.annotation.
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Base class for all SMB outbound communication points.
@@ -50,7 +50,7 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
      * @throws RouteConfigurationException 
      * @throws RetryableException 
      */
-    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowServiceProcessingException, ComponentConfigurationException {
+    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ComponentConfigurationException {
         FileNaming annotation = getRequiredAnnotation(FileNaming.class);
                  
         FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
@@ -65,7 +65,7 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowServiceProcessingException, ComponentConfigurationException {
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ComponentConfigurationException {
         Map<String, Object> headers = new HashMap<String, Object>();
         
         String fileName = getFilename(exchange, messageFlowId);

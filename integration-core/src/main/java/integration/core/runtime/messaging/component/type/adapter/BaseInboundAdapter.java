@@ -17,7 +17,7 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageF
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Base class for all inbound adapters.
@@ -104,7 +104,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     }
 
     
-    protected void addProperties(Exchange exchange, long messageFlowId) throws MessageFlowServiceProcessingException {
+    protected void addProperties(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException {
         Class<?> clazz = this.getClass();
         
         while (clazz != null) {

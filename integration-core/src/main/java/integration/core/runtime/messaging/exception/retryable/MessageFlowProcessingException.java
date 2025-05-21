@@ -10,24 +10,24 @@ import integration.core.exception.ExceptionIdentifierType;
  * @author Brendan Douglas
  *
  */
-public class MessageFlowServiceProcessingException extends ConditionallyRetryableException {
+public class MessageFlowProcessingException extends ConditionallyRetryableException {
     private static final long serialVersionUID = -1639485569289392443L;
            
-    public MessageFlowServiceProcessingException(String message, long messageFlowId) {
+    public MessageFlowProcessingException(String message, long messageFlowId) {
         super(message);
         
         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
     }
     
     
-    public MessageFlowServiceProcessingException(String message, long messageFlowId, Throwable cause) {
+    public MessageFlowProcessingException(String message, long messageFlowId, Throwable cause) {
         super(message, cause);
         
         identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId));
     }
     
     @Override
-    public MessageFlowServiceProcessingException addOtherIdentifier(ExceptionIdentifierType type, Object value) {
+    public MessageFlowProcessingException addOtherIdentifier(ExceptionIdentifierType type, Object value) {
         super.addOtherIdentifier(type, value);
         return this;
     }

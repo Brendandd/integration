@@ -97,6 +97,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                     @Override
                     public void process(Exchange exchange) throws Exception {                       
                         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
                         
                         MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING);
                         messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 

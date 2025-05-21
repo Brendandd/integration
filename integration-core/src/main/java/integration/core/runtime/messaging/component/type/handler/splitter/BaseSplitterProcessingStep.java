@@ -9,13 +9,11 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowRouteProcessingException;
 
 /**
  * Base class for splitting a message into 1 or more messages. A splitter is
@@ -54,31 +52,29 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        Long parentMessageFlowId = null;
                         
-                        try {
-                            // Record the outbound message.
-                            parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
-                            
-                            String[] splitMessages = getSplitter().split(parentMessageFlowDto);
-                                      
-                            for (int i = 0; i < splitMessages.length; i++) {
-                                MessageFlowDto splitMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(),parentMessageFlowId, MessageFlowActionType.CREATED_FROM_SPLIT);
-                                                   
-                                MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(splitMessageFlowDto);
-                                                                                  
-                                // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                                if (result.isSuccess()) {           
-                                    MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                                    messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
-                                } else {
-                                    messagingFlowService.recordMessageNotForwarded(getIdentifier(), splitMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
-                                }
+                        // Record the outbound message.
+                        long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
+                        
+                        MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
+                        
+                        String[] splitMessages = getSplitter().split(parentMessageFlowDto);
+                                  
+                        for (int i = 0; i < splitMessages.length; i++) {
+                            MessageFlowDto splitMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(),parentMessageFlowId, MessageFlowActionType.CREATED_FROM_SPLIT);
+                                               
+                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(splitMessageFlowDto);
+                                                                              
+                            // Apply the message forwarding rules and either write an event for further processing or filter the message.
+                            if (result.isSuccess()) {           
+                                MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
+                                messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                            } else {
+                                messagingFlowService.recordMessageNotForwarded(getIdentifier(), splitMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                             }
-                        } catch(Exception e) {
-                            throw new MessageFlowRouteProcessingException("Error splitting the message", parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
                         }
+                       
                     }
                 });
         }

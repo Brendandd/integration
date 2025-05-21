@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
@@ -32,6 +33,7 @@ import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowEventDto;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.ExceptionIdentifierType;
+import integration.core.exception.IntegrationException;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
@@ -41,15 +43,12 @@ import integration.core.runtime.messaging.component.type.handler.transformation.
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowRouteProcessingException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
-import integration.core.runtime.messaging.exception.retryable.OutboxProcessingException;
-import integration.core.runtime.messaging.exception.retryable.QueuePublishingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 import integration.core.runtime.messaging.service.MessageFlowEventService;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessagingFlowService;
 import integration.core.service.ComponentService;
+import jakarta.jms.JMSException;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -183,63 +182,142 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
 
     
+    /**
+     * Gets the message flow id from eithe the exception or the exchange.
+     * 
+     * @param theException
+     * @param exchange
+     * @return
+     */
+    public Long getMessageFlowId(IntegrationException theException, Exchange exchange) {
+        Long messageFlowId = null;
+        
+        if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID)) {
+            messageFlowId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_ID);
+        } else {
+            messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
+        }  
+        
+        return messageFlowId;
+    }
+    
+    
     @Override
     public void configure() throws Exception {
-        
-        // Handled errors processing events from the outbox. //TODO can't retry everything.
-        onException(OutboxProcessingException.class)
-        .process(exchange -> {
-            Long eventId = null;
-            boolean isRetryable = true;
+
+        // Handle transformation errors.
+        onException(TransformationException.class)
+        .process(exchange -> {           
+            TransformationException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
+            getLogger().error("Transformation exception - " + theException.toString());
             
-            OutboxProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, OutboxProcessingException.class);
-            getLogger().error("Event processing exception - " + theException.toString());
-            
-            isRetryable = theException.isRetryable();
-            
-            if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID)) {
-                eventId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID);
+            Long messageFlowId = getMessageFlowId(theException, exchange);
+                    
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordTransformationError(getIdentifier(), messageFlowId, theException);
             } else {
-                eventId = exchange.getIn().getHeader(BaseMessagingComponent.EVENT_ID, Long.class);
+                exchange.setRollbackOnly(true); 
             }
-            
-            // Set the event as failed so it can be picked up again later.
-            if (isRetryable && eventId != null) {
-                messageFlowEventService.setEventFailed(eventId);
-            }
-
-            exchange.setRollbackOnly(true);
         })
-        .handled(true); // handled is true but the outbox process will keep retrying.
+        .handled(true); 
 
-                
-        // Handled errors processing events from the outbox.
-        onException(MessageFlowRouteProcessingException.class)
-        .process(exchange -> {
-            Long messageFlowId = null;
-            boolean isRetryable = true;
+        
+        // Handle splitter errors
+        onException(SplitterException.class)
+        .process(exchange -> {            
+            SplitterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, SplitterException.class);
+            getLogger().error("Splitter exception - " + theException.toString());
             
-            MessageFlowRouteProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowRouteProcessingException.class);
+            Long messageFlowId = getMessageFlowId(theException, exchange);
+            
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, theException);
+            } else {
+                exchange.setRollbackOnly(true); 
+            }
+        })
+        .handled(true); 
+
+        
+        // Handle filter errors
+        onException(FilterException.class)
+        .process(exchange -> {           
+            FilterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, FilterException.class);
+            getLogger().error("Filter exception - " + theException.toString());
+            
+            Long messageFlowId = getMessageFlowId(theException, exchange);
+            
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordFilterError(getIdentifier(), messageFlowId, theException);
+            } else {
+                exchange.setRollbackOnly(true); 
+            }
+        })
+        .handled(true); 
+
+        
+        // Handled other message flow exceptions
+        onException(MessageFlowProcessingException.class)
+        .process(exchange -> {           
+            MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
             getLogger().error("Message flow exception - " + theException.toString());
             
-            isRetryable = theException.isRetryable();
+            Long messageFlowId = getMessageFlowId(theException, exchange);
             
-            if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID)) {
-                messageFlowId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_ID);
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
             } else {
-                messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
+                exchange.setRollbackOnly(true); 
+            }
+        })
+        .handled(true);
+
+        
+        // Handled JMS exceptions.  These will come from outbox processing so we just sent the event as failed so it will pick it up again later.  No need to fail the message flow.
+        onException(JMSException.class)
+        .process(exchange -> {           
+            JMSException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, JMSException.class);
+            getLogger().error("JSM exception - " + theException.toString());
+            
+            Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
+            
+            if (eventId != null) {
+                messageFlowEventService.setEventFailed(eventId);
+            }
+  
+            exchange.setRollbackOnly(true);
+        })
+        .handled(true);
+        
+        
+        // Handled MLLP exceptions.  These will come from outbox processing so we just sent the event as failed so it will pick it up again later.  No need to fail the message flow.
+        onException(CamelExecutionException.class)
+        .process(exchange -> {           
+            CamelExecutionException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, CamelExecutionException.class);
+            getLogger().error("Camel exception - " + theException.toString());
+            
+            Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
+
+            if (eventId != null) {
+                messageFlowEventService.setEventFailed(eventId);
             }
             
-            if (!isRetryable && messageFlowId != null) {
-                if (theException.getCause() instanceof FilterException) {
-                    messagingFlowService.recordFilterError(getIdentifier(), messageFlowId, (FilterException)theException.getCause());
-                } else if (theException.getCause() instanceof SplitterException) {
-                    messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, (SplitterException)theException.getCause());
-                } else if (theException.getCause() instanceof TransformationException) {
-                    messagingFlowService.recordTransformationError(getIdentifier(), messageFlowId, (TransformationException)theException.getCause());   
-                } else {
-                    messagingFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
-                }
+            exchange.setRollbackOnly(true);
+        })
+        .handled(true);
+
+        
+        // Handled other types of exceptions.  If there is an id we can record an error.  No id means we need to retry.
+        onException(Exception.class)
+        .process(exchange -> {           
+            Exception theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+            getLogger().error("Unknown exception - " + theException.toString());
+            
+            // As this is just Exception and not a subclass of integration exception there is no id in the exception so see if there is a header set.
+            Long messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
+            
+            if (messageFlowId != null) {
+                messagingFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, new MessageFlowProcessingException("Unknown exception caught", messageFlowId, theException));
             } else {
                 exchange.setRollbackOnly(true); 
             }
@@ -261,19 +339,15 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         
                         // Delete the event.
                         eventId = exchange.getMessage().getBody(Long.class);
+                        exchange.getMessage().setHeader(EVENT_ID, eventId);
+                        
                         messageFlowEventService.deleteEvent(eventId);
                         
                         // Get the message flow step id.
                         messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
 
                         // Add the message to the queue
-                        try {
-                            producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
-                        } catch(Exception e) {                           
-                            throw new QueuePublishingException("Error adding the message flow to the queue", getIdentifier(), e)
-                                .addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId)
-                                .addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID, eventId);
-                        }
+                        producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
                     }
                 });
 
@@ -283,7 +357,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             .routeId("outboundEntryPoint-" + getIdentifier())
             .routeGroup(getComponentPath())
             .setHeader("contentType", constant(getContentType()))
-            .transacted()            
+            .transacted()        
                 // All components must provide an outboudMessageHandling route.
                 .to("direct:outboundMessageHandling-" + getIdentifier());
 
@@ -321,8 +395,6 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
                     exchange.getContext().createProducerTemplate().send("direct:" + uri, subExchange);
                 }
-            } catch(Exception e) {
-                throw new OutboxProcessingException("Error processing the outbox", getIdentifier(), e);
             } finally {
                 lock.unlock(); // Release lock after all events processed
             }
@@ -384,14 +456,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                     
                     // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
                     preForwardingProcessing(exchange);
-                    
-                    try {
-                        producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
-                    } catch(Exception e) {
-                        throw new MessageForwardingException("Error forwarding the message", getIdentifier(), e)
-                            .addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId)
-                            .addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID, eventId);
-                    }
+                   
+                    producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
                 }
             });
      }
@@ -402,12 +468,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * 
      * @param exchange
      */
-    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowServiceProcessingException, ConfigurationException {
+    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowProcessingException, ConfigurationException {
         // The default is nothing.
     }
 
     
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowServiceProcessingException, ConfigurationException, ComponentConfigurationException {
+    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ConfigurationException, ComponentConfigurationException {
         return new HashMap<String, Object>();
     }
 

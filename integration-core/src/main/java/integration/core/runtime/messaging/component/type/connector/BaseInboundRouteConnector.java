@@ -83,6 +83,7 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
                                                               
                         // An inbound route connector always accepts the message form the outbound route connector.
                         MessageFlowDto messageFlowDto  = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId,MessageFlowActionType.ACCEPTED);
@@ -103,6 +104,8 @@ public abstract class BaseInboundRouteConnector extends BaseRouteConnector imple
                     public void process(Exchange exchange) throws Exception {
                         // Record the outbound message.
                         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
+                        
                         MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
                                                
                         MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);

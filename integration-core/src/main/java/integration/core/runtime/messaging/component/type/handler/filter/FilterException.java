@@ -1,11 +1,11 @@
 package integration.core.runtime.messaging.component.type.handler.filter;
 
-import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * An exception thrown from the filtering logic
  */
-public class FilterException extends MessageFlowServiceProcessingException {
+public class FilterException extends MessageFlowProcessingException {
     private static final long serialVersionUID = -6535976021157034699L;
 
     public FilterException(String message, long messageFlowId) {

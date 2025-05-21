@@ -1,6 +1,6 @@
 package integration.core.runtime.messaging.component.type.handler.transformation;
 
-import integration.core.runtime.messaging.exception.retryable.MessageFlowServiceProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * A transformation exception
@@ -8,7 +8,7 @@ import integration.core.runtime.messaging.exception.retryable.MessageFlowService
  * @author brendan_douglas_a
  *
  */
-public class TransformationException extends MessageFlowServiceProcessingException {
+public class TransformationException extends MessageFlowProcessingException {
     private static final long serialVersionUID = -8122323055739569340L;
 
 

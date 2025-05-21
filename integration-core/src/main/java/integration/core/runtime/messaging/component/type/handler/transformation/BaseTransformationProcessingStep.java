@@ -9,13 +9,11 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.MessageHandler;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.transformation.annotation.UsesTransformer;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowRouteProcessingException;
 
 /**
  * Base class for all transformation processing steps.
@@ -57,33 +55,29 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
                     
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        Long parentMessageFlowId = null;
+                                               
+                        // Record the outbound message.
+                        long parentMessageFlowId = exchange.getMessage().getBody(Long.class);                       
+                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
                         
-                        try {
+                        MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
                         
-                            // Record the outbound message.
-                            parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
-                            
-                            // Transform the content.
-                            String transformedContent = getTransformer().transform(parentMessageFlowDto);
-                            
-                            MessageFlowDto transformedMessageFlowDto = messagingFlowService.recordMessageFlow(transformedContent, getIdentifier(),parentMessageFlowId, getContentType(), MessageFlowActionType.TRANSFORMED);
-                            
-                            // Need to update the message content before applying the policy.
-                            parentMessageFlowDto.getMessage().setContent(transformedContent);
-                                                         
-                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
-                                                                           
-                            // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                            if (result.isSuccess()) {
-                                MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                                messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
-                            } else {
-                                messagingFlowService.recordMessageNotForwarded(getIdentifier(), transformedMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
-                            }
-                        } catch(Exception e) {
-                            throw new MessageFlowRouteProcessingException("Error transforming the message", parentMessageFlowId, e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier());
+                        // Transform the content.
+                        String transformedContent = getTransformer().transform(parentMessageFlowDto);
+                        
+                        MessageFlowDto transformedMessageFlowDto = messagingFlowService.recordMessageFlow(transformedContent, getIdentifier(),parentMessageFlowId, getContentType(), MessageFlowActionType.TRANSFORMED);
+                        
+                        // Need to update the message content before applying the policy.
+                        parentMessageFlowDto.getMessage().setContent(transformedContent);
+                                                     
+                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
+                                                                       
+                        // Apply the message forwarding rules and either write an event for further processing or filter the message.
+                        if (result.isSuccess()) {
+                            MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
+                            messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
+                        } else {
+                            messagingFlowService.recordMessageNotForwarded(getIdentifier(), transformedMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                         }
                     }
                 });
