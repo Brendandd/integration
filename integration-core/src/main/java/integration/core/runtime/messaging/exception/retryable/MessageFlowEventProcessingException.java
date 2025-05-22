@@ -10,23 +10,11 @@ import integration.core.exception.ExceptionIdentifierType;
  */
 public class MessageFlowEventProcessingException extends ConditionallyRetryableException {
     private static final long serialVersionUID = -8219003265184923387L;
-       
-    public MessageFlowEventProcessingException(String message, long eventId) {
-        super(message);
-        
-        addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID, eventId);
-    }
-
-    
+          
     public MessageFlowEventProcessingException(String message, long eventId, Throwable cause) {
         super(message, cause);
         
         addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID, eventId);
-    }
-
-    
-    public MessageFlowEventProcessingException(String message) {
-        super(message);
     }
 
     

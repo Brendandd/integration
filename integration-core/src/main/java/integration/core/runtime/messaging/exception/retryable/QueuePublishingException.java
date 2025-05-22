@@ -11,16 +11,11 @@ import integration.core.exception.ExceptionIdentifierType;
 public class QueuePublishingException extends ConditionallyRetryableException {
     private static final long serialVersionUID = -8219003265184923387L;
     
-    public QueuePublishingException(String message, long componentId) {
-        super(message);
-        
-        addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
-    }
-
-    
-    public QueuePublishingException(String message, long componentId, Throwable cause) {
+    public QueuePublishingException(String message, long eventId, long componentId, long messageFlowId, Throwable cause) {
         super(message, cause);
         
+        addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_EVENT_ID, eventId);
         addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+        addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId);
     }
 }

@@ -40,11 +40,12 @@ import integration.core.runtime.messaging.exception.nonretryable.ComponentConfig
 import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
+import integration.core.runtime.messaging.exception.retryable.QueuePublishingException;
 import integration.core.runtime.messaging.service.MessageFlowEventService;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessagingFlowService;
 import integration.core.service.ComponentService;
-import jakarta.jms.JMSException;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -202,8 +203,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     public void configure() throws Exception {
         defineAdditionalExceptionHandlers();
 
-        
-        // Handled other message flow exceptions
+        // Handled other message flow exceptions.  This type of exception will come from the service layer and can be retried if required.
         onException(MessageFlowProcessingException.class)
         .process(exchange -> {           
             MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
@@ -220,16 +220,35 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         .handled(true);
 
         
-        // Handled JMS exceptions.  These will come from outbox processing so we just sent the event as failed so it will pick it up again later.  No need to fail the message flow.
-        onException(JMSException.class)
+        // Handled Queue publishing exceptions.  For now retry everything. 
+        onException(QueuePublishingException.class)
         .process(exchange -> {           
-            JMSException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, JMSException.class);
-            getLogger().error("JSM exception - " + theException.toString());
+            QueuePublishingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, QueuePublishingException.class);
+            getLogger().error("Queue publishing exception - " + theException.toString());
             
             Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
             
+            // If there was an event id we can mark the event for retry.
             if (eventId != null) {
-                messageFlowEventService.setEventFailed(eventId);
+                messageFlowEventService.markEventForRetry(eventId);
+            }
+  
+            exchange.setRollbackOnly(true);
+        })
+        .handled(true);
+
+        
+        // Handled exceptions forwarding the message from a component.  For now retry everything. 
+        onException(MessageForwardingException.class)
+        .process(exchange -> {           
+            MessageForwardingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageForwardingException.class);
+            getLogger().error("Error forwarding message from the component - " + theException.toString());
+            
+            Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
+            
+            // If there was an event id we can mark the event for retry.
+            if (eventId != null) {
+                messageFlowEventService.markEventForRetry(eventId);
             }
   
             exchange.setRollbackOnly(true);
@@ -277,7 +296,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                         messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
 
                         // Add the message to the queue
-                        producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
+                        try {
+                            producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
+                        } catch(Exception e) {
+                            throw new QueuePublishingException("Error adding the message flow id to the queue", eventId, getIdentifier(), messageFlowId, e);
+                        }
                     }
                 });
 
@@ -387,7 +410,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                     // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
                     preForwardingProcessing(exchange);
                    
-                    producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
+                    try {
+                        producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
+                    } catch(Exception e) {
+                        throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowId, e);
+                    }
                 }
             });
      }

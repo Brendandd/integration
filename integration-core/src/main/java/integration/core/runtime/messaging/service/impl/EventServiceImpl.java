@@ -139,7 +139,7 @@ public class EventServiceImpl implements MessageFlowEventService {
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void setEventFailed(long eventId) throws MessageFlowProcessingException, MessageFlowEventNotFoundException, MessageFlowEventProcessingException {
+    public void markEventForRetry(long eventId) throws MessageFlowProcessingException, MessageFlowEventNotFoundException, MessageFlowEventProcessingException {
         try {
             Optional<MessageFlowEvent> eventOptional =  eventRepository.findById(eventId);
             if (eventOptional.isEmpty()) {

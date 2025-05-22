@@ -81,7 +81,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
             Long eventId = (Long) exchange.getMessage().getHeader(EVENT_ID);
 
             if (eventId != null) {
-                messageFlowEventService.setEventFailed(eventId);
+                messageFlowEventService.markEventForRetry(eventId);
             }
 
             exchange.setRollbackOnly(true);

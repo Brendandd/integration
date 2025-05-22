@@ -56,7 +56,15 @@ public interface MessageFlowEventService {
     List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowProcessingException, MessageFlowEventProcessingException;
     
     
-    void setEventFailed(long eventId) throws MessageFlowProcessingException, MessageFlowEventProcessingException, MessageFlowEventNotFoundException;
+    /**
+     * Marks the event for retry.  Writes a next retry date/time and a failure count.
+     * 
+     * @param eventId
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowEventProcessingException
+     * @throws MessageFlowEventNotFoundException
+     */
+    void markEventForRetry(long eventId) throws MessageFlowProcessingException, MessageFlowEventProcessingException, MessageFlowEventNotFoundException;
     
     
     /**
