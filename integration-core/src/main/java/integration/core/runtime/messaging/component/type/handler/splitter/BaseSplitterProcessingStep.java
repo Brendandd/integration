@@ -38,6 +38,26 @@ public abstract class BaseSplitterProcessingStep extends MessageHandler {
     
     
     @Override
+    public void defineAdditionalExceptionHandlers() {
+        // Handle splitter errors
+        onException(SplitterException.class)
+        .process(exchange -> {            
+            SplitterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, SplitterException.class);
+            getLogger().error("Splitter exception - " + theException.toString());
+            
+            Long messageFlowId = getMessageFlowId(theException, exchange);
+            
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, theException);
+            } else {
+                exchange.setRollbackOnly(true); 
+            }
+        })
+        .handled(true);         
+    }
+    
+    
+    @Override
     public void configure() throws Exception {
         super.configure();
    

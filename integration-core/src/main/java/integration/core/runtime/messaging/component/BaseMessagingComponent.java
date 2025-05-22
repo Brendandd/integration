@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
@@ -37,9 +36,6 @@ import integration.core.exception.IntegrationException;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
-import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
-import integration.core.runtime.messaging.component.type.handler.splitter.SplitterException;
-import integration.core.runtime.messaging.component.type.handler.transformation.TransformationException;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
@@ -204,56 +200,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Override
     public void configure() throws Exception {
-
-        // Handle transformation errors.
-        onException(TransformationException.class)
-        .process(exchange -> {           
-            TransformationException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
-            getLogger().error("Transformation exception - " + theException.toString());
-            
-            Long messageFlowId = getMessageFlowId(theException, exchange);
-                    
-            if (!theException.isRetryable() && messageFlowId != null) {
-                messagingFlowService.recordTransformationError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true); 
-            }
-        })
-        .handled(true); 
-
-        
-        // Handle splitter errors
-        onException(SplitterException.class)
-        .process(exchange -> {            
-            SplitterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, SplitterException.class);
-            getLogger().error("Splitter exception - " + theException.toString());
-            
-            Long messageFlowId = getMessageFlowId(theException, exchange);
-            
-            if (!theException.isRetryable() && messageFlowId != null) {
-                messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true); 
-            }
-        })
-        .handled(true); 
-
-        
-        // Handle filter errors
-        onException(FilterException.class)
-        .process(exchange -> {           
-            FilterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, FilterException.class);
-            getLogger().error("Filter exception - " + theException.toString());
-            
-            Long messageFlowId = getMessageFlowId(theException, exchange);
-            
-            if (!theException.isRetryable() && messageFlowId != null) {
-                messagingFlowService.recordFilterError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true); 
-            }
-        })
-        .handled(true); 
+        defineAdditionalExceptionHandlers();
 
         
         // Handled other message flow exceptions
@@ -290,23 +237,6 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         .handled(true);
         
         
-        // Handled MLLP exceptions.  These will come from outbox processing so we just sent the event as failed so it will pick it up again later.  No need to fail the message flow.
-        onException(CamelExecutionException.class)
-        .process(exchange -> {           
-            CamelExecutionException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, CamelExecutionException.class);
-            getLogger().error("Camel exception - " + theException.toString());
-            
-            Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
-
-            if (eventId != null) {
-                messageFlowEventService.setEventFailed(eventId);
-            }
-            
-            exchange.setRollbackOnly(true);
-        })
-        .handled(true);
-
-        
         // Handled other types of exceptions.  If there is an id we can record an error.  No id means we need to retry.
         onException(Exception.class)
         .process(exchange -> {           
@@ -323,8 +253,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             }
         })
         .handled(true);
-
         
+       
         // A route to add the message flow step id to the inbound message handling complete queue.
         from("direct:processComponentInboundMessageHandlingCompleteEvent-" + getIdentifier())
             .routeId("processComponentInboundMessageHandlingCompleteEvent-" + getIdentifier())
@@ -594,6 +524,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         }
 
         return annotation;
+    }
+    
+    
+    public void defineAdditionalExceptionHandlers() {
+        
     }
 
 }

@@ -28,6 +28,26 @@ public abstract class BaseTransformationProcessingStep extends MessageHandler {
     }
 
     
+    @Override
+    public void defineAdditionalExceptionHandlers() {
+        // Handle transformation errors.
+        onException(TransformationException.class)
+        .process(exchange -> {           
+            TransformationException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
+            getLogger().error("Transformation exception - " + theException.toString());
+            
+            Long messageFlowId = getMessageFlowId(theException, exchange);
+                    
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordTransformationError(getIdentifier(), messageFlowId, theException);
+            } else {
+                exchange.setRollbackOnly(true); 
+            }
+        })
+        .handled(true);         
+    }
+
+    
     /**
      * The transformer. A transformer is responsible for transforming the message. A
      * transformer can also filter a message is required.

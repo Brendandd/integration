@@ -26,6 +26,26 @@ public abstract class BaseFilterProcessingStep extends MessageHandler {
 
     
     @Override
+    public void defineAdditionalExceptionHandlers() {
+        // Handle filter errors
+        onException(FilterException.class)
+        .process(exchange -> {           
+            FilterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, FilterException.class);
+            getLogger().error("Filter exception - " + theException.toString());
+            
+            Long messageFlowId = getMessageFlowId(theException, exchange);
+            
+            if (!theException.isRetryable() && messageFlowId != null) {
+                messagingFlowService.recordFilterError(getIdentifier(), messageFlowId, theException);
+            } else {
+                exchange.setRollbackOnly(true); 
+            }
+        })
+        .handled(true);         
+    }
+
+    
+    @Override
     public void configure() throws Exception {
         super.configure();
 
