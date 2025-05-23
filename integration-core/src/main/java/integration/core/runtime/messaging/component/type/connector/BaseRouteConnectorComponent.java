@@ -7,6 +7,6 @@ import integration.core.runtime.messaging.component.BaseMessagingComponent;
  * 
  * @author Brendan Douglas
  */
-public abstract class BaseRouteConnector extends BaseMessagingComponent {
+public abstract class BaseRouteConnectorComponent extends BaseMessagingComponent {
     
 }

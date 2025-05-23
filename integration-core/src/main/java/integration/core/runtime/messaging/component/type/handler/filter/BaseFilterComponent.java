@@ -10,14 +10,14 @@ import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
-import integration.core.runtime.messaging.component.type.handler.MessageHandler;
+import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
 
 /**
  * Base class for all filter processing steps.
  */
 @ComponentType(type = IntegrationComponentTypeEnum.FILTER)
-public abstract class BaseFilterProcessingStep extends MessageHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseFilterProcessingStep.class);
+public abstract class BaseFilterComponent extends BaseMessageHandlerComponent {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseFilterComponent.class);
 
     @Override
     public Logger getLogger() {

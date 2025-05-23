@@ -3,7 +3,7 @@ package integration.component;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
-import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnector;
+import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnectorComponent;
 import integration.core.runtime.messaging.component.type.connector.annotation.StaticDestination;
 
 /**
@@ -15,6 +15,6 @@ import integration.core.runtime.messaging.component.type.connector.annotation.St
 @IntegrationComponent(name = "Outbound-Route-Connector")
 @StaticDestination(connectorName = "xyz")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class OutboundRouteConnector extends BaseOutboundRouteConnector {
+public class OutboundRouteConnector extends BaseOutboundRouteConnectorComponent {
 
 }

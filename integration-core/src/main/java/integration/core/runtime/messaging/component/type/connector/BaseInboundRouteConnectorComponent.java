@@ -30,8 +30,8 @@ import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurat
  */
 @ComponentType(type = IntegrationComponentTypeEnum.INBOUND_ROUTE_CONNECTOR)
 @ForwardingPolicy(name = "forwardAllMessages")
-public abstract class BaseInboundRouteConnector extends BaseRouteConnector implements MessageProducer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseInboundRouteConnector.class);
+public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnectorComponent implements MessageProducer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseInboundRouteConnectorComponent.class);
     
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
 

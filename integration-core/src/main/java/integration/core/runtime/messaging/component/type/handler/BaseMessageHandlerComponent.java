@@ -33,7 +33,7 @@ import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurat
  */
 @AcceptancePolicy(name = "acceptAllMessages")
 @ForwardingPolicy(name = "forwardAllMessages")
-public abstract class MessageHandler extends BaseMessagingComponent implements MessageConsumer, MessageProducer {
+public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent implements MessageConsumer, MessageProducer {
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
     protected List<MessageProducer> messageProducers = new ArrayList<>();
         

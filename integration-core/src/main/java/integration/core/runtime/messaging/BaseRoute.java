@@ -12,9 +12,9 @@ import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.MessagingComponent;
 import integration.core.runtime.messaging.component.type.adapter.BaseInboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
-import integration.core.runtime.messaging.component.type.connector.BaseInboundRouteConnector;
-import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnector;
-import integration.core.runtime.messaging.component.type.handler.MessageHandler;
+import integration.core.runtime.messaging.component.type.connector.BaseInboundRouteConnectorComponent;
+import integration.core.runtime.messaging.component.type.connector.BaseOutboundRouteConnectorComponent;
+import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.service.StartupService;
 
@@ -42,7 +42,7 @@ public abstract class BaseRoute {
      * @param messageProducer
      * @param messageConsumers
      */
-    public void addInboundFlow(BaseInboundAdapter producer, MessageHandler ... consumers) {
+    public void addInboundFlow(BaseInboundAdapter producer, BaseMessageHandlerComponent ... consumers) {
         addFlow(producer, consumers);         
     }
 
@@ -53,7 +53,7 @@ public abstract class BaseRoute {
      * @param messageProducer
      * @param messageConsumers
      */
-    public void addInboundFlow(BaseInboundRouteConnector producer, MessageHandler ... consumers) {
+    public void addInboundFlow(BaseInboundRouteConnectorComponent producer, BaseMessageHandlerComponent ... consumers) {
         addFlow(producer, consumers);          
     }
 
@@ -75,7 +75,7 @@ public abstract class BaseRoute {
      * @param producer
      * @param consumers
      */
-    public void addDirectFlow(BaseInboundAdapter producer, BaseOutboundRouteConnector consumers) {
+    public void addDirectFlow(BaseInboundAdapter producer, BaseOutboundRouteConnectorComponent consumers) {
         addFlow(producer, consumers); 
     }
 
@@ -86,7 +86,7 @@ public abstract class BaseRoute {
      * @param producer
      * @param consumers
      */
-    public void addDirectFlow(BaseInboundRouteConnector producer, BaseOutboundRouteConnector consumers) {
+    public void addDirectFlow(BaseInboundRouteConnectorComponent producer, BaseOutboundRouteConnectorComponent consumers) {
         addFlow(producer, consumers); 
     }
 
@@ -97,7 +97,7 @@ public abstract class BaseRoute {
      * @param producer
      * @param consumers
      */
-    public void addDirectFlow(BaseInboundRouteConnector producer, BaseOutboundAdapter consumers) {
+    public void addDirectFlow(BaseInboundRouteConnectorComponent producer, BaseOutboundAdapter consumers) {
         addFlow(producer, consumers); 
     }
 
@@ -108,17 +108,17 @@ public abstract class BaseRoute {
      * @param messageProducer
      * @param messageConsumers
      */
-    public void addInternalFlow(MessageHandler producer, MessageHandler ... consumers) {
+    public void addInternalFlow(BaseMessageHandlerComponent producer, BaseMessageHandlerComponent ... consumers) {
         addFlow(producer, consumers);         
     } 
 
     
-    public void addOutboundFlow(MessageHandler producer, BaseOutboundAdapter ... consumers) {
+    public void addOutboundFlow(BaseMessageHandlerComponent producer, BaseOutboundAdapter ... consumers) {
         addFlow(producer, consumers);       
     } 
 
     
-    public void addOutboundFlow(MessageHandler producer, BaseOutboundRouteConnector ... consumers) {
+    public void addOutboundFlow(BaseMessageHandlerComponent producer, BaseOutboundRouteConnectorComponent ... consumers) {
         addFlow(producer, consumers);       
     } 
 

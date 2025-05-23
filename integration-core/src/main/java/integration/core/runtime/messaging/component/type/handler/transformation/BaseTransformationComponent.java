@@ -10,7 +10,7 @@ import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
-import integration.core.runtime.messaging.component.type.handler.MessageHandler;
+import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.transformation.annotation.UsesTransformer;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
@@ -19,8 +19,8 @@ import integration.core.runtime.messaging.exception.nonretryable.ComponentConfig
  * Base class for all transformation processing steps.
  */
 @ComponentType(type = IntegrationComponentTypeEnum.TRANSFORMER)
-public abstract class BaseTransformationProcessingStep extends MessageHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformationProcessingStep.class);
+public abstract class BaseTransformationComponent extends BaseMessageHandlerComponent {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformationComponent.class);
 
     @Override
     public Logger getLogger() {

@@ -10,7 +10,7 @@ import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.MessageFlowEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
-import integration.core.runtime.messaging.component.type.handler.MessageHandler;
+import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
@@ -21,8 +21,8 @@ import integration.core.runtime.messaging.exception.nonretryable.ComponentConfig
  * done as part of the splitting process.
  */
 @ComponentType(type = IntegrationComponentTypeEnum.SPLITTER)
-public abstract class BaseSplitterProcessingStep extends MessageHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterProcessingStep.class);
+public abstract class BaseSplitterComponent extends BaseMessageHandlerComponent {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterComponent.class);
 
     @Override
     public Logger getLogger() {

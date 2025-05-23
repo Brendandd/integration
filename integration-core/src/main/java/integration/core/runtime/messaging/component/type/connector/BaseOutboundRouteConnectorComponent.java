@@ -30,8 +30,8 @@ import integration.core.runtime.messaging.exception.nonretryable.ComponentConfig
  */
 @ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_ROUTE_CONNECTOR)
 @AcceptancePolicy(name = "acceptAllMessages")
-public abstract class BaseOutboundRouteConnector extends BaseRouteConnector implements MessageConsumer  {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseOutboundRouteConnector.class);
+public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConnectorComponent implements MessageConsumer  {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseOutboundRouteConnectorComponent.class);
     
     protected List<MessageProducer> messageProducers = new ArrayList<>();
 
