@@ -28,7 +28,7 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
 
     
     @Override
-    public void configureComponentLevelExceptionHandlers() {
+    protected void configureComponentLevelExceptionHandlers() {
         // Handle transformation errors.
         onException(TransformationException.class)
         .process(exchange -> {           
@@ -61,7 +61,7 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     
     
     @Override
-    public void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
         from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
         .routeId("startProcessing-" + getIdentifier())
         .routeGroup(getComponentPath())

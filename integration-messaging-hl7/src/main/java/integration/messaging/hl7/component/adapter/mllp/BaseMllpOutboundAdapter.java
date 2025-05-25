@@ -64,7 +64,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     
     
     @Override
-    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         // These can be the original incoming headers or additional properties added.
         Map<String, Object> headers = getHeaders(messageFlowDto);
         

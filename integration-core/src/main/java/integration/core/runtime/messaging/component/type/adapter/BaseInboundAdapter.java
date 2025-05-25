@@ -54,7 +54,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         try {
             producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowDto.getId());
         } catch(Exception e) {
@@ -64,7 +64,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     
     
     @Override
-    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Entry point for an inbound adapters outbound message handling. 
         from("jms:queue:egressQueue-" + getIdentifier())
             .routeId("egressQueue-" + getIdentifier())

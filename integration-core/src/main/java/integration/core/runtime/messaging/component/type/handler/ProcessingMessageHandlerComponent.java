@@ -37,12 +37,12 @@ public abstract class ProcessingMessageHandlerComponent extends BaseMessageHandl
     
     
 
-    public abstract void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException;
+    protected abstract void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException;
     
     
     
     
-    public void configureProcessingQueueProducer() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureProcessingQueueProducer() throws ComponentConfigurationException, RouteConfigurationException {
         // A route to place the ingress message flow onto the processing queue
         from("direct:toProcessingQueue-" + getIdentifier())
             .routeId("toProcessingQueue-" + getIdentifier())

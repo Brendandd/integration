@@ -2,8 +2,10 @@ package integration.core.runtime.messaging.component.type.adapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
@@ -12,6 +14,7 @@ import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowPropertyDto;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
+import integration.core.runtime.messaging.component.type.adapter.annotation.LoadHeader;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
@@ -46,7 +49,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
 
     
     @Override
-    public void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         
         // An outbound adapter can consume from multiple topics, one for each producer.
         for (MessageProducer messageProducer : messageProducers) {
@@ -73,7 +76,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
 
     
     @Override
-    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Entry point for a outbound route connectors outbound message handling. 
         from("jms:queue:egressQueue-" + getIdentifier())
         .routeId("egressQueue-" + getIdentifier())
@@ -96,16 +99,29 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     }
 
     
-    public Map<String,Object>getHeaders(MessageFlowDto messageFlowDto) {
-        Map<String, Object> headers = new HashMap<String, Object>();
+    /**
+     * Get the headers which this component wants to load based on the @LoadHeader annotation.
+     * 
+     * @param messageFlowDto
+     * @return
+     */
+    protected Map<String,Object>getHeaders(MessageFlowDto messageFlowDto) {
+        Map<String, Object> headers = new HashMap<>();
+
+        LoadHeader[] loadHeaders = this.getClass().getAnnotationsByType(LoadHeader.class);
+
+        // Collect allowed keys
+        Set<String> allowedKeys = new HashSet<>();
+        for (LoadHeader header : loadHeaders) {
+            allowedKeys.add(header.name());
+        }
 
         for (MessageFlowPropertyDto property : messageFlowDto.getProperties()) {
-            headers.put(property.getKey(), property.getValue());
+            if (allowedKeys.contains(property.getKey())) {
+                headers.put(property.getKey(), property.getValue());
+            }
         }
         
         return headers;
-    }
-    
-    
-    
+    } 
 }

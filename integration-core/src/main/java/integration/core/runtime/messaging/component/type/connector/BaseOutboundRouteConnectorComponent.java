@@ -43,7 +43,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
 
     
     @Override
-    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         try {
             producerTemplate.sendBody("jms:topic:VirtualTopic." + getConnectorName(exchange), messageFlowDto.getId());
         } catch(Exception e) {
@@ -70,7 +70,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     
     
     @Override
-    public void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Creates one or more routes based on this components source components.  Each route reads from a topic. This is the entry point for outbound route connectors.
         for (MessageProducer messageProducer : messageProducers) {
           
@@ -99,7 +99,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
 
     
     @Override
-    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Entry point for a outbound route connector outbound message handling. 
         from("jms:queue:egressQueue-" + getIdentifier())
         .routeId("egressQueue-" + getIdentifier())
@@ -124,7 +124,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
      * @return
      * @throws ComponentConfigurationException 
      */
-    public String getConnectorName(Exchange exchange) throws ComponentConfigurationException {
+    private String getConnectorName(Exchange exchange) throws ComponentConfigurationException {
         StaticDestination staticAnnotation = this.getClass().getAnnotation(StaticDestination.class);
         DynamicDestination dynamicAnnotation = this.getClass().getAnnotation(DynamicDestination.class);
         

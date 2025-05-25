@@ -39,7 +39,7 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
     
     
     @Override
-    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         try {
             producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowDto.getId());
         } catch(Exception e) {

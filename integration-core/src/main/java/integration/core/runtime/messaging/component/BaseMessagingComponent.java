@@ -175,7 +175,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * 
      * @param routeBuilder
      */
-    public void configureGlobalExceptionHandlers(RouteBuilder routeBuilder) {
+    protected void configureGlobalExceptionHandlers(RouteBuilder routeBuilder) {
         onException(MessageFlowProcessingException.class)
         .process(exchange -> {           
             MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
@@ -248,7 +248,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
 
     
-    public void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {
        
         // A route to place the ingress message flow onto the egress queue
         from("direct:toEgressQueue-" + getIdentifier())
@@ -316,7 +316,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
 
     
-    public void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
         from("timer://stateTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
         .routeId("stateTimer-" + getIdentifier())
@@ -355,7 +355,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @param exchange
      * @return
      */
-    public Long getMessageFlowId(IntegrationException theException, Exchange exchange) {
+    protected Long getMessageFlowId(IntegrationException theException, Exchange exchange) {
         Long messageFlowId = null;
         
         if (theException.hasIdentifier(IdentifierType.MESSAGE_FLOW_ID)) {
@@ -375,7 +375,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @param exchange
      * @return
      */
-    public Long getEventId(IntegrationException theException, Exchange exchange) {
+    protected Long getEventId(IntegrationException theException, Exchange exchange) {
         Long messageFlowId = null;
         
         if (theException.hasIdentifier(IdentifierType.OUTBOX_EVENT_ID)) {
@@ -409,7 +409,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @throws RouteConfigurationException 
      * @throws ComponentConfigurationException 
      */
-    public abstract void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException;
+    protected abstract void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException;
 
     
     /**
@@ -418,7 +418,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @throws ComponentConfigurationException
      * @throws RouteConfigurationException
      */
-    public abstract void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException;
+    protected abstract void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException;
 
     
     /**
@@ -428,7 +428,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @throws RouteConfigurationException 
      * @throws ComponentConfigurationException 
      */
-    public void configureEgressForwardingRoutes() throws ComponentConfigurationException, RouteConfigurationException  {
+    protected void configureEgressForwardingRoutes() throws ComponentConfigurationException, RouteConfigurationException  {
        
         // Component egress.  The exit point of a message in a component.
         from("direct:egressForwarding-" + getIdentifier())
@@ -465,7 +465,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @throws MessageFlowProcessingException 
      * @throws ComponentConfigurationException 
      */
-    public abstract void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException;
+    protected abstract void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException;
 
     
     @Override
@@ -579,9 +579,23 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     
     /**
+     * A helper method to get an annotation.
+     * 
+     * @param <T>
+     * @param annotationClass
+     * @return
+     */
+    protected <T extends Annotation> T getAnnotation(Class<T> annotationClass) throws ComponentConfigurationException {
+        T annotation = this.getClass().getAnnotation(annotationClass);
+
+        return annotation;
+    }
+    
+    
+    /**
      * 
      */
-    public void configureComponentLevelExceptionHandlers() {
+    protected void configureComponentLevelExceptionHandlers() {
         
     }
 
@@ -594,7 +608,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException
      */
-    public MessageFlowDto getMessageFlowDtoFromExchangeBody(Exchange exchange) throws MessageFlowProcessingException, MessageFlowNotFoundException {
+    protected MessageFlowDto getMessageFlowDtoFromExchangeBody(Exchange exchange) throws MessageFlowProcessingException, MessageFlowNotFoundException {
         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
         exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), parentMessageFlowId);
         

@@ -42,7 +42,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
 
     
     @Override
-    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         try {
             producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowDto.getId());
         } catch(Exception e) {
@@ -69,7 +69,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
 
     
     @Override
-    public void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
         .routeId("ingress-" + getIdentifier())
         .routeGroup(getComponentPath())
@@ -86,7 +86,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
     
     
     @Override
-    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         from("jms:queue:egressQueue-" + getIdentifier())
         .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))

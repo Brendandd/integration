@@ -37,7 +37,7 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
     
     
     @Override
-    public void configureComponentLevelExceptionHandlers() {
+    protected void configureComponentLevelExceptionHandlers() {
         // Handle splitter errors
         onException(SplitterException.class)
         .process(exchange -> {            
@@ -57,7 +57,7 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
 
     
     @Override
-    public void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
+    protected void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
 
         from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
             .routeId("startProcessing-" + getIdentifier())

@@ -11,7 +11,6 @@ import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAda
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 
@@ -39,18 +38,24 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
     private String getMessageForwardingUriString(Exchange exchange) {
         return "smb:" + getHost() + "/" + getDestinationFolder() + constructOptions();
     }
-    
+
     
     @Override
-    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException {
+    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException {
      // These can be the original incoming headers or additional properties added.
         Map<String, Object> headers = getHeaders(messageFlowDto);
         
-        // Apply the file name strategy.
-        String fileName = getFilename(exchange, messageFlowDto.getId());
-        
-        if (fileName != null) {
-            headers.put(CAMEL_FILE_NAME, fileName);
+        // Apply the file name strategy if the annotation exists.
+        FileNaming annotation = getAnnotation(FileNaming.class);
+         
+        if (annotation != null) {
+            FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
+            
+            String fileName = strategy.getFilename(exchange, messageFlowDto.getId());
+
+            if (fileName != null) {
+                headers.put(CAMEL_FILE_NAME, fileName);
+            }
         }
         
         try {
@@ -58,23 +63,6 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
         } catch(Exception e) {
             throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
         }
-    }
-    
-    
-    /**
-     * Returns the filename.
-     * 
-     * @param exchange
-     * @param messageFlowId
-     * @return
-     * @throws RouteConfigurationException 
-     * @throws RetryableException 
-     */
-    protected String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ComponentConfigurationException {
-        FileNaming annotation = getRequiredAnnotation(FileNaming.class);
-                 
-        FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
-        return strategy.getFilename(exchange, messageFlowId);
     }
     
     

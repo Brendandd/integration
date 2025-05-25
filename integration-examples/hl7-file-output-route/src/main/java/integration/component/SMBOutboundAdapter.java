@@ -18,6 +18,7 @@ import integration.messaging.hl7.component.adapter.smb.BaseHL7OutboundSMBAdapter
 @AdapterOption(key = "password", value = "testpass") //testing only
 @AllowedContentType(ContentTypeEnum.HL7)
 @FileNaming(strategy = "customNamingStrategy")
+//@LoadHeader(name = "camelFileName")
 public class SMBOutboundAdapter extends BaseHL7OutboundSMBAdapter {
        
 }

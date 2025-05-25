@@ -22,7 +22,7 @@ public abstract class BaseFilterComponent extends BaseMessageHandlerComponent {
 
     
     @Override
-    public void configureComponentLevelExceptionHandlers() {
+    protected void configureComponentLevelExceptionHandlers() {
         
         // Handle filter errors
         onException(FilterException.class)
