@@ -2,20 +2,22 @@ package integration.messaging.hl7.component.adapter.mllp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
+import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
+import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.
@@ -55,36 +57,21 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     }
 
     
-    @Override
-    public String getMessageForwardingUriString(Exchange exchange) {
+    private String getMessageForwardingUriString(Exchange exchange) {
         String target = getTargetHost() + ":" + getTargetPort();
         return "netty:tcp://" + target + constructOptions();
     }
-
+    
     
     @Override
-    public void configure() throws Exception {
-        super.configure();
-    }
-
-    
-    @Override
-    public void defineAdditionalExceptionHandlers() {
-
-        // Handled MLLP exceptions. These will come from outbox processing so we just
-        // sent the event as failed so it will pick it up again later. No need to fail
-        // the message flow.
-        onException(CamelExecutionException.class).process(exchange -> {
-            CamelExecutionException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, CamelExecutionException.class);
-            getLogger().error("Camel exception - " + theException.toString());
-
-            Long eventId = (Long) exchange.getMessage().getHeader(EVENT_ID);
-
-            if (eventId != null) {
-                messageFlowEventService.markEventForRetry(eventId);
-            }
-
-            exchange.setRollbackOnly(true);
-        }).handled(true);
+    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+        // These can be the original incoming headers or additional properties added.
+        Map<String, Object> headers = getHeaders(messageFlowDto);
+        
+        try {
+            producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), messageFlowDto.getMessageContent(), headers);
+        } catch(Exception e) {
+            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
+        }
     }
 }

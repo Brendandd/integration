@@ -1,5 +1,7 @@
 package integration.core.exception;
 
+import integration.core.domain.IdentifierType;
+
 /**
  * An exception which is thrown when a route is not found.  This type of exception cannot be retried.
  * 
@@ -13,6 +15,6 @@ public class RouteNotFoundException extends NonRetryableException {
     public RouteNotFoundException(long routeId) {
         super(MESSAGE);
         
-        addOtherIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId);
+        addOtherIdentifier(IdentifierType.ROUTE_ID, routeId);
     }
 }

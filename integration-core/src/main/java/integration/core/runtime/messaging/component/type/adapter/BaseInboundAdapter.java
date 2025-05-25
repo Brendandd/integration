@@ -4,20 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
-import integration.core.runtime.messaging.component.type.adapter.annotation.StoreHeader;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 
 /**
  * Base class for all inbound adapters.
@@ -46,12 +44,6 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     }
 
     
-    @Override
-    protected Long getBodyContent(MessageFlowDto messageFlowDto) {
-        return messageFlowDto.getId();
-    }
-
-    
     /**
      * Where to get the message from.  This is a Camel URI.
      * 
@@ -62,60 +54,43 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws ComponentConfigurationException, RouteConfigurationException {
-        return "jms:topic:VirtualTopic." + getComponentPath();
+    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+        try {
+            producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowDto.getId());
+        } catch(Exception e) {
+            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
+        }
     }
-
+    
     
     @Override
-    public void configure() throws Exception {
-        super.configure();
-                
+    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Entry point for an inbound adapters outbound message handling. 
-        from("direct:outboundMessageHandling-" + getIdentifier())
-            .routeId("outboundMessageHandling-" + getIdentifier())
+        from("jms:queue:egressQueue-" + getIdentifier())
+            .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
+            .transacted()
             
-                .process(new Processor() {
-                    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                        MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
-                                               
-                        MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
-                                  
-                        // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                        if (result.isSuccess()) {
-                            MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                            messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
-                        } else {
-                            messagingFlowService.recordMessageNotForwarded(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
-                        }
+                .process(exchange -> {
+                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+                                           
+                    MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
+                              
+                    // Apply the message forwarding rules and either write an event for further processing or filter the message.
+                    if (result.isSuccess()) {
+                        MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
+                        outboxService.recordEvent(forwardedMessageFlowDto.getId(), getIdentifier(), OutboxEventType.PENDING_FORWARDING); 
+                    } else {
+                        messageFlowService.recordMessageNotForwarded(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
                     }
-                });
+                });       
     }
 
     
     @Override
     protected void configureRequiredAnnotations() {            
         requiredAnnotations.add(ForwardingPolicy.class);
-    }
-
-    
-    protected void addProperties(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException {
-        Class<?> clazz = this.getClass();
-        
-        while (clazz != null) {
-            StoreHeader[] headers = clazz.getDeclaredAnnotationsByType(StoreHeader.class);
-            for (StoreHeader header : headers) {
-                String headerValue = (String)exchange.getMessage().getHeader(header.name());
-                messageFlowPropertyService.addProperty(header.name(), headerValue, messageFlowId);
-            }
-            
-            clazz = clazz.getSuperclass();
-        }
     }
 }
 

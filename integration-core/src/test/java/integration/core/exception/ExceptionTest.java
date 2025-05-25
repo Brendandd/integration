@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.RecoverableDataAccessException;
 
-import integration.core.runtime.messaging.exception.nonretryable.MessageFlowEventNotFoundException;
+import integration.core.runtime.messaging.exception.nonretryable.OutboxEventNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.ComponentAccessException;
 import integration.core.runtime.messaging.exception.retryable.RouteAccessException;
@@ -36,7 +36,7 @@ public class ExceptionTest {
     @Test
     public void testEventNotFoundException() {
      // This type of exception can never be retried.
-        MessageFlowEventNotFoundException exception = new MessageFlowEventNotFoundException(123l);
+        OutboxEventNotFoundException exception = new OutboxEventNotFoundException(123l);
         assertFalse(exception.isRetryable());
     }
     

@@ -13,6 +13,7 @@ public class MessageFlowRequest {
     private ContentTypeEnum contentType;
     private Map<String,String>properties = new HashMap<>();
     private MessageFlowActionType action;
+    private Map<String, Object>headers;
     
     
     public String getMessageContent() {
@@ -72,5 +73,15 @@ public class MessageFlowRequest {
     
     public void setAction(MessageFlowActionType action) {
         this.action = action;
+    }
+
+
+    public Map<String, Object> getHeaders() {
+        return headers;
+    }
+
+    
+    public void setHeaders(Map<String, Object> headers) {
+        this.headers = headers;
     }
 }

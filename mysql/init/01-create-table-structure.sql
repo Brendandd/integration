@@ -66,7 +66,7 @@ CREATE TABLE `message` (
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 SELECT * FROM integration.component;
 
-CREATE TABLE `message_flow_event` (
+CREATE TABLE `outbox_event` (
   `id` int NOT NULL AUTO_INCREMENT,
   `type` varchar(45) DEFAULT NULL,
   `event_date_time` datetime DEFAULT NULL,

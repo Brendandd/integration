@@ -14,31 +14,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import integration.core.domain.IdentifierType;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.messaging.MessageFlow;
-import integration.core.domain.messaging.MessageFlowEvent;
-import integration.core.domain.messaging.MessageFlowEventType;
-import integration.core.dto.MessageFlowEventDto;
-import integration.core.dto.mapper.MessageFlowEventMapper;
+import integration.core.domain.messaging.OutboxEvent;
+import integration.core.domain.messaging.OutboxEventType;
+import integration.core.dto.OutboxEventDto;
+import integration.core.dto.mapper.OutboxEventMapper;
 import integration.core.exception.ComponentNotFoundException;
 import integration.core.exception.ExceptionIdentifier;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.repository.ComponentRepository;
-import integration.core.runtime.messaging.exception.nonretryable.MessageFlowEventNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowEventProcessingException;
+import integration.core.runtime.messaging.exception.nonretryable.OutboxEventNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
-import integration.core.runtime.messaging.repository.MessageFlowEventRepository;
+import integration.core.runtime.messaging.exception.retryable.OutboxEventProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
-import integration.core.runtime.messaging.service.MessageFlowEventService;
+import integration.core.runtime.messaging.repository.OutboxEventRepository;
+import integration.core.runtime.messaging.service.OutboxService;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
-public class EventServiceImpl implements MessageFlowEventService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessagingFlowServiceImpl.class);
+public class OutboxServiceImpl implements OutboxService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OutboxServiceImpl.class);
               
     @Autowired
-    private MessageFlowEventRepository eventRepository;
+    private OutboxEventRepository eventRepository;
     
     @Autowired
     private ComponentRepository componentRepository;
@@ -48,7 +48,7 @@ public class EventServiceImpl implements MessageFlowEventService {
 
     
     @Override
-    public void recordMessageFlowEvent(long messageFlowId, long componentId, MessageFlowEventType eventType) throws MessageFlowEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
+    public void recordEvent(long messageFlowId, long componentId, OutboxEventType eventType) throws OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         try {
             Optional<MessageFlow> messageFlowOptional = messageFlowRepository.findById(messageFlowId);
         
@@ -57,7 +57,7 @@ public class EventServiceImpl implements MessageFlowEventService {
                 throw new MessageFlowNotFoundException(messageFlowId);
             }             
     
-            MessageFlowEvent event = new MessageFlowEvent();
+            OutboxEvent event = new OutboxEvent();
             event.setMessageFlow(messageFlowOptional.get());
             event.setType(eventType);
             
@@ -71,21 +71,21 @@ public class EventServiceImpl implements MessageFlowEventService {
             eventRepository.save(event);
         } catch(DataAccessException e) {
             List<ExceptionIdentifier>otherIdentifiers = new ArrayList<>();
-            otherIdentifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new MessageFlowEventProcessingException("Database error while retrieving message flow", e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            otherIdentifiers.add(new ExceptionIdentifier(IdentifierType.COMPONENT_ID, componentId));
+            throw new OutboxEventProcessingException("Database error while retrieving message flow", e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
         }
     }
 
     
     @Override
-    public List<MessageFlowEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowEventProcessingException {
+    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead) throws OutboxEventProcessingException {
         try  {
-            MessageFlowEventMapper mapper = new MessageFlowEventMapper();
-            List<MessageFlowEventDto> eventDtos = new ArrayList<>();
+            OutboxEventMapper mapper = new OutboxEventMapper();
+            List<OutboxEventDto> eventDtos = new ArrayList<>();
     
-            List<MessageFlowEvent> events = eventRepository.getEvents(componentId, numberToRead);
+            List<OutboxEvent> events = eventRepository.getEvents(componentId, numberToRead);
     
-            for (MessageFlowEvent event : events) {
+            for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));
             }
             
@@ -94,21 +94,21 @@ public class EventServiceImpl implements MessageFlowEventService {
             
             // There is no event id to put in the exception
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new MessageFlowEventProcessingException("Database error while retrieving events for component", e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            identifiers.add(new ExceptionIdentifier(IdentifierType.COMPONENT_ID, componentId));
+            throw new OutboxEventProcessingException("Database error while retrieving events for component", e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
         } 
     }
 
     
     @Override
-    public List<MessageFlowEventDto> getEvents(long componentId) throws MessageFlowEventProcessingException {
+    public List<OutboxEventDto> getEvents(long componentId) throws OutboxEventProcessingException {
         try {
-            MessageFlowEventMapper mapper = new MessageFlowEventMapper();
-            List<MessageFlowEventDto> eventDtos = new ArrayList<>();
+            OutboxEventMapper mapper = new OutboxEventMapper();
+            List<OutboxEventDto> eventDtos = new ArrayList<>();
             
-            List<MessageFlowEvent> events = eventRepository.getEvents(componentId);
+            List<OutboxEvent> events = eventRepository.getEvents(componentId);
     
-            for (MessageFlowEvent event : events) {
+            for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));
             }
             
@@ -116,37 +116,37 @@ public class EventServiceImpl implements MessageFlowEventService {
         } catch(DataAccessException e) {
             // There is no event id to put in the exception
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId));
-            throw new MessageFlowEventProcessingException("Database error while retrieving events for component", e).addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+            identifiers.add(new ExceptionIdentifier(IdentifierType.COMPONENT_ID, componentId));
+            throw new OutboxEventProcessingException("Database error while retrieving events for component", e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
         }
     }
 
     
     @Override
-    public void deleteEvent(long eventId) throws MessageFlowEventProcessingException, MessageFlowEventNotFoundException {
+    public void deleteEvent(long eventId) throws OutboxEventProcessingException, OutboxEventNotFoundException {
         try {
             boolean eventExists = eventRepository.existsById(eventId);
             if (!eventExists) {
-                throw new MessageFlowEventNotFoundException(eventId);
+                throw new OutboxEventNotFoundException(eventId);
             }
             
             eventRepository.deleteById(eventId);
         } catch(DataAccessException e) {
-            throw new MessageFlowEventProcessingException("Database error while deleting an event.", eventId ,e);
+            throw new OutboxEventProcessingException("Database error while deleting an event.", eventId ,e);
         }
     }
 
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markEventForRetry(long eventId) throws MessageFlowProcessingException, MessageFlowEventNotFoundException, MessageFlowEventProcessingException {
+    public void markEventForRetry(long eventId) throws MessageFlowProcessingException, OutboxEventNotFoundException, OutboxEventProcessingException {
         try {
-            Optional<MessageFlowEvent> eventOptional =  eventRepository.findById(eventId);
+            Optional<OutboxEvent> eventOptional =  eventRepository.findById(eventId);
             if (eventOptional.isEmpty()) {
-                throw new MessageFlowEventNotFoundException(eventId);
+                throw new OutboxEventNotFoundException(eventId);
             }
             
-            MessageFlowEvent event = eventOptional.get();
+            OutboxEvent event = eventOptional.get();
             
             int retryCount = event.getRetryCount();
             event.setRetryCount(++retryCount);
@@ -164,7 +164,7 @@ public class EventServiceImpl implements MessageFlowEventService {
             
             eventRepository.save(event);  
         } catch(DataAccessException e) {
-            throw new MessageFlowEventProcessingException("Database error while setting the event to failed", eventId, e);
+            throw new OutboxEventProcessingException("Database error while setting the event to failed", eventId, e);
         }
     }
 }

@@ -8,7 +8,7 @@ import java.util.Map;
 import org.hibernate.annotations.Where;
 
 import integration.core.domain.BaseIntegrationDomain;
-import integration.core.domain.messaging.MessageFlowEvent;
+import integration.core.domain.messaging.OutboxEvent;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,7 +40,7 @@ public class IntegrationComponent extends BaseIntegrationDomain {
     private IntegrationComponentCategoryEnum category;
     
     
-    private List<MessageFlowEvent>events = new ArrayList<>();
+    private List<OutboxEvent>events = new ArrayList<>();
     private Map<String, IntegrationComponentProperty> properties = new HashMap<>();
     
 
@@ -109,12 +109,12 @@ public class IntegrationComponent extends BaseIntegrationDomain {
 
     
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
-    public List<MessageFlowEvent> getEvents() {
+    public List<OutboxEvent> getEvents() {
         return events;
     }
 
     
-    public void setEvents(List<MessageFlowEvent> events) {
+    public void setEvents(List<OutboxEvent> events) {
         this.events = events;
     }
 

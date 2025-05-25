@@ -49,7 +49,7 @@ public class MessageFlowProperty extends BaseIntegrationDomain  {
     }
 
     @Column(name = "value")
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 

@@ -1,6 +1,6 @@
 package integration.core.runtime.messaging.exception.nonretryable;
 
-import integration.core.exception.ExceptionIdentifierType;
+import integration.core.domain.IdentifierType;
 import integration.core.exception.NonRetryableException;
 
 /**
@@ -9,13 +9,13 @@ import integration.core.exception.NonRetryableException;
  * @author Brendan Douglas
  */
 public class MessageFlowNotFoundException extends NonRetryableException {
-    private static final long serialVersionUID = -8219003265184923387L;
+    private static final long serialVersionUID = -6856908339059940620L;
     
     private static String MESSAGE = "Message Flow not found";
     
     public MessageFlowNotFoundException(long messageFlowId) {
         super(MESSAGE);
         
-        addOtherIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID, messageFlowId);
+        addOtherIdentifier(IdentifierType.MESSAGE_FLOW_ID, messageFlowId);
     }
 }

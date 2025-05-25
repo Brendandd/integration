@@ -8,8 +8,9 @@ import integration.core.exception.NonRetryableException;
  * @author Brendan Douglas
  */
 public class ConfigurationException extends NonRetryableException {
-    private static final long serialVersionUID = -8219003265184923387L;
-    
+    private static final long serialVersionUID = -4789326147187602599L;
+
+
     public ConfigurationException(String message) {
         super(message);
     }

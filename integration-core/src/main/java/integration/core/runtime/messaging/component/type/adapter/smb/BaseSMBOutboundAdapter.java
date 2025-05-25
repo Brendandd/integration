@@ -1,11 +1,11 @@
 package integration.core.runtime.messaging.component.type.adapter.smb;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.camel.Exchange;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
+import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
@@ -13,6 +13,7 @@ import integration.core.runtime.messaging.component.type.adapter.smb.annotation.
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 
 /**
  * Base class for all SMB outbound communication points.
@@ -21,7 +22,7 @@ import integration.core.runtime.messaging.exception.retryable.MessageFlowProcess
  *
  */
 @ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_SMB_ADAPTER)
-@FileNaming(strategy = "originalFilename")
+@FileNaming(strategy = "originalFilename") //TODO no need for this anymore.
 public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
     private static final String CAMEL_FILE_NAME = "CamelFileName";
 
@@ -33,13 +34,32 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
     public String getHost() {
         return componentProperties.get("HOST");
     }
+
+    
+    private String getMessageForwardingUriString(Exchange exchange) {
+        return "smb:" + getHost() + "/" + getDestinationFolder() + constructOptions();
+    }
     
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) {
-        return "smb:" + getHost() + "/" + getDestinationFolder() + constructOptions();
+    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException {
+     // These can be the original incoming headers or additional properties added.
+        Map<String, Object> headers = getHeaders(messageFlowDto);
+        
+        // Apply the file name strategy.
+        String fileName = getFilename(exchange, messageFlowDto.getId());
+        
+        if (fileName != null) {
+            headers.put(CAMEL_FILE_NAME, fileName);
+        }
+        
+        try {
+            producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), messageFlowDto.getMessageContent(), headers);
+        } catch(Exception e) {
+            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
+        }
     }
-
+    
     
     /**
      * Returns the filename.
@@ -56,27 +76,7 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
         FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
         return strategy.getFilename(exchange, messageFlowId);
     }
-
     
-    @Override
-    public void configure() throws Exception {
-        super.configure();
-    }
-
-    
-    @Override
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ComponentConfigurationException {
-        Map<String, Object> headers = new HashMap<String, Object>();
-        
-        String fileName = getFilename(exchange, messageFlowId);
-        
-        if (fileName != null) {
-            headers.put(CAMEL_FILE_NAME, fileName);
-        }
-            
-        return headers;
-    }
-
     
     @Override
     protected void configureRequiredAnnotations() {    

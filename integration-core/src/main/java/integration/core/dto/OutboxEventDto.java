@@ -1,19 +1,19 @@
 package integration.core.dto;
 
-import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.OutboxEventType;
 
 /**
- * A message flow event.
+ * An outbox event.
  * 
  * @author Brendan Douglas
  * 
  */
-public class MessageFlowEventDto extends BaseDto {
+public class OutboxEventDto extends BaseDto {
     private static final long serialVersionUID = 5050473264308343049L;
 
     private long messageFlowId;
     private long componentId;
-    private MessageFlowEventType type;
+    private OutboxEventType type;
 
     public long getMessageFlowId() {
         return messageFlowId;
@@ -24,7 +24,7 @@ public class MessageFlowEventDto extends BaseDto {
     }
 
     
-    public MessageFlowEventType getType() {
+    public OutboxEventType getType() {
         return type;
     }
     
@@ -39,7 +39,7 @@ public class MessageFlowEventDto extends BaseDto {
     }
     
     
-    public void setType(MessageFlowEventType type) {
+    public void setType(OutboxEventType type) {
         this.type = type;
     }
 }

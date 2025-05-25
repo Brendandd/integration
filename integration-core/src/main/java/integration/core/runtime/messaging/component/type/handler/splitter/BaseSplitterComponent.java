@@ -1,19 +1,18 @@
 package integration.core.runtime.messaging.component.type.handler.splitter;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
-import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
-import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
+import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 /**
  * Base class for splitting a message into 1 or more messages. A splitter is
@@ -21,7 +20,7 @@ import integration.core.runtime.messaging.exception.nonretryable.ComponentConfig
  * done as part of the splitting process.
  */
 @ComponentType(type = IntegrationComponentTypeEnum.SPLITTER)
-public abstract class BaseSplitterComponent extends BaseMessageHandlerComponent {
+public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterComponent.class);
 
     @Override
@@ -38,7 +37,7 @@ public abstract class BaseSplitterComponent extends BaseMessageHandlerComponent 
     
     
     @Override
-    public void defineAdditionalExceptionHandlers() {
+    public void configureComponentLevelExceptionHandlers() {
         // Handle splitter errors
         onException(SplitterException.class)
         .process(exchange -> {            
@@ -48,56 +47,34 @@ public abstract class BaseSplitterComponent extends BaseMessageHandlerComponent 
             Long messageFlowId = getMessageFlowId(theException, exchange);
             
             if (!theException.isRetryable() && messageFlowId != null) {
-                messagingFlowService.recordSplitterError(getIdentifier(), messageFlowId, theException);
+                messageFlowService.recordSplitterError(getIdentifier(), messageFlowId, theException);
             } else {
                 exchange.setRollbackOnly(true); 
             }
         })
         .handled(true);         
     }
-    
+
     
     @Override
-    public void configure() throws Exception {
-        super.configure();
-   
-        
-        // Entry point for an inbound adapters outbound message handling. 
-        from("direct:outboundMessageHandling-" + getIdentifier())
-            .routeId("outboundMessageHandling-" + getIdentifier())
-            .setHeader("contentType", constant(getContentType()))
+    public void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
+
+        from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+            .routeId("startProcessing-" + getIdentifier())
             .routeGroup(getComponentPath())
-            
-                .process(new Processor() {
-                    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        
-                        // Record the outbound message.
-                        long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
-                        
-                        MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
-                        
-                        String[] splitMessages = getSplitter().split(parentMessageFlowDto);
-                                  
-                        for (int i = 0; i < splitMessages.length; i++) {
-                            MessageFlowDto splitMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(),parentMessageFlowId, MessageFlowActionType.CREATED_FROM_SPLIT);
-                                               
-                            MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(splitMessageFlowDto);
-                                                                              
-                            // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                            if (result.isSuccess()) {           
-                                MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                                messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
-                            } else {
-                                messagingFlowService.recordMessageNotForwarded(getIdentifier(), splitMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
-                            }
-                        }
-                       
-                    }
-                });
-        }
+            .setHeader("contentType", constant(getContentType()))
+            .transacted()   
+            .process(exchange -> {
+                MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+                
+                String[] splitMessages = getSplitter().split(parentMessageFlowDto);
+                          
+                for (int i = 0; i < splitMessages.length; i++) {
+                    MessageFlowDto splitMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(),parentMessageFlowDto.getId(), MessageFlowActionType.CREATED_FROM_SPLIT);
+                   outboxService.recordEvent(splitMessageFlowDto.getId(),getIdentifier(), OutboxEventType.PROCESSING_COMPLETE); 
+                }
+            }); 
+    }
 
     
     @Override

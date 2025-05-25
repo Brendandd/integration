@@ -22,10 +22,10 @@ import jakarta.persistence.TemporalType;
  *
  */
 @Entity
-@Table(name = "message_flow_event")
-public class MessageFlowEvent extends BaseIntegrationDomain {
+@Table(name = "outbox_event")
+public class OutboxEvent extends BaseIntegrationDomain {
     private MessageFlow messageFlow;
-    private MessageFlowEventType type;
+    private OutboxEventType type;
     private IntegrationComponent component;
     private Date retryAfter;
     private int retryCount;
@@ -44,12 +44,12 @@ public class MessageFlowEvent extends BaseIntegrationDomain {
     
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    public MessageFlowEventType getType() {
+    public OutboxEventType getType() {
         return type;
     }
     
     
-    public void setType(MessageFlowEventType type) {
+    public void setType(OutboxEventType type) {
         this.type = type;
     }
 

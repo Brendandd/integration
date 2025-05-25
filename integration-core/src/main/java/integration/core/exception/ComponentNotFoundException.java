@@ -1,5 +1,7 @@
 package integration.core.exception;
 
+import integration.core.domain.IdentifierType;
+
 /**
  * An exception which is thrown when a component is not found. This type of exception cannot be retried.
  * 
@@ -13,6 +15,6 @@ public class ComponentNotFoundException extends NonRetryableException {
     public ComponentNotFoundException(long componentId) {
         super(MESSAGE);
         
-        addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+        addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
     }
 }

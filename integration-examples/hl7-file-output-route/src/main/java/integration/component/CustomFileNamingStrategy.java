@@ -17,7 +17,7 @@ public class CustomFileNamingStrategy extends FileNamingStrategy {
 
     @Override
     public String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException {
-        String filename = propertyService.getPropertyValue("CamelFileName", messageFlowId);
+        String filename = (String)propertyService.getPropertyValue("CamelFileName", messageFlowId);
         
         if (filename == null) {
             return null;

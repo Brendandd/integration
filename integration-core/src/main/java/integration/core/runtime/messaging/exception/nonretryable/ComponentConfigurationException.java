@@ -1,6 +1,6 @@
 package integration.core.runtime.messaging.exception.nonretryable;
 
-import integration.core.exception.ExceptionIdentifierType;
+import integration.core.domain.IdentifierType;
 
 /**
  * An exception which is thrown when there is an issue with the route and component annotations.  This type of exception will occur at startup and not during message flow.
@@ -13,13 +13,13 @@ public class ComponentConfigurationException extends ConfigurationException {
     public ComponentConfigurationException(String message, long componentId) {
         super(message);
         
-        addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+        addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
     }
 
     
     public ComponentConfigurationException(String message, long componentId, Throwable cause) {
         super(message, cause);
         
-        addOtherIdentifier(ExceptionIdentifierType.COMPONENT_ID, componentId);
+        addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
     }
 }

@@ -1,13 +1,13 @@
-package integration.core.exception;
+package integration.core.domain;
 
 /**
  * The types of identifiers that can be put into an exception.
  */
-public enum ExceptionIdentifierType {
+public enum IdentifierType {
     COMPONENT_ID,
     ROUTE_ID,
     COMPONENT_PATH,
-    MESSAGE_FLOW_EVENT_ID,
+    OUTBOX_EVENT_ID,
     MESSAGE_FLOW_ID,
     PROPERTY_KEY,
     NO_ID;

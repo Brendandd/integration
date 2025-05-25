@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
@@ -22,6 +21,8 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageA
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 
 /**
  * Outbound route connector. Sends messages to other routes.
@@ -42,8 +43,12 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
 
     
     @Override
-    public String getMessageForwardingUriString(Exchange exchange) throws ComponentConfigurationException {
-        return "jms:topic:VirtualTopic." + getConnectorName(exchange);
+    public void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
+        try {
+            producerTemplate.sendBody("jms:topic:VirtualTopic." + getConnectorName(exchange), messageFlowDto.getId());
+        } catch(Exception e) {
+            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
+        }
     }
 
     
@@ -65,70 +70,49 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     
     
     @Override
-    protected Long getBodyContent(MessageFlowDto messageFlowDto) {
-        return messageFlowDto.getId();
-    }
-
-    
-    @Override
-    public void configure() throws Exception {
-        super.configure();
-
-       
+    public void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Creates one or more routes based on this components source components.  Each route reads from a topic. This is the entry point for outbound route connectors.
         for (MessageProducer messageProducer : messageProducers) {
           
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("inboundEntryPoint-" + getIdentifier())
+                .routeId("ingress-" + getIdentifier())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
                 .transacted()
-                    .process(new Processor() {
-                    
-                        @Override
-                        public void process(Exchange exchange) throws Exception {
- 
-                            // Retrieve the inbound message.
-                            long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                            exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
-                                                       
-                            MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
-                            
-                            // Determine if the message should be accepted by this route connector.
-                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
-                            
-                            if (result.isSuccess()) {
-                                MessageFlowDto messageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.ACCEPTED);
-                            
-                                // Record an event so the message can be forwarded to other components for processing.
-                                messageFlowEventService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE);
-                            } else {
-                                messagingFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
-                            }
-                            
+                    .process(exchange -> {
+                        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+                        
+                        // Determine if the message should be accepted by this route connector.
+                        MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
+                        
+                        if (result.isSuccess()) {
+                            MessageFlowDto messageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.ACCEPTED);
+                        
+                            // Record an event so the message can be forwarded to other components for processing.
+                            outboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), OutboxEventType.INGRESS_COMPLETE);
+                        } else {
+                            messageFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_ACCEPTED);
                         }
                     });
-        }
+        }  
+    }
 
-        
+    
+    @Override
+    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Entry point for a outbound route connector outbound message handling. 
-        from("direct:outboundMessageHandling-" + getIdentifier())
-            .routeId("outboundMessageHandling-" + getIdentifier())
+        from("jms:queue:egressQueue-" + getIdentifier())
+        .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
+            .transacted()
             
-                .process(new Processor() {
+                .process(exchange -> {          
+                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
                     
-                    @Override
-                    public void process(Exchange exchange) throws Exception {               
-                        // Record the outbound message.
-                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
-                        
-                        MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING);
-                        messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(),MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
-                    }
-                });
+                    MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
+                    outboxService.recordEvent(forwardedMessageFlowDto.getId(), getIdentifier(),OutboxEventType.PENDING_FORWARDING); 
+                });        
     }
 
     

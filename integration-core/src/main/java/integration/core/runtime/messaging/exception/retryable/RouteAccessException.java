@@ -1,7 +1,7 @@
 package integration.core.runtime.messaging.exception.retryable;
 
+import integration.core.domain.IdentifierType;
 import integration.core.exception.ConditionallyRetryableException;
-import integration.core.exception.ExceptionIdentifierType;
 
 /**
  * An exception which is thrown when there is an issue accessing a route.
@@ -9,18 +9,19 @@ import integration.core.exception.ExceptionIdentifierType;
  * @author Brendan Douglas
  */
 public class RouteAccessException extends ConditionallyRetryableException {
-    private static final long serialVersionUID = -8219003265184923387L;
-       
+    private static final long serialVersionUID = 1776033176707844098L;
+
+
     public RouteAccessException(String message, long routeId, Throwable cause) {
         super(message, cause);
         
-        addOtherIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId);
+        addOtherIdentifier(IdentifierType.ROUTE_ID, routeId);
     }
     
     
     public RouteAccessException(String message, Throwable cause) {
         super(message, cause);
         
-        addOtherIdentifier(ExceptionIdentifierType.NO_ID, null);
+        addOtherIdentifier(IdentifierType.NO_ID, null);
     }
 }

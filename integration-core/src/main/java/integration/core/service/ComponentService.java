@@ -13,17 +13,25 @@ import integration.core.runtime.messaging.exception.retryable.ComponentAccessExc
  *
  */
 public interface ComponentService {   
-    ComponentDto getComponent(long componentId) throws ComponentNotFoundException, ComponentAccessException;
     
-    List<ComponentDto> getAllComponents() throws ComponentAccessException;
-
     /**
-     * Updates a property.  The existing property is end dated.
+     * Gets a component by id.
      * 
      * @param componentId
-     * @param propertyId
+     * @return
+     * @throws ComponentNotFoundException
+     * @throws ComponentAccessException
      */
-  //  void StatusChangeResponse updateProperty(long componentId, long propertyId, String newValue);
+    ComponentDto getComponent(long componentId) throws ComponentNotFoundException, ComponentAccessException;
+    
+    
+    /**
+     * Returns all components.
+     * 
+     * @return
+     * @throws ComponentAccessException
+     */
+    List<ComponentDto> getAllComponents() throws ComponentAccessException;
 }
 
 

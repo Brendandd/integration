@@ -1,21 +1,22 @@
 package integration.core.runtime.messaging.component.type.adapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
+import java.util.Map;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.dto.MessageFlowPropertyDto;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 /**
  * Base class for all outbound adapters.
@@ -37,72 +38,55 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     
     
     @Override
-    protected String getBodyContent(MessageFlowDto messageFlowDto) {
-        return messageFlowDto.getMessageContent();
-    }
-    
-    
-    @Override
     public MessageAcceptancePolicy getMessageAcceptancePolicy() throws ComponentConfigurationException {
         AcceptancePolicy annotation = getRequiredAnnotation(AcceptancePolicy.class);
                        
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
     }
-    
 
     
     @Override
-    public void configure() throws Exception {
-        super.configure();
-
-        // Creates one or more routes based on this components source components.  Each route reads from a topic. This is the entry point for outbound route connectors.
+    public void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+        
+        // An outbound adapter can consume from multiple topics, one for each producer.
         for (MessageProducer messageProducer : messageProducers) {
             
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-                .routeId("inboundEntryPoint-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
+                .routeId("ingress-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
                 .transacted()
-                    .process(new Processor() {
-                    
-                        @Override
-                        public void process(Exchange exchange) throws Exception {
-                            // Record the outbound message.
-                            Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                            MessageFlowDto parentMessageFlowDto = messagingFlowService.retrieveMessageFlow(parentMessageFlowId);
-                                                       
-                            MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
-                            if (result.isSuccess()) {
-                                // Record the content received by this component.
-                                MessageFlowDto messageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.ACCEPTED);
-                            
-                                // Record an event so the message can be forwarded to other components for processing.
-                                messageFlowEventService.recordMessageFlowEvent(messageFlowDto.getId(),getIdentifier(), MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE); 
-                            } else {
-                                messagingFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowId, result, MessageFlowActionType.NOT_ACCEPTED);
-                            }
+                    .process(exchange -> {
+                        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+                                                   
+                        MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
+                        if (result.isSuccess()) {
+                            MessageFlowDto messageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.ACCEPTED);
+                        
+                            outboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), OutboxEventType.INGRESS_COMPLETE); 
+                        } else {
+                            messageFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_ACCEPTED);
                         }
                     });
         }
+    }
 
-        
+    
+    @Override
+    public void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Entry point for a outbound route connectors outbound message handling. 
-        from("direct:outboundMessageHandling-" + getIdentifier())
-            .routeId("outboundMessageHandling-" + getIdentifier())
+        from("jms:queue:egressQueue-" + getIdentifier())
+        .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
+            .transacted()
 
-                .process(new Processor() {
+                .process(exchange ->{
+                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
                     
-                    @Override
-                    public void process(Exchange exchange) throws Exception {                       
-                        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-                        exchange.getMessage().setHeader(MESSAGE_FLOW_ID, parentMessageFlowId);
-                        
-                        MessageFlowDto forwardedMessageFlowDto = messagingFlowService.recordMessageFlow(getIdentifier(), parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING);
-                        messageFlowEventService.recordMessageFlowEvent(forwardedMessageFlowDto.getId(), getIdentifier(), MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE); 
-                    }
-                });
+                    MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
+                    outboxService.recordEvent(forwardedMessageFlowDto.getId(), getIdentifier(), OutboxEventType.PENDING_FORWARDING); 
+                });       
     }
 
     
@@ -110,4 +94,18 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     protected void configureRequiredAnnotations() {    
         requiredAnnotations.add(AcceptancePolicy.class);
     }
+
+    
+    public Map<String,Object>getHeaders(MessageFlowDto messageFlowDto) {
+        Map<String, Object> headers = new HashMap<String, Object>();
+
+        for (MessageFlowPropertyDto property : messageFlowDto.getProperties()) {
+            headers.put(property.getKey(), property.getValue());
+        }
+        
+        return headers;
+    }
+    
+    
+    
 }

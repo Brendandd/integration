@@ -149,14 +149,14 @@ public class MessageFlow extends BaseIntegrationDomain {
     }
 
     
-    public void addOrUpdateProperty(String key, String value) {
+    public void addOrUpdateProperty(String key, Object value) {
         MessageFlowProperty property = getProperty(key);
         
         if (property == null) {
-            property = new MessageFlowProperty(key, value);
+            property = new MessageFlowProperty(key, String.valueOf(value));
             property.setMessageFlow(this);
         } else {
-            property.setValue(value);
+            property.setValue(String.valueOf(value));
         }
         
         this.properties.add(property);

@@ -1,25 +1,27 @@
 package integration.core.exception;
 
+import integration.core.domain.IdentifierType;
+
 /**
  * An identifier type to put into an exception.
  */
 public class ExceptionIdentifier {
-    private ExceptionIdentifierType type;
+    private IdentifierType type;
     private Object value;
     
     
-    public ExceptionIdentifier(ExceptionIdentifierType type, Object value) {
+    public ExceptionIdentifier(IdentifierType type, Object value) {
         this.type = type;
         this.value = value;
     }
 
     
-    public ExceptionIdentifierType getType() {
+    public IdentifierType getType() {
         return type;
     }
 
     
-    public void setType(ExceptionIdentifierType type) {
+    public void setType(IdentifierType type) {
         this.type = type;
     }
 

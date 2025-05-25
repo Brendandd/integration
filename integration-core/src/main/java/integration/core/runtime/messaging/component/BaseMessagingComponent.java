@@ -11,7 +11,6 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.ignite.Ignite;
@@ -21,37 +20,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import integration.core.domain.IdentifierType;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.MessageFlowEventType;
+import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.MessageFlowDto;
-import integration.core.dto.MessageFlowEventDto;
+import integration.core.dto.OutboxEventDto;
 import integration.core.exception.ExceptionIdentifier;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.exception.IntegrationException;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 import integration.core.runtime.messaging.exception.retryable.QueuePublishingException;
-import integration.core.runtime.messaging.service.MessageFlowEventService;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
-import integration.core.runtime.messaging.service.MessagingFlowService;
+import integration.core.runtime.messaging.service.MessageFlowService;
+import integration.core.runtime.messaging.service.OutboxService;
 import integration.core.service.ComponentService;
 
 /**
  * Base class for all Apache Camel messaging component routes.
  * 
- * All messaging components are implemented as multiple Apache Camel routes. All components are separated into inbound message handling and outbound message handling with a JMS queue allowing communication between
- * the two.  
+ * All messaging components are implemented as multiple Apache Camel routes.     
  * 
  * Communication between different message components is done via JMS topics.  
  * 
@@ -65,8 +63,9 @@ import integration.core.service.ComponentService;
  *
  */
 public abstract class BaseMessagingComponent extends RouteBuilder implements MessagingComponent {   
-    public static final String MESSAGE_FLOW_ID = "messageFlowId";
-    public static final String EVENT_ID = "eventId";
+    
+    // Outbox event to route mapping.
+    protected final Map<OutboxEventType, String> eventRoutingMap = new HashMap<>();
     
     protected long identifier;
     protected BaseRoute route;
@@ -84,10 +83,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected ApplicationContext springContext;
     
     @Autowired
-    protected MessagingFlowService messagingFlowService;
+    protected MessageFlowService messageFlowService;
     
     @Autowired
-    protected MessageFlowEventService messageFlowEventService;
+    protected OutboxService outboxService;
     
     protected Map<String,String>componentProperties;
 
@@ -106,6 +105,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
 
     public abstract Logger getLogger();
+    
+    public BaseMessagingComponent() {
+        configureEventRouting();
+    }
+
     
     /**
      * Makes sure each component has the mandatory annotations for its type.
@@ -140,21 +144,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     } 
 
     
-    /**
-     * 
-     */
     protected abstract void configureRequiredAnnotations();
-
-
-    /**
-     * Where to forward the message too.  This is a Camel uri. 
-     * 
-     * @return
-     * @throws ComponentConfigurationException 
-     * @throws RouteConfigurationException 
-     */
-    public abstract String getMessageForwardingUriString(Exchange exchange) throws ComponentConfigurationException, RouteConfigurationException;
-
+    
     
     /**
      * The full component path.  route-path
@@ -180,30 +171,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     /**
-     * Gets the message flow id from eithe the exception or the exchange.
+     * Configure global exception handlers which apply to all components.
      * 
-     * @param theException
-     * @param exchange
-     * @return
+     * @param routeBuilder
      */
-    public Long getMessageFlowId(IntegrationException theException, Exchange exchange) {
-        Long messageFlowId = null;
-        
-        if (theException.hasIdentifier(ExceptionIdentifierType.MESSAGE_FLOW_ID)) {
-            messageFlowId = (Long)theException.getIdentifierValue(ExceptionIdentifierType.MESSAGE_FLOW_ID);
-        } else {
-            messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
-        }  
-        
-        return messageFlowId;
-    }
-    
-    
-    @Override
-    public void configure() throws Exception {
-        defineAdditionalExceptionHandlers();
-
-        // Handled other message flow exceptions.  This type of exception will come from the service layer and can be retried if required.
+    public void configureGlobalExceptionHandlers(RouteBuilder routeBuilder) {
         onException(MessageFlowProcessingException.class)
         .process(exchange -> {           
             MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
@@ -212,7 +184,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             Long messageFlowId = getMessageFlowId(theException, exchange);
             
             if (!theException.isRetryable() && messageFlowId != null) {
-                messagingFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
+                messageFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
             } else {
                 exchange.setRollbackOnly(true); 
             }
@@ -226,11 +198,11 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             QueuePublishingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, QueuePublishingException.class);
             getLogger().error("Queue publishing exception - " + theException.toString());
             
-            Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
+            Long eventId = getEventId(theException, exchange);
             
             // If there was an event id we can mark the event for retry.
             if (eventId != null) {
-                messageFlowEventService.markEventForRetry(eventId);
+                outboxService.markEventForRetry(eventId);
             }
   
             exchange.setRollbackOnly(true);
@@ -242,13 +214,14 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         onException(MessageForwardingException.class)
         .process(exchange -> {           
             MessageForwardingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageForwardingException.class);
+
             getLogger().error("Error forwarding message from the component - " + theException.toString());
             
-            Long eventId = (Long)exchange.getMessage().getHeader(EVENT_ID);
+            Long eventId = getEventId(theException, exchange);
             
             // If there was an event id we can mark the event for retry.
             if (eventId != null) {
-                messageFlowEventService.markEventForRetry(eventId);
+                outboxService.markEventForRetry(eventId);
             }
   
             exchange.setRollbackOnly(true);
@@ -263,57 +236,45 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             getLogger().error("Unknown exception - " + theException.toString());
             
             // As this is just Exception and not a subclass of integration exception there is no id in the exception so see if there is a header set.
-            Long messageFlowId = exchange.getIn().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, Long.class);
+            Long messageFlowId = exchange.getIn().getHeader(IdentifierType.MESSAGE_FLOW_ID.name(), Long.class);
             
             if (messageFlowId != null) {
-                messagingFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, new MessageFlowProcessingException("Unknown exception caught", messageFlowId, theException));
+                messageFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, new MessageFlowProcessingException("Unknown exception caught", messageFlowId, theException));
             } else {
                 exchange.setRollbackOnly(true); 
             }
         })
-        .handled(true);
-        
+        .handled(true);       
+    }
+
+    
+    public void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {
        
-        // A route to add the message flow step id to the inbound message handling complete queue.
-        from("direct:processComponentInboundMessageHandlingCompleteEvent-" + getIdentifier())
-            .routeId("processComponentInboundMessageHandlingCompleteEvent-" + getIdentifier())
+        // A route to place the ingress message flow onto the egress queue
+        from("direct:toEgressQueue-" + getIdentifier())
+            .routeId("toEgressQueue-" + getIdentifier())
             .routeGroup(getComponentPath())  
             .transacted()
-                .process(new Processor() {
-    
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        Long eventId = null;
-                        Long messageFlowId = null;
-                        
-                        // Delete the event.
-                        eventId = exchange.getMessage().getBody(Long.class);
-                        exchange.getMessage().setHeader(EVENT_ID, eventId);
-                        
-                        messageFlowEventService.deleteEvent(eventId);
-                        
-                        // Get the message flow step id.
-                        messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
+                .process(exchange -> {
+                    Long eventId = null;
+                    Long messageFlowId = null;
+                    
+                    // Delete the event.
+                    eventId = exchange.getMessage().getBody(Long.class);
+                    exchange.getMessage().setHeader(IdentifierType.OUTBOX_EVENT_ID.name(), eventId);
+                    
+                    outboxService.deleteEvent(eventId);
+                    
+                    // Get the message flow step id.
+                    messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
 
-                        // Add the message to the queue
-                        try {
-                            producerTemplate.sendBody("jms:queue:inboundMessageHandlingComplete-" + getIdentifier(), messageFlowId);
-                        } catch(Exception e) {
-                            throw new QueuePublishingException("Error adding the message flow id to the queue", eventId, getIdentifier(), messageFlowId, e);
-                        }
+                    // Add the message to the queue
+                    try {
+                        producerTemplate.sendBody("jms:queue:egressQueue-" + getIdentifier(), messageFlowId);
+                    } catch(Exception e) {
+                        throw new QueuePublishingException("Error adding the message flow id to the egress queue", eventId, getIdentifier(), messageFlowId, e);
                     }
                 });
-
-        
-        // A route which reads from the components internal message handling complete queue.  This is the entry point for a components outbound message handling.
-        from("jms:queue:inboundMessageHandlingComplete-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-            .routeId("outboundEntryPoint-" + getIdentifier())
-            .routeGroup(getComponentPath())
-            .setHeader("contentType", constant(getContentType()))
-            .transacted()        
-                // All components must provide an outboudMessageHandling route.
-                .to("direct:outboundMessageHandling-" + getIdentifier());
-
         
         
         // Event processor routes.
@@ -328,32 +289,34 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
                 lock.lock(); // Lock acquired
     
-                List<MessageFlowEventDto> events = messageFlowEventService.getEventsForComponent(getIdentifier(), 400);
+                List<OutboxEventDto> events = outboxService.getEventsForComponent(getIdentifier(), 400);
 
-                for (MessageFlowEventDto event : events) {
+                for (OutboxEventDto event : events) {
                     Exchange subExchange = exchange.copy();
 
-                    subExchange.getIn().setHeader(BaseMessagingComponent.MESSAGE_FLOW_ID, event.getMessageFlowId());
-                    subExchange.getIn().setHeader("eventId", event.getId());
+                    subExchange.getIn().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                    subExchange.getIn().setHeader(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
                     subExchange.getIn().setBody(event.getId());
                     
                     String uri;
-                    if (event.getType() == MessageFlowEventType.COMPONENT_INBOUND_MESSAGE_HANDLING_COMPLETE) {
-                        uri = "processComponentInboundMessageHandlingCompleteEvent" + "-" + event.getComponentId();
-                    } else if (event.getType() == MessageFlowEventType.COMPONENT_OUTBOUND_MESSAGE_HANDLING_COMPLETE) {
-                        uri = "processComponentOutboundMessageHandlingCompleteEvent" + "-" + event.getComponentId();
-                    } else {
+                    String route = eventRoutingMap.get(event.getType());
+                    
+                    if (route != null) {
+                        uri = route + "-" + event.getComponentId();
+                    } else {                        
                         continue; // skip unknown types
                     }
-
+                    
                     exchange.getContext().createProducerTemplate().send("direct:" + uri, subExchange);
                 }
             } finally {
                 lock.unlock(); // Release lock after all events processed
             }
-        });
+        });        
+    }
+
     
-    
+    public void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
         from("timer://stateTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
         .routeId("stateTimer-" + getIdentifier())
@@ -363,9 +326,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             // Process inbound state change
             if (component.getInboundState() != inboundState) {
                 if (component.getInboundState() == IntegrationComponentStateEnum.RUNNING) {
-                    camelContext.getRouteController().startRoute("inboundEntryPoint-" + getIdentifier());
+                    camelContext.getRouteController().startRoute("ingress-" + getIdentifier());
                 } else {
-                    camelContext.getRouteController().stopRoute("inboundEntryPoint-" + getIdentifier());
+                    camelContext.getRouteController().stopRoute("ingress-" + getIdentifier());
                 }
                 
                 inboundState = component.getInboundState();
@@ -374,75 +337,136 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             // Process outbound state change
             if (component.getOutboundState() != outboundState) {
                 if (component.getOutboundState() == IntegrationComponentStateEnum.RUNNING) {
-                    camelContext.getRouteController().startRoute("outboundExitPoint-" + getIdentifier());
+                    camelContext.getRouteController().startRoute("egressForwarding-" + getIdentifier());
                 } else {
-                    camelContext.getRouteController().stopRoute("outboundExitPoint-" + getIdentifier());
+                    camelContext.getRouteController().stopRoute("egressForwarding-" + getIdentifier());
                 }
                 
                 outboundState = component.getOutboundState();
             }
-        });
+        });        
+    }
 
+    
+    /**
+     * Gets the message flow id from either the exception or the exchange.
+     * 
+     * @param theException
+     * @param exchange
+     * @return
+     */
+    public Long getMessageFlowId(IntegrationException theException, Exchange exchange) {
+        Long messageFlowId = null;
         
-        // A route to process outbound message handling complete events.  This is the final stage of a components processing.
-        from("direct:processComponentOutboundMessageHandlingCompleteEvent-" + getIdentifier())
-            .routeId("outboundExitPoint-" + getIdentifier())
+        if (theException.hasIdentifier(IdentifierType.MESSAGE_FLOW_ID)) {
+            messageFlowId = (Long)theException.getIdentifierValue(IdentifierType.MESSAGE_FLOW_ID);
+        } else {
+            messageFlowId = exchange.getIn().getHeader(IdentifierType.MESSAGE_FLOW_ID.name(), Long.class);
+        }  
+        
+        return messageFlowId;
+    }
+    
+    
+    /**
+     * Gets the event d from either the exception or the exchange.
+     * 
+     * @param theException
+     * @param exchange
+     * @return
+     */
+    public Long getEventId(IntegrationException theException, Exchange exchange) {
+        Long messageFlowId = null;
+        
+        if (theException.hasIdentifier(IdentifierType.OUTBOX_EVENT_ID)) {
+            messageFlowId = (Long)theException.getIdentifierValue(IdentifierType.OUTBOX_EVENT_ID);
+        } else {
+            messageFlowId = exchange.getIn().getHeader(IdentifierType.OUTBOX_EVENT_ID.name(), Long.class);
+        }  
+        
+        return messageFlowId;
+    }
+
+    
+    @Override
+    public void configure() throws Exception {
+        configureComponentLevelExceptionHandlers();
+        configureGlobalExceptionHandlers(this);
+        
+        configureIngressRoutes();
+        configureEgressQueueConsumerRoutes();
+        configureEgressForwardingRoutes();
+        configureOutboxRoutes();
+
+        configureStateChangeRoutes(); 
+    }
+
+    
+    /**
+     * Configures the ingress routes for a component.
+     * 
+     * @param routeBuilder
+     * @throws RouteConfigurationException 
+     * @throws ComponentConfigurationException 
+     */
+    public abstract void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException;
+
+    
+    /**
+     * Configures the egress queue consumer routes.
+     * 
+     * @throws ComponentConfigurationException
+     * @throws RouteConfigurationException
+     */
+    public abstract void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException;
+
+    
+    /**
+     * Configures the egress route for a component.
+     * 
+     * @param routeBuilder
+     * @throws RouteConfigurationException 
+     * @throws ComponentConfigurationException 
+     */
+    public void configureEgressForwardingRoutes() throws ComponentConfigurationException, RouteConfigurationException  {
+       
+        // Component egress.  The exit point of a message in a component.
+        from("direct:egressForwarding-" + getIdentifier())
+            .routeId("egressForwarding-" + getIdentifier())
             .routeGroup(getComponentPath())
             .autoStartup(outboundState == IntegrationComponentStateEnum.RUNNING)
             .transacted()
-            .process(new Processor() {
-
-                @Override
-                public void process(Exchange exchange) throws Exception { 
+                .process(exchange -> {                 
                     Long eventId = null;
                     Long messageFlowId = null;
                     
                     // Delete the event.
-                    eventId = (long)exchange.getMessage().getHeader(BaseMessagingComponent.EVENT_ID);
-                    messageFlowEventService.deleteEvent(eventId);
+                    eventId = (long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
+                    outboxService.deleteEvent(eventId);
                 
-                    messageFlowId = (Long)exchange.getMessage().getHeader(BaseMessagingComponent.MESSAGE_FLOW_ID);
-                    MessageFlowDto messageFlowDto = messagingFlowService.retrieveMessageFlow(messageFlowId);
+                    messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
+                    MessageFlowDto messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId);
                     
                     // Change the status of the message flow from pending forwarding to forwarded
-                    messagingFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);
-                    
-                    // Do any pre forwarding processing.  Subclasses can provide their own.  The default is no processing.
-                    preForwardingProcessing(exchange);
-                   
-                    try {
-                        producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), getBodyContent(messageFlowDto), getHeaders(exchange, messageFlowDto.getId()));
-                    } catch(Exception e) {
-                        throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowId, e);
-                    }
-                }
+                    messageFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);
+                       
+                    forwardMessage(exchange, messageFlowDto, eventId);
             });
-     }
-
+    }
+    
     
     /**
-     * Custom processing required by a component before forwarding the message eg. set headers.
+     * The actual forwarding of the message.
      * 
      * @param exchange
-     */
-    protected void preForwardingProcessing(Exchange exchange) throws MessageFlowProcessingException, ConfigurationException {
-        // The default is nothing.
-    }
-
-    
-    protected Map<String, Object>getHeaders(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException, ConfigurationException, ComponentConfigurationException {
-        return new HashMap<String, Object>();
-    }
-
-    
-    /**
-     * Get the body content that needs to be forwarded to the next component/send externally.
-     * 
      * @param messageFlowDto
-     * @return
+     * @param eventId
+     * @throws MessageForwardingException
+     * @throws MessageFlowProcessingException 
+     * @throws ComponentConfigurationException 
      */
-    protected abstract Object getBodyContent(MessageFlowDto messageFlowDto);
-    
+    public abstract void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException;
+
     
     @Override
     public BaseRoute getRoute() {
@@ -546,7 +570,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
         if (annotation == null) {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.COMPONENT_ID, getIdentifier()));
+            identifiers.add(new ExceptionIdentifier(IdentifierType.COMPONENT_ID, getIdentifier()));
             throw new ComponentConfigurationException("Missing required annotation @" + annotationClass.getSimpleName() + " on class " + this.getClass().getName() + " or its hierarchy.", getIdentifier());
         }
 
@@ -554,8 +578,35 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
     
     
-    public void defineAdditionalExceptionHandlers() {
+    /**
+     * 
+     */
+    public void configureComponentLevelExceptionHandlers() {
         
     }
 
+    
+    /**
+     * Gets a message flow DTO from the message flow id in the exchange body.
+     * 
+     * @param exchange
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     */
+    public MessageFlowDto getMessageFlowDtoFromExchangeBody(Exchange exchange) throws MessageFlowProcessingException, MessageFlowNotFoundException {
+        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
+        exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), parentMessageFlowId);
+        
+        return messageFlowService.retrieveMessageFlow(parentMessageFlowId);
+    }
+    
+    
+    /**
+     * The default routing.  Subclasses can override if required.
+     */
+    protected void configureEventRouting() {
+        eventRoutingMap.put(OutboxEventType.INGRESS_COMPLETE, "toEgressQueue");
+        eventRoutingMap.put(OutboxEventType.PENDING_FORWARDING, "egressForwarding");
+    }
 }

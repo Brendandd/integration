@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import integration.core.domain.IdentifierType;
 import integration.core.domain.configuration.IntegrationRoute;
 import integration.core.dto.RouteDto;
 import integration.core.dto.mapper.RouteMapper;
 import integration.core.exception.ExceptionIdentifier;
-import integration.core.exception.ExceptionIdentifierType;
 import integration.core.exception.RouteNotFoundException;
 import integration.core.repository.RouteRepository;
 import integration.core.runtime.messaging.exception.retryable.RouteAccessException;
@@ -56,7 +56,7 @@ public class RouteServiceImpl implements RouteService {
     
             if (routeOptional.isEmpty()) {
                 List<ExceptionIdentifier>identifiers = new ArrayList<>();
-                identifiers.add(new ExceptionIdentifier(ExceptionIdentifierType.ROUTE_ID, routeId));
+                identifiers.add(new ExceptionIdentifier(IdentifierType.ROUTE_ID, routeId));
                 throw new RouteNotFoundException(routeId);
             }
             

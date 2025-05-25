@@ -13,7 +13,7 @@ import integration.core.runtime.messaging.component.type.adapter.annotation.Adap
  * 
  * @author Brendan Douglas
  */
-public abstract class BaseAdapter extends BaseMessagingComponent {
+public abstract class BaseAdapter extends BaseMessagingComponent  {
     private Map<String, String>uriOptions = new HashMap<>();
     
     /**

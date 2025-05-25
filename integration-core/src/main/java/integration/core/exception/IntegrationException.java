@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
 
+import integration.core.domain.IdentifierType;
+
 /**
  * Base class for all custom exception types.
  * 
@@ -55,7 +57,7 @@ public abstract class IntegrationException extends Exception {
     }
 
     
-    public IntegrationException addOtherIdentifier(ExceptionIdentifierType type, Object value) {
+    public IntegrationException addOtherIdentifier(IdentifierType type, Object value) {
         identifiers.add(new ExceptionIdentifier(type, value));
         return this;
     }
@@ -102,7 +104,7 @@ public abstract class IntegrationException extends Exception {
     }
 
     
-    public Object getIdentifierValue(ExceptionIdentifierType type) {
+    public Object getIdentifierValue(IdentifierType type) {
         for (ExceptionIdentifier identifier : identifiers) {
             if (identifier.getType() == type) {
                 return identifier.getValue();
@@ -113,7 +115,7 @@ public abstract class IntegrationException extends Exception {
     }
 
     
-    public boolean hasIdentifier(ExceptionIdentifierType type) {
+    public boolean hasIdentifier(IdentifierType type) {
         for (ExceptionIdentifier identifier : identifiers) {
             if (identifier.getType() == type) {
                 return true;

@@ -7,7 +7,7 @@ import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 public interface MessagingComponent {
     public String getName() throws ComponentConfigurationException;
@@ -16,7 +16,7 @@ public interface MessagingComponent {
     
     public IntegrationComponentCategoryEnum getCategory() throws ComponentConfigurationException;
     
-    public String getComponentPath() throws ConfigurationException, ComponentConfigurationException;
+    public String getComponentPath() throws ComponentConfigurationException, RouteConfigurationException;
     
     public long getIdentifier();
     

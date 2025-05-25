@@ -1,5 +1,7 @@
 package integration.core.runtime.messaging.service;
 
+import java.util.Map;
+
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.dto.MessageFlowDto;
@@ -18,18 +20,19 @@ import integration.core.runtime.messaging.exception.retryable.MessageFlowProcess
 /**
  * 
  */
-public interface MessagingFlowService {
+public interface MessageFlowService {
       
     /**
      * Records the message as not accepted (filtered).
      * 
-     * @param messageConsumer
+     * @param componentId
      * @param messageFlowId
-     * @param contentType
+     * @param policyResult
+     * @param action
      * @return
-     * @throws MessageFlowNotFoundException 
-     * @throws ComponentNotFoundException 
-     * @throws RetryableException 
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
     MessageFlowDto recordMessageNotAccepted(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
@@ -37,55 +40,62 @@ public interface MessagingFlowService {
     /**
      * Records the message as not forwarded (filtered).
      * 
-     * @param messageConsumer
+     * @param componentId
      * @param messageFlowId
-     * @param contentType
+     * @param policyResult
+     * @param action
      * @return
-     * @throws MessageFlowNotFoundException 
-     * @throws ComponentNotFoundException 
-     * @throws RetryableException 
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
     MessageFlowDto recordMessageNotForwarded(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
+    
     /**
-     * Records a message flow event without linking it to a parent.
+     * Records the initial message flow.   
      * 
-     * @param routeId
+     * @param messageContent
      * @param componentId
-     * @param content
-     * @throws ComponentNotFoundException 
-     * @throws MessageFlowNotFoundException 
-     * @throws RetryableException 
+     * @param contentType
+     * @param headers
+     * @param action
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordInitialMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, Map<String, Object> headers, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
     
     /**
-     * Records a message flow event without linking it to a parent.
+     * Records a message flow event linked to a parent message flow where the content has been changed.
      * 
-     * @param routeId
+     * @param messageContent
      * @param componentId
-     * @param content
-     * @throws ComponentNotFoundException 
-     * @throws MessageFlowNotFoundException 
-     * @throws RetryableException 
+     * @param parentMessageFlowId
+     * @param contentType
+     * @param action
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordMessageFlow(String messageContent, long componentId, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordNewContentMessageFlow(String messageContent, long componentId, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
-     * Records a message flow event from a parent.
+     * Records a message flow event linked to a parent message flow where the content is the same.
      * 
-     * @param routeId
      * @param componentId
-     * @param content
-     * @throws ComponentNotFoundException 
-     * @throws MessageFlowNotFoundException 
-     * @throws RetryableException 
+     * @param parentMessageFlowId
+     * @param action
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordMessageFlow(long componentId, long parentMessageFlowId, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
-    
-    
+    MessageFlowDto recordMessageFlowWithSameContent(long componentId, long parentMessageFlowId, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -93,32 +103,22 @@ public interface MessagingFlowService {
      * 
      * @param messageFlowId
      * @return
-     * @throws MessageFlowNotFoundException 
-     * @throws RetryableException 
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
      */
     MessageFlowDto retrieveMessageFlow(long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException;
 
-    /**
-     * Returns a message flow property.
-     * 
-     * @param key
-     * @param messageFlowId
-     * @return
-     * @throws MessageFlowNotFoundException 
-     * @throws RetryableException 
-     */
-    String getMessageFlowProperty(String key, Long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException;
-    
     
     /**
      * Records a transformation failed message flow step.
      * 
      * @param componentId
-     * @param parentMessageFlowId
+     * @param messageFlowId
+     * @param theException
      * @return
      * @throws MessageFlowProcessingException
-     * @throws MessageFlowNotFoundException 
-     * @throws ComponentNotFoundException 
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
     public MessageFlowDto recordTransformationError(long componentId, long messageFlowId, TransformationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
@@ -127,11 +127,12 @@ public interface MessagingFlowService {
      * Records a filter failed message flow step.
      * 
      * @param componentId
-     * @param parentMessageFlowId
+     * @param messageFlowId
+     * @param theException
      * @return
      * @throws MessageFlowProcessingException
-     * @throws MessageFlowNotFoundException 
-     * @throws ComponentNotFoundException 
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
     public MessageFlowDto recordFilterError(long componentId, long messageFlowId, FilterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
@@ -140,11 +141,12 @@ public interface MessagingFlowService {
      * Records a splitter failed message flow step.
      * 
      * @param componentId
-     * @param parentMessageFlowId
+     * @param messageFlowId
+     * @param theException
      * @return
      * @throws MessageFlowProcessingException
-     * @throws MessageFlowNotFoundException 
-     * @throws ComponentNotFoundException 
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
     public MessageFlowDto recordSplitterError(long componentId, long messageFlowId, SplitterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
@@ -153,11 +155,12 @@ public interface MessagingFlowService {
      * Records a failed message flow.  
      * 
      * @param componentId
-     * @param parentMessageFlowId
+     * @param messageFlowId
+     * @param theException
      * @return
      * @throws MessageFlowProcessingException
-     * @throws MessageFlowNotFoundException 
-     * @throws ComponentNotFoundException 
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
      */
     public MessageFlowDto recordMessageFlowError(long componentId, long messageFlowId, IntegrationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
@@ -168,7 +171,7 @@ public interface MessagingFlowService {
      * @param messageFlowId
      * @param forwarded
      * @throws MessageFlowProcessingException
-     * @throws MessageFlowNotFoundException 
+     * @throws MessageFlowNotFoundException
      */
     void updateAction(Long messageFlowId, MessageFlowActionType forwarded) throws MessageFlowProcessingException, MessageFlowNotFoundException;
 }
