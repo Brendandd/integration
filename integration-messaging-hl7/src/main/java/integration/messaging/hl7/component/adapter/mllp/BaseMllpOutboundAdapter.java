@@ -2,7 +2,6 @@ package integration.messaging.hl7.component.adapter.mllp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
             messageProducer.addMessageConsumer(this);
         }
     }
-    
+
     
     @Override
     public Logger getLogger() {
@@ -57,21 +56,15 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     }
 
     
-    private String getMessageForwardingUriString(Exchange exchange) {
-        String target = getTargetHost() + ":" + getTargetPort();
-        return "netty:tcp://" + target + constructOptions();
-    }
-    
-    
     @Override
     protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
-        // These can be the original incoming headers or additional properties added.
-        Map<String, Object> headers = getHeaders(messageFlowDto);
+        String target = getTargetHost() + ":" + getTargetPort();
+        String uri = "netty:tcp://" + target + constructAdapterOptions();
         
         try {
-            producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), messageFlowDto.getMessageContent(), headers);
+            producerTemplate.sendBodyAndHeaders(uri, messageFlowDto.getMessageContent(), getHeaders(messageFlowDto));
         } catch(Exception e) {
-            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
+            throw new MessageForwardingException("Error sending message via MLLP", eventId, getIdentifier(), messageFlowDto.getId(), e);
         }
     }
 }

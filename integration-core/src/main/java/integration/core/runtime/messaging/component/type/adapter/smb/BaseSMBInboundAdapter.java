@@ -42,7 +42,7 @@ public abstract class BaseSMBInboundAdapter extends BaseInboundAdapter {
     
     @Override
     public String getFromUriString() {
-        return "smb:" + getHost() + "/" + getSourceFolder() + constructOptions();
+        return "smb:" + getHost() + "/" + getSourceFolder() + constructAdapterOptions();
     }
 
     

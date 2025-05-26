@@ -53,7 +53,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
     @Override
     public String getFromUriString() {
         String target = getHost() + ":" + getPort();
-        return "netty:tcp://" + target +  constructOptions();
+        return "netty:tcp://" + target +  constructAdapterOptions();
     }
 
     

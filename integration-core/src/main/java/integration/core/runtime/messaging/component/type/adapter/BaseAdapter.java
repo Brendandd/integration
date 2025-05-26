@@ -15,7 +15,7 @@ import integration.core.runtime.messaging.component.type.adapter.annotation.Adap
  */
 public abstract class BaseAdapter extends BaseMessagingComponent  {
     private Map<String, String>uriOptions = new HashMap<>();
-    
+       
     /**
      * Adds a camel URI options.
      * 
@@ -26,13 +26,13 @@ public abstract class BaseAdapter extends BaseMessagingComponent  {
     }
 
     
-    protected String constructOptions() {
+    protected String constructAdapterOptions() {
         Class<?> clazz = this.getClass();
         
         while (clazz != null) {
             AdapterOption[] options = clazz.getDeclaredAnnotationsByType(AdapterOption.class);
             for (AdapterOption option : options) {
-                addURIOption(option.key(), option.value());
+                addURIOption(option.key(), env.resolvePlaceholders(option.value()));
             }
             clazz = clazz.getSuperclass();
         }

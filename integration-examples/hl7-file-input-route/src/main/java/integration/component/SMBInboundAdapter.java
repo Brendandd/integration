@@ -13,8 +13,8 @@ import integration.messaging.hl7.component.adapter.smb.BaseHL7InboundSMBAdapter;
  * 
  */
 @IntegrationComponent(name = "SMB-Inbound-Adapter")
-@AdapterOption(key = "username", value = "testIn") //testing only. 
-@AdapterOption(key = "password", value = "testpass") //testing only
+@AdapterOption(key = "username", value = "${SMB_USER_NAME}") 
+@AdapterOption(key = "password", value = "${SMB_PASSWORD}") 
 @AdapterOption(key = "idempotent", value = "true")
 @AdapterOption(key = "idempotentRepository", value = "#jpaStore")
 @AdapterOption(key = "move", value = "processed")

@@ -14,7 +14,7 @@ import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowPropertyDto;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
-import integration.core.runtime.messaging.component.type.adapter.annotation.LoadHeader;
+import integration.core.runtime.messaging.component.type.adapter.annotation.InjectHeader;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
@@ -108,11 +108,11 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     protected Map<String,Object>getHeaders(MessageFlowDto messageFlowDto) {
         Map<String, Object> headers = new HashMap<>();
 
-        LoadHeader[] loadHeaders = this.getClass().getAnnotationsByType(LoadHeader.class);
+        InjectHeader[] loadHeaders = this.getClass().getAnnotationsByType(InjectHeader.class);
 
         // Collect allowed keys
         Set<String> allowedKeys = new HashSet<>();
-        for (LoadHeader header : loadHeaders) {
+        for (InjectHeader header : loadHeaders) {
             allowedKeys.add(header.name());
         }
 

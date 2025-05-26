@@ -35,14 +35,8 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
     }
 
     
-    private String getMessageForwardingUriString(Exchange exchange) {
-        return "smb:" + getHost() + "/" + getDestinationFolder() + constructOptions();
-    }
-
-    
     @Override
     protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException {
-     // These can be the original incoming headers or additional properties added.
         Map<String, Object> headers = getHeaders(messageFlowDto);
         
         // Apply the file name strategy if the annotation exists.
@@ -58,10 +52,12 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
             }
         }
         
+        String uri = "smb:" + getHost() + "/" + getDestinationFolder() + constructAdapterOptions();
+        
         try {
-            producerTemplate.sendBodyAndHeaders(getMessageForwardingUriString(exchange), messageFlowDto.getMessageContent(), headers);
+            producerTemplate.sendBodyAndHeaders(uri, messageFlowDto.getMessageContent(), headers);
         } catch(Exception e) {
-            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
+            throw new MessageForwardingException("Error sending message via SMB component", eventId, getIdentifier(), messageFlowDto.getId(), e);
         }
     }
     
