@@ -10,6 +10,8 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.events.EventType;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class IgniteConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IgniteConfig.class);
 
     @Bean
     public Ignite igniteInstance() {
@@ -43,8 +46,7 @@ public class IgniteConfig {
 
         // Registering client reconnect listener
         ignite.events().localListen(event -> {
-            System.out.println("🔥 Ignite client has reconnected to the cluster.");
-            // You can reload cache references or reinit any cluster-dependent services here.
+            LOGGER.info("Ignite client has reconnected to the cluster.");
             return true;
         }, EventType.EVT_CLIENT_NODE_RECONNECTED);
 
