@@ -100,7 +100,6 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     
     @Override
     protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        // Entry point for a outbound route connector outbound message handling. 
         from("jms:queue:egressQueue-" + getIdentifier())
         .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))

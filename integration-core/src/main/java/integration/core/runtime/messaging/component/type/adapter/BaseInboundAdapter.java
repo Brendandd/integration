@@ -65,7 +65,6 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     
     @Override
     protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        // Entry point for an inbound adapters outbound message handling. 
         from("jms:queue:egressQueue-" + getIdentifier())
             .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
