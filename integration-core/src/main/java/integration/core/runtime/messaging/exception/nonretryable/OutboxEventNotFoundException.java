@@ -1,21 +1,18 @@
 package integration.core.runtime.messaging.exception.nonretryable;
 
 import integration.core.domain.IdentifierType;
-import integration.core.exception.NonRetryableException;
 
 /**
- * An exception which is thrown when an event is not found. This type of exception cannot be retried.
+ * An exception which is thrown when an outbox event is not found. This type of exception cannot be retried.
  * 
  * @author Brendan Douglas
  */
-public class OutboxEventNotFoundException extends NonRetryableException {
+public class OutboxEventNotFoundException extends EntityNotFoundException {
     private static final long serialVersionUID = -448389444835675541L;
     
-    private static String MESSAGE = "Event not found";
+    private static String ENTITY = "Outbox event";
     
     public OutboxEventNotFoundException(long eventId) {
-        super(MESSAGE);
-        
-        addOtherIdentifier(IdentifierType.OUTBOX_EVENT_ID, eventId);
+        super(ENTITY, eventId, IdentifierType.OUTBOX_EVENT_ID);
     }
 }
