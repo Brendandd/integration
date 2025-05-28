@@ -10,16 +10,14 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
-import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowPropertyDto;
 import integration.core.runtime.messaging.component.EgressQueueConsumerWithoutForwardingPolicyProcessor;
+import integration.core.runtime.messaging.component.IngressTopicConsumerWithAcceptancePolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.adapter.annotation.InjectHeader;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
-import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
@@ -38,9 +36,13 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     @Autowired
     private EgressQueueConsumerWithoutForwardingPolicyProcessor egressQueueConsumerWithoutForwardingPolicyProcessor;
     
+    @Autowired
+    protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
+    
     @PostConstruct
     public void init() {
         egressQueueConsumerWithoutForwardingPolicyProcessor.setComponent(this);
+        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }
     
     
@@ -72,18 +74,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
                 .transacted()
-                    .process(exchange -> {
-                        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                                                   
-                        MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
-                        if (result.isSuccess()) {
-                            MessageFlowDto messageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.ACCEPTED);
-                        
-                            outboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), OutboxEventType.INGRESS_COMPLETE); 
-                        } else {
-                            messageFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_ACCEPTED);
-                        }
-                    });
+                    .process(ingressTopicConsumerWithAcceptancePolicyProcessor);
         }
     }
 

@@ -7,15 +7,13 @@ import org.apache.camel.Exchange;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
-import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
 import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
+import integration.core.runtime.messaging.component.IngressTopicConsumerWithAcceptancePolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
-import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
@@ -41,6 +39,9 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
     
     @Autowired
     protected EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
+    
+    @Autowired
+    protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
     
      
     @Override
@@ -97,21 +98,7 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
                 .transacted()
-                    .process(exchange -> {
-                        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                                                        
-                        MessageFlowPolicyResult result = getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
-                        if (result.isSuccess()) {
-                            // Record the content received by this component.
-                            MessageFlowDto acceptedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.ACCEPTED);
-                        
-                            // Record an event so the message can be forwarded to other components for processing.
-                            outboxService.recordEvent(acceptedMessageFlowDto.getId(),getIdentifier(), OutboxEventType.INGRESS_COMPLETE); 
-                        } else {
-                            messageFlowService.recordMessageNotAccepted(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_ACCEPTED);
-                        }
-                    });
-
+                    .process(ingressTopicConsumerWithAcceptancePolicyProcessor);
         }  
     }
 

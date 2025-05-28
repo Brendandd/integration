@@ -32,6 +32,7 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     public void init() {
         messageTransformationProcessor.setComponent(this);
         egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }
 
     

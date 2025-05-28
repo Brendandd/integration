@@ -24,6 +24,7 @@ public abstract class BaseFilterComponent extends BaseMessageHandlerComponent {
     @PostConstruct
     public void init() {
         egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }
 
     

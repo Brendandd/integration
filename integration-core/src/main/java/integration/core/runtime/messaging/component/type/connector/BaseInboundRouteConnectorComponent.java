@@ -10,10 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
+import integration.core.runtime.messaging.component.IngressTopicConsumerWithoutAcceptancePolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
@@ -38,9 +37,13 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
     @Autowired
     private EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
     
+    @Autowired
+    IngressTopicConsumerWithoutAcceptancePolicyProcessor ingressTopicConsumerWithoutAcceptancePolicyProcessor;
+        
     @PostConstruct
     public void init() {
         egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+        ingressTopicConsumerWithoutAcceptancePolicyProcessor.setComponent(this);
     }
     
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
@@ -85,12 +88,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
         .routeGroup(getComponentPath())
         .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
         .transacted()
-            .process(exchange -> {
-                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                                                          
-                    MessageFlowDto messageFlowDto  = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(),MessageFlowActionType.ACCEPTED);
-                    outboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), OutboxEventType.INGRESS_COMPLETE);  
-            });
+            .process(ingressTopicConsumerWithoutAcceptancePolicyProcessor);
     }
 
     
