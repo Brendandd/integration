@@ -179,7 +179,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         onException(MessageFlowProcessingException.class)
         .process(exchange -> {           
             MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
-            getLogger().error("Message flow exception - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Message flow exception - summary: {}", theException); 
             
             Long messageFlowId = getMessageFlowId(theException, exchange);
             
@@ -196,7 +197,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         onException(QueuePublishingException.class)
         .process(exchange -> {           
             QueuePublishingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, QueuePublishingException.class);
-            getLogger().error("Queue publishing exception - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Queue publishing exception - summary: {}", theException); 
             
             Long eventId = getEventId(theException, exchange);
             
@@ -215,7 +217,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         .process(exchange -> {           
             MessageForwardingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageForwardingException.class);
 
-            getLogger().error("Error forwarding message from the component - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Message forwarding exception - summary: {}", theException); 
             
             Long eventId = getEventId(theException, exchange);
             
@@ -233,7 +236,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         onException(Exception.class)
         .process(exchange -> {           
             Exception theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
-            getLogger().error("Unknown exception - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Unknown exception - summary: {}", theException); 
             
             // As this is just Exception and not a subclass of integration exception there is no id in the exception so see if there is a header set.
             Long messageFlowId = exchange.getIn().getHeader(IdentifierType.MESSAGE_FLOW_ID.name(), Long.class);

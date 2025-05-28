@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.camel.Exchange;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
+import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
@@ -37,7 +39,10 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
     protected List<MessageProducer> messageProducers = new ArrayList<>();
     
+    @Autowired
+    protected EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
     
+     
     @Override
     protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         try {
@@ -119,20 +124,7 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .transacted()
-            
-                .process(exchange -> {                    
-                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                                           
-                    MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
-                                                                   
-                    // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                    if (result.isSuccess()) {
-                        MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                        outboxService.recordEvent(forwardedMessageFlowDto.getId(),getIdentifier(), OutboxEventType.PENDING_FORWARDING);
-                    } else {
-                        messageFlowService.recordMessageNotForwarded(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
-                    }
-                });
+                .process(egressQueueConsumerWithForwardingPolicyProcessor);
     }
 
     

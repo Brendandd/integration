@@ -1,19 +1,15 @@
 package integration.core.runtime.messaging.component.type.handler.splitter;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.core.domain.IdentifierType;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
-import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
-import integration.core.runtime.messaging.service.MessageFlowService;
+import integration.core.runtime.messaging.component.BaseMessageFlowProcessor;
 import integration.core.runtime.messaging.service.OutboxService;
 
 /**
@@ -21,19 +17,10 @@ import integration.core.runtime.messaging.service.OutboxService;
  */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MessageSplitterProcessor implements Processor {
+public class MessageSplitterProcessor extends BaseMessageFlowProcessor<BaseSplitterComponent> {
     
     @Autowired
     private OutboxService outboxService;
-    
-    @Autowired
-    private MessageFlowService messageFlowService;
-    
-    private BaseSplitterComponent component;
-
-    public void setComponent(BaseSplitterComponent component) {
-        this.component = component;
-    }
     
     @Override
     public void process(Exchange exchange) throws Exception {
@@ -45,13 +32,5 @@ public class MessageSplitterProcessor implements Processor {
             MessageFlowDto splitMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(),parentMessageFlowDto.getId(), MessageFlowActionType.CREATED_FROM_SPLIT);
             outboxService.recordEvent(splitMessageFlowDto.getId(),component.getIdentifier(), OutboxEventType.PROCESSING_COMPLETE); 
         }
-    }
-
-    
-    private MessageFlowDto getMessageFlowDtoFromExchangeBody(Exchange exchange) throws MessageFlowProcessingException, MessageFlowNotFoundException {
-        Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
-        exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), parentMessageFlowId);
-        
-        return messageFlowService.retrieveMessageFlow(parentMessageFlowId);
     }
 }

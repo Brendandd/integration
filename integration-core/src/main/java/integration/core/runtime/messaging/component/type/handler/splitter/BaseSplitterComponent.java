@@ -34,8 +34,9 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
     @PostConstruct
     public void init() {
         messageSplitterProcessor.setComponent(this);
+        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
     }
-
+    
     
     public MessageSplitter getSplitter() throws ComponentConfigurationException {
         UsesSplitter annotation = getRequiredAnnotation(UsesSplitter.class);
@@ -50,7 +51,8 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
         onException(SplitterException.class)
         .process(exchange -> {            
             SplitterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, SplitterException.class);
-            getLogger().error("Splitter exception - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Splitter exception - summary: {}", theException); 
             
             Long messageFlowId = getMessageFlowId(theException, exchange);
             

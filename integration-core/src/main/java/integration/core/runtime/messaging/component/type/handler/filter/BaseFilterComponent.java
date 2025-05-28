@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all filter processing steps.
@@ -19,6 +20,11 @@ public abstract class BaseFilterComponent extends BaseMessageHandlerComponent {
     public Logger getLogger() {
         return LOGGER;
     }
+    
+    @PostConstruct
+    public void init() {
+        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+    }
 
     
     @Override
@@ -28,7 +34,8 @@ public abstract class BaseFilterComponent extends BaseMessageHandlerComponent {
         onException(FilterException.class)
         .process(exchange -> {           
             FilterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, FilterException.class);
-            getLogger().error("Filter exception - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Filter exception - summary: {}", theException); 
             
             Long messageFlowId = getMessageFlowId(theException, exchange);
             

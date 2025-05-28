@@ -6,22 +6,24 @@ import java.util.List;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.connector.annotation.From;
-import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Inbound route connector. Accepts messages from other routes.
@@ -32,6 +34,14 @@ import integration.core.runtime.messaging.exception.retryable.MessageForwardingE
 @ForwardingPolicy(name = "forwardAllMessages")
 public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnectorComponent implements MessageProducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseInboundRouteConnectorComponent.class);
+    
+    @Autowired
+    private EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
+    
+    @PostConstruct
+    public void init() {
+        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+    }
     
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
 
@@ -92,20 +102,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .transacted()
-            
-                .process(exchange -> {
-                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                                           
-                    MessageFlowPolicyResult result = getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
-                                                                   
-                    // Apply the message forwarding rules and either write an event for further processing or filter the message.
-                    if (result.isSuccess()) {
-                        MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                        outboxService.recordEvent(forwardedMessageFlowDto.getId(),getIdentifier(), OutboxEventType.PENDING_FORWARDING);
-                    } else {
-                        messageFlowService.recordMessageNotForwarded(getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
-                    }
-                });        
+                .process(egressQueueConsumerWithForwardingPolicyProcessor);
     }
 
     

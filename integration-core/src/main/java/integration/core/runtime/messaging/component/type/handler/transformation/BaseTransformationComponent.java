@@ -31,6 +31,7 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     @PostConstruct
     public void init() {
         messageTransformationProcessor.setComponent(this);
+        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
     }
 
     
@@ -40,7 +41,8 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
         onException(TransformationException.class)
         .process(exchange -> {           
             TransformationException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
-            getLogger().error("Transformation exception - " + theException.toString());
+            getLogger().error("Full exception trace", theException);
+            getLogger().warn("Transformation exception - summary: {}", theException); 
             
             Long messageFlowId = getMessageFlowId(theException, exchange);
                     
