@@ -6,12 +6,14 @@ import java.util.List;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
+import integration.core.runtime.messaging.component.EgressQueueConsumerWithoutForwardingPolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
@@ -23,6 +25,7 @@ import integration.core.runtime.messaging.component.type.handler.filter.annotati
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Outbound route connector. Sends messages to other routes.
@@ -35,6 +38,14 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseOutboundRouteConnectorComponent.class);
     
     protected List<MessageProducer> messageProducers = new ArrayList<>();
+    
+    @Autowired
+    private EgressQueueConsumerWithoutForwardingPolicyProcessor egressQueueConsumerWithoutForwardingPolicyProcessor;
+    
+    @PostConstruct
+    public void init() {
+        egressQueueConsumerWithoutForwardingPolicyProcessor.setComponent(this);
+    }
 
     @Override
     public Logger getLogger() {
@@ -105,13 +116,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .transacted()
-            
-                .process(exchange -> {          
-                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                    
-                    MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                    outboxService.recordEvent(forwardedMessageFlowDto.getId(), getIdentifier(),OutboxEventType.PENDING_FORWARDING); 
-                });        
+                .process(egressQueueConsumerWithoutForwardingPolicyProcessor);
     }
 
     

@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.MessageFlowDto;
 import integration.core.dto.MessageFlowPropertyDto;
+import integration.core.runtime.messaging.component.EgressQueueConsumerWithoutForwardingPolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.adapter.annotation.InjectHeader;
@@ -20,6 +23,7 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageF
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all outbound adapters.
@@ -30,6 +34,15 @@ import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurat
 @AcceptancePolicy(name = "acceptAllMessages")
 public abstract class BaseOutboundAdapter extends BaseAdapter implements MessageConsumer  {
     protected List<MessageProducer> messageProducers = new ArrayList<>();
+    
+    @Autowired
+    private EgressQueueConsumerWithoutForwardingPolicyProcessor egressQueueConsumerWithoutForwardingPolicyProcessor;
+    
+    @PostConstruct
+    public void init() {
+        egressQueueConsumerWithoutForwardingPolicyProcessor.setComponent(this);
+    }
+    
     
     @Override
     public void addMessageProducer(MessageProducer messageProducer) {
@@ -82,13 +95,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .transacted()
-
-                .process(exchange ->{
-                    MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                    
-                    MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-                    outboxService.recordEvent(forwardedMessageFlowDto.getId(), getIdentifier(), OutboxEventType.PENDING_FORWARDING); 
-                });       
+                .process(egressQueueConsumerWithoutForwardingPolicyProcessor);
     }
 
     
