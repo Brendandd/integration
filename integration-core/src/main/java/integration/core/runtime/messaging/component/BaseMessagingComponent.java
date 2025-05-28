@@ -45,6 +45,7 @@ import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessageFlowService;
 import integration.core.runtime.messaging.service.OutboxService;
 import integration.core.service.ComponentService;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all Apache Camel messaging component routes.
@@ -75,6 +76,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected ComponentService componentConfigurationService;
+    
+    @Autowired
+    protected EgressQueueProducerProcessor egressQueueProducerProcessor;
     
     @Autowired
     protected CamelContext camelContext;
@@ -108,6 +112,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     public BaseMessagingComponent() {
         configureEventRouting();
+    }
+    
+    
+    @PostConstruct
+    public void BaseMessagingComponentInit() {
+        egressQueueProducerProcessor.setComponent(this);
     }
 
     
@@ -259,27 +269,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             .routeId("toEgressQueue-" + getIdentifier())
             .routeGroup(getComponentPath())  
             .transacted()
-                .process(exchange -> {
-                    Long eventId = null;
-                    Long messageFlowId = null;
-                    
-                    // Delete the event.
-                    eventId = exchange.getMessage().getBody(Long.class);
-                    exchange.getMessage().setHeader(IdentifierType.OUTBOX_EVENT_ID.name(), eventId);
-                    
-                    outboxService.deleteEvent(eventId);
-                    
-                    // Get the message flow step id.
-                    messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
-
-                    // Add the message to the queue
-                    try {
-                        producerTemplate.sendBody("jms:queue:egressQueue-" + getIdentifier(), messageFlowId);
-                    } catch(Exception e) {
-                        throw new QueuePublishingException("Error adding the message flow id to the egress queue", eventId, getIdentifier(), messageFlowId, e);
-                    }
-                });
-        
+                .process(egressQueueProducerProcessor);
         
         // Event processor routes.
         from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")

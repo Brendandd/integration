@@ -20,6 +20,7 @@ import integration.core.runtime.messaging.component.type.handler.filter.annotati
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all message handlers. A message handler is a component which is not an inbound or outbound adapter.
@@ -42,8 +43,14 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
     
     @Autowired
     protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
+
     
-     
+    @PostConstruct
+    public void BaseMessageHandlerComponentInit() {
+        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
+    }
+    
     @Override
     protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
         try {

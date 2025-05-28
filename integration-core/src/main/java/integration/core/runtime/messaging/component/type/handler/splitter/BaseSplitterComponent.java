@@ -32,10 +32,8 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
 
     
     @PostConstruct
-    public void init() {
+    public void BaseSplitterComponentInit() {
         messageSplitterProcessor.setComponent(this);
-        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
-        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }
     
     

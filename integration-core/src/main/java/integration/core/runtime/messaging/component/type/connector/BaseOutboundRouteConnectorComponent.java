@@ -44,7 +44,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
     
     @PostConstruct
-    public void init() {
+    public void BaseOutboundRouteConnectorComponentInit() {
         egressQueueConsumerWithoutForwardingPolicyProcessor.setComponent(this);
         ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }

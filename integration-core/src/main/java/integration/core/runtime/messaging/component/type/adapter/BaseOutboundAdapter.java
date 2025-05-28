@@ -40,7 +40,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
     
     @PostConstruct
-    public void init() {
+    public void BaseOutboundAdapterInit() {
         egressQueueConsumerWithoutForwardingPolicyProcessor.setComponent(this);
         ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }

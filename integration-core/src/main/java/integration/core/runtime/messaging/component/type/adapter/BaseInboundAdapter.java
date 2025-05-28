@@ -31,7 +31,7 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     private EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
     
     @PostConstruct
-    public void init() {
+    public void BaseInboundAdapterInit() {
         egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
     }
 

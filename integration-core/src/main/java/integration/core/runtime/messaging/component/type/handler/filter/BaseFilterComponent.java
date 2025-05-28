@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
-import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all filter processing steps.
@@ -19,12 +18,6 @@ public abstract class BaseFilterComponent extends BaseMessageHandlerComponent {
     @Override
     public Logger getLogger() {
         return LOGGER;
-    }
-    
-    @PostConstruct
-    public void init() {
-        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
-        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }
 
     

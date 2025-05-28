@@ -27,12 +27,11 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     public Logger getLogger() {
         return LOGGER;
     }
+
     
     @PostConstruct
-    public void init() {
+    public void BaseTransformationComponentInit() {
         messageTransformationProcessor.setComponent(this);
-        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
-        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
     }
 
     
