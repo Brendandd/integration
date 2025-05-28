@@ -3,16 +3,15 @@ package integration.core.runtime.messaging.component.type.handler.transformation
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.OutboxEventType;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.transformation.annotation.UsesTransformer;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all transformation processing steps.
@@ -21,9 +20,17 @@ import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurat
 public abstract class BaseTransformationComponent extends ProcessingMessageHandlerComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformationComponent.class);
 
+    @Autowired
+    private MessageTransformationProcessor messageTransformationProcessor;
+    
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+    
+    @PostConstruct
+    public void init() {
+        messageTransformationProcessor.setComponent(this);
     }
 
     
@@ -67,15 +74,7 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
         .routeGroup(getComponentPath())
         .setHeader("contentType", constant(getContentType()))
         .transacted()   
-            .process(exchange -> {                                      
-                MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                
-                // Transform the content.
-                String transformedContent = getTransformer().transform(parentMessageFlowDto);
-                
-                MessageFlowDto transformedMessageFlowDto = messageFlowService.recordNewContentMessageFlow(transformedContent, getIdentifier(),parentMessageFlowDto.getId(), getContentType(), MessageFlowActionType.TRANSFORMED);
-                outboxService.recordEvent(transformedMessageFlowDto.getId(),getIdentifier(), OutboxEventType.PROCESSING_COMPLETE); 
-        });
+            .process(messageTransformationProcessor);
         
     }
 

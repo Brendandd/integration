@@ -3,16 +3,15 @@ package integration.core.runtime.messaging.component.type.handler.splitter;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.domain.messaging.OutboxEventType;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for splitting a message into 1 or more messages. A splitter is
@@ -22,10 +21,19 @@ import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurat
 @ComponentType(type = IntegrationComponentTypeEnum.SPLITTER)
 public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterComponent.class);
+    
+    @Autowired
+    private MessageSplitterProcessor messageSplitterProcessor;
 
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+
+    
+    @PostConstruct
+    public void init() {
+        messageSplitterProcessor.setComponent(this);
     }
 
     
@@ -34,7 +42,7 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
         
         return springContext.getBean(annotation.name(), MessageSplitter.class);  
     }
-    
+
     
     @Override
     protected void configureComponentLevelExceptionHandlers() {
@@ -64,16 +72,7 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
             .routeGroup(getComponentPath())
             .setHeader("contentType", constant(getContentType()))
             .transacted()   
-            .process(exchange -> {
-                MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
-                
-                String[] splitMessages = getSplitter().split(parentMessageFlowDto);
-                          
-                for (int i = 0; i < splitMessages.length; i++) {
-                    MessageFlowDto splitMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(getIdentifier(),parentMessageFlowDto.getId(), MessageFlowActionType.CREATED_FROM_SPLIT);
-                   outboxService.recordEvent(splitMessageFlowDto.getId(),getIdentifier(), OutboxEventType.PROCESSING_COMPLETE); 
-                }
-            }); 
+            .process(messageSplitterProcessor);
     }
 
     
