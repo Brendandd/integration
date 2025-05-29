@@ -3,16 +3,15 @@ package integration.core.runtime.messaging.component.type.connector;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
 import integration.core.runtime.messaging.component.IngressTopicConsumerWithoutAcceptancePolicyProcessor;
+import integration.core.runtime.messaging.component.IntraRouteJMSTopicProducerEgressForwardingProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
@@ -21,7 +20,6 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageF
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -39,11 +37,15 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
     
     @Autowired
     IngressTopicConsumerWithoutAcceptancePolicyProcessor ingressTopicConsumerWithoutAcceptancePolicyProcessor;
+    
+    @Autowired
+    protected IntraRouteJMSTopicProducerEgressForwardingProcessor intraRouteJMSTopicProducerEgressForwardingProcessor;
         
     @PostConstruct
     public void BaseInboundRouteConnectorComponentInit() {
         egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
         ingressTopicConsumerWithoutAcceptancePolicyProcessor.setComponent(this);
+        intraRouteJMSTopicProducerEgressForwardingProcessor.setComponent(this);
     }
     
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
@@ -53,16 +55,6 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
         return LOGGER;
     }
 
-    
-    @Override
-    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
-        try {
-            producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowDto.getId());
-        } catch(Exception e) {
-            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
-        }
-    }
-    
     
     @Override
     public void addMessageConsumer(MessageConsumer messageConsumer) {
@@ -83,6 +75,8 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
     
     @Override
     protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+        
+        // The entry point for all inbound route connectors.  Consumes from one or more topics.
         from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
         .routeId("ingress-" + getIdentifier())
         .routeGroup(getComponentPath())
@@ -92,15 +86,15 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
     }
 
     
+    @Override
+    protected EgressQueueConsumerWithForwardingPolicyProcessor getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return egressQueueConsumerWithForwardingPolicyProcessor;
+    }
+
     
     @Override
-    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        from("jms:queue:egressQueue-" + getIdentifier())
-        .routeId("egressQueue-" + getIdentifier())
-            .setHeader("contentType", constant(getContentType()))
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(egressQueueConsumerWithForwardingPolicyProcessor);
+    protected IntraRouteJMSTopicProducerEgressForwardingProcessor getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return intraRouteJMSTopicProducerEgressForwardingProcessor;
     }
 
     

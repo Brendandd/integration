@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.EgressQueueConsumerWithoutForwardingPolicyProcessor;
 import integration.core.runtime.messaging.component.IngressTopicConsumerWithAcceptancePolicyProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
@@ -22,7 +21,6 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageA
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -43,25 +41,19 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     @Autowired
     protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
     
+    @Autowired
+    protected OutboundRouteConnectorForwardingProcessor outboundRouteConnectorForwardingProcessor;
+    
     @PostConstruct
     public void BaseOutboundRouteConnectorComponentInit() {
         egressQueueConsumerWithoutForwardingPolicyProcessor.setComponent(this);
         ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
+        outboundRouteConnectorForwardingProcessor.setComponent(this);
     }
 
     @Override
     public Logger getLogger() {
         return LOGGER;
-    }
-
-    
-    @Override
-    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
-        try {
-            producerTemplate.sendBody("jms:topic:VirtualTopic." + getConnectorName(exchange), messageFlowDto.getId());
-        } catch(Exception e) {
-            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
-        }
     }
 
     
@@ -84,7 +76,8 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
     
     @Override
     protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        // Creates one or more routes based on this components source components.  Each route reads from a topic. This is the entry point for outbound route connectors.
+        
+        // The entry point for all outbound route connectors.  Consumes from one or more topics.
         for (MessageProducer messageProducer : messageProducers) {
           
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
@@ -98,13 +91,14 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
 
     
     @Override
-    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        from("jms:queue:egressQueue-" + getIdentifier())
-        .routeId("egressQueue-" + getIdentifier())
-            .setHeader("contentType", constant(getContentType()))
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(egressQueueConsumerWithoutForwardingPolicyProcessor);
+    protected EgressQueueConsumerWithoutForwardingPolicyProcessor getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return egressQueueConsumerWithoutForwardingPolicyProcessor;
+    }
+    
+    
+    @Override
+    protected OutboundRouteConnectorForwardingProcessor getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return outboundRouteConnectorForwardingProcessor;
     }
 
     
@@ -116,7 +110,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
      * @return
      * @throws ComponentConfigurationException 
      */
-    private String getConnectorName(Exchange exchange) throws ComponentConfigurationException {
+    public String getConnectorName(Exchange exchange) throws ComponentConfigurationException {
         StaticDestination staticAnnotation = this.getClass().getAnnotation(StaticDestination.class);
         DynamicDestination dynamicAnnotation = this.getClass().getAnnotation(DynamicDestination.class);
         

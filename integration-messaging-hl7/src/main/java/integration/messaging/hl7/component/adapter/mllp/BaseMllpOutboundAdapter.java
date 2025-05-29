@@ -3,20 +3,21 @@ package integration.messaging.hl7.component.adapter.mllp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all MLLP/HL7 Outbound communication points.
@@ -29,6 +30,9 @@ import integration.core.runtime.messaging.exception.retryable.MessageForwardingE
 public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMllpOutboundAdapter.class);
     
+    @Autowired
+    private MllpForwardingProcessor mllpForwardingProcessor;
+    
     protected List<MessageConsumer> messageConsumers = new ArrayList<>();
 
     @Override
@@ -37,6 +41,12 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
             this.messageProducers.add(messageProducer);
             messageProducer.addMessageConsumer(this);
         }
+    }
+    
+    
+    @PostConstruct
+    public void BaseMllpOutboundAdapterInit() {
+        mllpForwardingProcessor.setComponent(this);
     }
 
     
@@ -57,14 +67,7 @@ public abstract class BaseMllpOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
-        String target = getTargetHost() + ":" + getTargetPort();
-        String uri = "netty:tcp://" + target + constructAdapterOptions();
-        
-        try {
-            producerTemplate.sendBodyAndHeaders(uri, messageFlowDto.getMessageContent(), getHeaders(messageFlowDto));
-        } catch(Exception e) {
-            throw new MessageForwardingException("Error sending message via MLLP", eventId, getIdentifier(), messageFlowDto.getId(), e);
-        }
+    protected MllpForwardingProcessor getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return mllpForwardingProcessor;
     }
 }

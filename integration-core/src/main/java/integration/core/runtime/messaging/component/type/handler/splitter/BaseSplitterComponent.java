@@ -10,7 +10,6 @@ import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -35,8 +34,14 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
     public void BaseSplitterComponentInit() {
         messageSplitterProcessor.setComponent(this);
     }
+
     
-    
+    @Override
+    public MessageSplitterProcessor getProcessingProcessor() {
+        return messageSplitterProcessor;
+    }
+
+
     public MessageSplitter getSplitter() throws ComponentConfigurationException {
         UsesSplitter annotation = getRequiredAnnotation(UsesSplitter.class);
         
@@ -62,18 +67,6 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
             }
         })
         .handled(true);         
-    }
-
-    
-    @Override
-    protected void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
-
-        from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-            .routeId("startProcessing-" + getIdentifier())
-            .routeGroup(getComponentPath())
-            .setHeader("contentType", constant(getContentType()))
-            .transacted()   
-            .process(messageSplitterProcessor);
     }
 
     

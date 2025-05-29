@@ -25,7 +25,6 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.MessageFlowDto;
@@ -382,17 +381,37 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
 
     
+    /**
+     *
+     */
     @Override
     public void configure() throws Exception {
         configureComponentLevelExceptionHandlers();
         configureGlobalExceptionHandlers(this);
         
         configureIngressRoutes();
-        configureEgressQueueConsumerRoutes();
-        configureEgressForwardingRoutes();
         configureOutboxRoutes();
 
         configureStateChangeRoutes(); 
+
+        
+        // Reads a message flow id from the egress queue. This is the entry point for the egress step of a component.
+        from("jms:queue:egressQueue-" + getIdentifier())
+            .routeId("egressQueue-" + getIdentifier())
+            .setHeader("contentType", constant(getContentType()))
+            .routeGroup(getComponentPath())
+            .transacted()
+                .process(getEgressQueueConsumerProcessor()); 
+
+        
+        // The final route in the egress step of a component.  It forwards the message to the next destination which might be another component in the same route,
+        // a component in a different route or externally.
+        from("direct:egressForwarding-" + getIdentifier())
+            .routeId("egressForwarding-" + getIdentifier())
+            .routeGroup(getComponentPath())
+            .autoStartup(outboundState == IntegrationComponentStateEnum.RUNNING)
+            .transacted()
+                .process(getEgressForwardingProcessor());    
     }
 
     
@@ -407,12 +426,12 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     /**
-     * Configures the egress queue consumer routes.
+     * Gets the egress queue consumer processor.
      * 
      * @throws ComponentConfigurationException
      * @throws RouteConfigurationException
      */
-    protected abstract void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException;
+    protected abstract BaseMessageFlowProcessor<?> getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException;
 
     
     /**
@@ -422,45 +441,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @throws RouteConfigurationException 
      * @throws ComponentConfigurationException 
      */
-    protected void configureEgressForwardingRoutes() throws ComponentConfigurationException, RouteConfigurationException  {
-       
-        // Component egress.  The exit point of a message in a component.
-        from("direct:egressForwarding-" + getIdentifier())
-            .routeId("egressForwarding-" + getIdentifier())
-            .routeGroup(getComponentPath())
-            .autoStartup(outboundState == IntegrationComponentStateEnum.RUNNING)
-            .transacted()
-                .process(exchange -> {                 
-                    Long eventId = null;
-                    Long messageFlowId = null;
-                    
-                    // Delete the event.
-                    eventId = (long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
-                    outboxService.deleteEvent(eventId);
-                
-                    messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
-                    MessageFlowDto messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId);
-                    
-                    // Change the status of the message flow from pending forwarding to forwarded
-                    messageFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);
-                       
-                    forwardMessage(exchange, messageFlowDto, eventId);
-            });
-    }
+    protected abstract BaseMessageFlowProcessor<?> getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException;
     
-    
-    /**
-     * The actual forwarding of the message.
-     * 
-     * @param exchange
-     * @param messageFlowDto
-     * @param eventId
-     * @throws MessageForwardingException
-     * @throws MessageFlowProcessingException 
-     * @throws ComponentConfigurationException 
-     */
-    protected abstract void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException;
-
     
     @Override
     public BaseRoute getRoute() {
@@ -579,7 +561,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @param annotationClass
      * @return
      */
-    protected <T extends Annotation> T getAnnotation(Class<T> annotationClass) throws ComponentConfigurationException {
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) throws ComponentConfigurationException {
         T annotation = this.getClass().getAnnotation(annotationClass);
 
         return annotation;
@@ -587,7 +569,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     
     /**
-     * 
+     * Configures any exception handlers in the sub classes.
      */
     protected void configureComponentLevelExceptionHandlers() {
         

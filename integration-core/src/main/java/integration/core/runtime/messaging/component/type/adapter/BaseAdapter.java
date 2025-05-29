@@ -17,7 +17,7 @@ public abstract class BaseAdapter extends BaseMessagingComponent  {
     private Map<String, String>uriOptions = new HashMap<>();
        
     /**
-     * Adds a camel URI options.
+     * Adds camel URI options.
      * 
      * @return
      */
@@ -26,7 +26,7 @@ public abstract class BaseAdapter extends BaseMessagingComponent  {
     }
 
     
-    protected String constructAdapterOptions() {
+    public String constructAdapterOptions() {
         Class<?> clazz = this.getClass();
         
         while (clazz != null) {

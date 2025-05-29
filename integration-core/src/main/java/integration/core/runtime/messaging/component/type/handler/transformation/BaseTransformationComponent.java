@@ -10,7 +10,6 @@ import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.transformation.annotation.UsesTransformer;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -32,6 +31,12 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     @PostConstruct
     public void BaseTransformationComponentInit() {
         messageTransformationProcessor.setComponent(this);
+    }
+    
+    
+    @Override
+    public MessageTransformationProcessor getProcessingProcessor() {
+        return messageTransformationProcessor;
     }
 
     
@@ -66,18 +71,6 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
         UsesTransformer annotation = getRequiredAnnotation(UsesTransformer.class);
         
         return springContext.getBean(annotation.name(), MessageTransformer.class);  
-    }
-    
-    
-    @Override
-    protected void configureProcessingQueueConsumer() throws ComponentConfigurationException, RouteConfigurationException {
-        from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
-        .routeId("startProcessing-" + getIdentifier())
-        .routeGroup(getComponentPath())
-        .setHeader("contentType", constant(getContentType()))
-        .transacted()   
-            .process(messageTransformationProcessor);
-        
     }
 
     

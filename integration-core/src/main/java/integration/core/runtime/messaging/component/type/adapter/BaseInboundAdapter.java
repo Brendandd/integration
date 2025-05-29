@@ -3,18 +3,16 @@ package integration.core.runtime.messaging.component.type.adapter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.camel.Exchange;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
+import integration.core.runtime.messaging.component.IntraRouteJMSTopicProducerEgressForwardingProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.ForwardingPolicy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -30,9 +28,13 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
     @Autowired
     private EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
     
+    @Autowired
+    protected IntraRouteJMSTopicProducerEgressForwardingProcessor intraRouteJMSTopicProducerEgressForwardingProcessor;
+    
     @PostConstruct
     public void BaseInboundAdapterInit() {
         egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
+        intraRouteJMSTopicProducerEgressForwardingProcessor.setComponent(this);
     }
 
     
@@ -63,23 +65,14 @@ public abstract class BaseInboundAdapter extends BaseAdapter implements MessageP
 
     
     @Override
-    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException {
-        try {
-            producerTemplate.sendBody("jms:topic:VirtualTopic." + getComponentPath(), messageFlowDto.getId());
-        } catch(Exception e) {
-            throw new MessageForwardingException("Error forwarding message out of component", eventId, getIdentifier(), messageFlowDto.getId(), e);
-        }
+    protected EgressQueueConsumerWithForwardingPolicyProcessor getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return egressQueueConsumerWithForwardingPolicyProcessor; 
     }
     
     
     @Override
-    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        from("jms:queue:egressQueue-" + getIdentifier())
-            .routeId("egressQueue-" + getIdentifier())
-            .setHeader("contentType", constant(getContentType()))
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(egressQueueConsumerWithForwardingPolicyProcessor); 
+    protected IntraRouteJMSTopicProducerEgressForwardingProcessor getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return intraRouteJMSTopicProducerEgressForwardingProcessor;
     }
 
     

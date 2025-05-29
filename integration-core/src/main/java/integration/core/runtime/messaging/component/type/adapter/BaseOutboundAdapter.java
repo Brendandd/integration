@@ -66,7 +66,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
     @Override
     protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         
-        // An outbound adapter can consume from multiple topics, one for each producer.
+        // The entry point for an outbound adapter.  Consumes from one or more topics.
         for (MessageProducer messageProducer : messageProducers) {
             
             from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
@@ -80,13 +80,8 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
 
     
     @Override
-    protected void configureEgressQueueConsumerRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        from("jms:queue:egressQueue-" + getIdentifier())
-        .routeId("egressQueue-" + getIdentifier())
-            .setHeader("contentType", constant(getContentType()))
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(egressQueueConsumerWithoutForwardingPolicyProcessor);
+    protected EgressQueueConsumerWithoutForwardingPolicyProcessor getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return egressQueueConsumerWithoutForwardingPolicyProcessor;
     }
 
     
@@ -102,7 +97,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
      * @param messageFlowDto
      * @return
      */
-    protected Map<String,Object>getHeaders(MessageFlowDto messageFlowDto) {
+    public Map<String,Object>getHeaders(MessageFlowDto messageFlowDto) {
         Map<String, Object> headers = new HashMap<>();
 
         InjectHeader[] loadHeaders = this.getClass().getAnnotationsByType(InjectHeader.class);

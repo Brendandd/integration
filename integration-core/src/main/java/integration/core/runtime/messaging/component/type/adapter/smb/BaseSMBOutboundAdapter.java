@@ -1,18 +1,14 @@
 package integration.core.runtime.messaging.component.type.adapter.smb;
 
-import java.util.Map;
-
-import org.apache.camel.Exchange;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.BaseOutboundAdapter;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
-import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNamingStrategy;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
-import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
+import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Base class for all SMB outbound communication points.
@@ -23,12 +19,20 @@ import integration.core.runtime.messaging.exception.retryable.MessageForwardingE
 @ComponentType(type = IntegrationComponentTypeEnum.OUTBOUND_SMB_ADAPTER)
 @FileNaming(strategy = "originalFilename") //TODO no need for this anymore.
 public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
-    private static final String CAMEL_FILE_NAME = "CamelFileName";
-
+        
+    @Autowired
+    private SMBForwardingProcessor smbForwardingProcessor;
+    
+    @PostConstruct
+    public void BaseSMBOutboundAdapterInit() {
+        smbForwardingProcessor.setComponent(this);
+    }
+    
+    
     public String getDestinationFolder() {
         return componentProperties.get("TARGET_FOLDER");
     }
-    
+
     
     public String getHost() {
         return componentProperties.get("HOST");
@@ -36,36 +40,15 @@ public abstract class BaseSMBOutboundAdapter extends BaseOutboundAdapter {
 
     
     @Override
-    protected void forwardMessage(Exchange exchange, MessageFlowDto messageFlowDto, long eventId) throws MessageForwardingException, ComponentConfigurationException, MessageFlowProcessingException {
-        Map<String, Object> headers = getHeaders(messageFlowDto);
-        
-        // Apply the file name strategy if the annotation exists.
-        FileNaming annotation = getAnnotation(FileNaming.class);
-         
-        if (annotation != null) {
-            FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
-            
-            String fileName = strategy.getFilename(exchange, messageFlowDto.getId());
-
-            if (fileName != null) {
-                headers.put(CAMEL_FILE_NAME, fileName);
-            }
-        }
-        
-        String uri = "smb:" + getHost() + "/" + getDestinationFolder() + constructAdapterOptions();
-        
-        try {
-            producerTemplate.sendBodyAndHeaders(uri, messageFlowDto.getMessageContent(), headers);
-        } catch(Exception e) {
-            throw new MessageForwardingException("Error sending message via SMB component", eventId, getIdentifier(), messageFlowDto.getId(), e);
-        }
-    }
-    
-    
-    @Override
     protected void configureRequiredAnnotations() {    
         super.configureRequiredAnnotations();
         
         requiredAnnotations.add(FileNaming.class);
+    }
+
+    
+    @Override
+    protected SMBForwardingProcessor getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException {
+        return smbForwardingProcessor;
     }
 }
