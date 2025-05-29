@@ -13,7 +13,7 @@ import integration.core.runtime.messaging.component.type.handler.filter.MessageF
 import integration.core.runtime.messaging.service.OutboxService;
 
 /**
- * A common Camel processor which is called after a message flow id is read from the egress queue.  A forwarding policy is applied before either filtering the message or writing an event for forwarding.
+ * A common Camel processor which is called after a message flow id is consaumed from the egress queue.  A forwarding policy is applied before either filtering the message or writing an event for forwarding.
  */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
