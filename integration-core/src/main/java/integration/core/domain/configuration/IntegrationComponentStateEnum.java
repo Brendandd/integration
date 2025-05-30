@@ -7,5 +7,5 @@ package integration.core.domain.configuration;
  *
  */
 public enum IntegrationComponentStateEnum {
-    RUNNING, STOPPED;
+    RUNNING, STOPPED
 }

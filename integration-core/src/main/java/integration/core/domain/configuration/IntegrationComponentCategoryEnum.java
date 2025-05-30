@@ -10,5 +10,5 @@ public enum IntegrationComponentCategoryEnum {
     INBOUND_ROUTE_CONNECTOR,
     OUTBOUND_ROUTE_CONNECTOR,
     
-    MESSAGE_HANDLER;
+    MESSAGE_HANDLER
 }

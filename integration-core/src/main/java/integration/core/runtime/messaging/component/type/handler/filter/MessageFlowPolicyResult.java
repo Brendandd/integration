@@ -1,7 +1,7 @@
 package integration.core.runtime.messaging.component.type.handler.filter;
 
 public class MessageFlowPolicyResult {
-    private boolean success;
+    private final boolean success;
     private String filterReason;
     private String filterName;
     

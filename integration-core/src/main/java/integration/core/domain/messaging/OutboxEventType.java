@@ -8,5 +8,5 @@ package integration.core.domain.messaging;
 public enum OutboxEventType {
     INGRESS_COMPLETE,
     PROCESSING_COMPLETE,
-    PENDING_FORWARDING;
+    PENDING_FORWARDING
 }

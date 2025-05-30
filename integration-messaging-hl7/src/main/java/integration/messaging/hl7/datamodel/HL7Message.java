@@ -22,7 +22,7 @@ public class HL7Message implements Serializable {
 
     public HL7Message(String sourceHL7Message) {
 
-        String[] splitMessageSegments = sourceHL7Message.toString().split("\r(?=[A-Za-z0-9]{3}|)");
+        String[] splitMessageSegments = sourceHL7Message.split("\r(?=[A-Za-z0-9]{3}|)");
 
         for (String value : splitMessageSegments) {
             Segment segment = createSegment(value);

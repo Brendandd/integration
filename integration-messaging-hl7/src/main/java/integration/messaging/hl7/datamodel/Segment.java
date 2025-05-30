@@ -21,7 +21,7 @@ public class Segment extends MessageComponent implements Serializable {
     protected HL7Message message = null;
 
     protected Segment() {
-    };
+    }
 
     public Segment(String segment, HL7Message message) {
         this.message = message;

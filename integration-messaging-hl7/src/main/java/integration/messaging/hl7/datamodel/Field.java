@@ -805,10 +805,7 @@ public class Field extends MessageComponent implements Serializable {
     private boolean compare(String matchType, String text, String... matchValues) {
         MatchTypeEnum type = MatchTypeEnum.get(matchType);
 
-        boolean result = false;
-        if (matchType.toLowerCase().startsWith("not")) {
-            result = true;
-        }
+        boolean result = matchType.toLowerCase().startsWith("not");
 
         if (matchValues == null) {
             return false;

@@ -12,8 +12,8 @@ public enum EscapeSequenceEnum {
     FIELD_SEPARATOR("\\F\\", "|"), SUB_FIELD_SEPARATOR("\\S\\", "^"), FIELD_REPETITION_SEPARATOR("\\R\\", "~"),
     SUB_SUB_FIELD_SEPARATOR("\\T\\", "&"), SLASH("\\E\\", "\\");
 
-    private String escapeSequence;
-    private String character;
+    private final String escapeSequence;
+    private final String character;
 
     EscapeSequenceEnum(String escapeSequence, String character) {
         this.escapeSequence = escapeSequence;

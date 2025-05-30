@@ -7,5 +7,5 @@ package integration.core.domain.configuration;
  *
  */
 public enum ContentTypeEnum {
-    HL7, HL7_ACK, XML, PDF, TXT, JSON, SQL_RESULTSET, GENERIC;
+    HL7, HL7_ACK, XML, PDF, TXT, JSON, SQL_RESULTSET, GENERIC
 }

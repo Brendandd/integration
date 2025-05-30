@@ -28,6 +28,6 @@ public enum MessageFlowActionType {
     FILTER_ERROR,
     SPLITTER_ERROR,
     
-    PROCESSING_ERROR;
- 
+    PROCESSING_ERROR
+
 }
