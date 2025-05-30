@@ -1027,8 +1027,7 @@ public class HL7Message implements Serializable {
         }
 
         if (messageType.endsWith("_*")) {
-            boolean val = type.substring(0, 3).equals(messageType.substring(0, 3));
-            return val;
+            return type.substring(0, 3).equals(messageType.substring(0, 3));
         }
 
         return type.equals(messageType);

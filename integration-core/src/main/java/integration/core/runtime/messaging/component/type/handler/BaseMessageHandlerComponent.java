@@ -33,8 +33,8 @@ import jakarta.annotation.PostConstruct;
 @AcceptancePolicy(name = "acceptAllMessages")
 @ForwardingPolicy(name = "forwardAllMessages")
 public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent implements MessageConsumer, MessageProducer {
-    protected List<MessageConsumer> messageConsumers = new ArrayList<>();
-    protected List<MessageProducer> messageProducers = new ArrayList<>();
+    protected final List<MessageConsumer> messageConsumers = new ArrayList<>();
+    protected final List<MessageProducer> messageProducers = new ArrayList<>();
     
     @Autowired
     protected EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;

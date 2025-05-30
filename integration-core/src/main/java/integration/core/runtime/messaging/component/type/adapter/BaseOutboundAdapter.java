@@ -31,7 +31,7 @@ import jakarta.annotation.PostConstruct;
  */
 @AcceptancePolicy(name = "acceptAllMessages")
 public abstract class BaseOutboundAdapter extends BaseAdapter implements MessageConsumer  {
-    protected List<MessageProducer> messageProducers = new ArrayList<>();
+    protected final List<MessageProducer> messageProducers = new ArrayList<>();
     
     @Autowired
     private EgressQueueConsumerWithoutForwardingPolicyProcessor egressQueueConsumerWithoutForwardingPolicyProcessor;

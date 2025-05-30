@@ -39,8 +39,8 @@ public abstract class BaseRoute {
     /**
      * An inbound adapter message can be sent to one or more message processors.
      * 
-     * @param messageProducer
-     * @param messageConsumers
+     * @param producer
+     * @param consumers
      */
     public void addInboundFlow(BaseInboundAdapter producer, BaseMessageHandlerComponent ... consumers) {
         addFlow(producer, consumers);         
@@ -49,9 +49,9 @@ public abstract class BaseRoute {
     
     /**
      * An inbound router connector message can be sent to one or more message consumers.
-     * 
-     * @param messageProducer
-     * @param messageConsumers
+     *
+     * @param producer
+     * @param consumers
      */
     public void addInboundFlow(BaseInboundRouteConnectorComponent producer, BaseMessageHandlerComponent ... consumers) {
         addFlow(producer, consumers);          
@@ -104,9 +104,9 @@ public abstract class BaseRoute {
     
     /**
      * An message processor message can be sent to one or more message consumers. 
-     * 
-     * @param messageProducer
-     * @param messageConsumers
+     *
+     * @param producer
+     * @param consumers
      */
     public void addInternalFlow(BaseMessageHandlerComponent producer, BaseMessageHandlerComponent ... consumers) {
         addFlow(producer, consumers);         

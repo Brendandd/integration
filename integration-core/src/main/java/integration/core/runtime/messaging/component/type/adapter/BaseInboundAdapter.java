@@ -23,7 +23,7 @@ import jakarta.annotation.PostConstruct;
  */
 @ForwardingPolicy(name = "forwardAllMessages")
 public abstract class BaseInboundAdapter extends BaseAdapter implements MessageProducer {
-    protected List<MessageConsumer> messageConsumers = new ArrayList<>();
+    protected final List<MessageConsumer> messageConsumers = new ArrayList<>();
     
     @Autowired
     private EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;

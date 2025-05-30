@@ -33,7 +33,7 @@ import jakarta.annotation.PostConstruct;
 public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConnectorComponent implements MessageConsumer  {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseOutboundRouteConnectorComponent.class);
     
-    protected List<MessageProducer> messageProducers = new ArrayList<>();
+    protected final List<MessageProducer> messageProducers = new ArrayList<>();
     
     @Autowired
     private EgressQueueConsumerWithoutForwardingPolicyProcessor egressQueueConsumerWithoutForwardingPolicyProcessor;

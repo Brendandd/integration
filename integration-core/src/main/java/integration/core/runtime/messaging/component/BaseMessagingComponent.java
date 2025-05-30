@@ -105,7 +105,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     @Autowired
     protected MessageFlowPropertyService messageFlowPropertyService;
     
-    protected Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
+    protected final Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
 
     public abstract Logger getLogger();
     
@@ -417,8 +417,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     /**
      * Configures the ingress routes for a component.
-     * 
-     * @param routeBuilder
+     *
      * @throws RouteConfigurationException 
      * @throws ComponentConfigurationException 
      */
@@ -436,8 +435,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     /**
      * Configures the egress route for a component.
-     * 
-     * @param routeBuilder
+     *
      * @throws RouteConfigurationException 
      * @throws ComponentConfigurationException 
      */

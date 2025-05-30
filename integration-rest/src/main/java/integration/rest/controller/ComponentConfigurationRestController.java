@@ -63,8 +63,7 @@ public class ComponentConfigurationRestController {
     
     /**
      * Gets a single component by id.
-     * 
-     * @param routeName
+     *
      * @return
      * @throws ComponentAccessException 
      * @throws ComponentNotFoundException 

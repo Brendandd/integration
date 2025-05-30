@@ -48,7 +48,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
         intraRouteJMSTopicProducerEgressForwardingProcessor.setComponent(this);
     }
     
-    protected List<MessageConsumer> messageConsumers = new ArrayList<>();
+    protected final List<MessageConsumer> messageConsumers = new ArrayList<>();
 
     @Override
     public Logger getLogger() {
