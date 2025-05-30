@@ -18,22 +18,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import integration.core.domain.messaging.MessageFlowActionType;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.exception.ComponentNotFoundException;
-import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 
 /**
  * Tests the processor which is called after the message flow id is consumer from the egress queue.
  */
 @ExtendWith(MockitoExtension.class)
-public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMessageFlowProcessorTest {
+public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends BaseMessageFlowProcessorTest {
     
     @InjectMocks
-    private EgressQueueConsumerWithForwardingPolicyProcessor processor;
-
+    private EgressQueueConsumerWithoutForwardingPolicyProcessor processor;
 
     @BeforeEach
     void setup() {
-        processor.setComponent(messageProducer);
+        processor.setComponent(messageConsumer);
     }
 
     /**
@@ -48,15 +46,10 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        when(messageFlowService.retrieveMessageFlow(parentMessageFlowId)).thenReturn(parentMessageFlowDto);
+        mockRetrieveMessageFlow();
         
-        when(messageProducer.getIdentifier()).thenReturn(componentId);
+        when(messageConsumer.getIdentifier()).thenReturn(componentId);
 
-        // Mock the mock message forwarding policy.
-        mockSuccessMessageForwardingPolicy();
-
-        // The forwarding result was success so record a message flow.
-        when(parentMessageFlowDto.getId()).thenReturn(parentMessageFlowId);
         when(messageFlowService.recordMessageFlowWithSameContent(componentId, parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING)).thenReturn(forwardedMessageFlowDto);
         when(forwardedMessageFlowDto.getId()).thenReturn(forwardedMessageFlowId);
 
@@ -66,35 +59,6 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         // Verify expected behavior
         verify(outboxService).recordEvent(forwardedMessageFlowId, componentId, OutboxEventType.PENDING_FORWARDING);
         verify(messageFlowService, never()).recordMessageNotForwarded(anyLong(), anyLong(), any(), any());
-    }
-
-    
-    /**
-     * Tests the successful execution of the processor.  The message is not forwarding (filtered).
-     * 
-     * @throws Exception
-     */
-    @Test
-    void testProcessor_MessageNotForwarded() throws Exception {
-               
-        // Mock the camel exchange message to return a mock message.
-        mockMessageFlowIdCamelMessage();
-
-        // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
-        
-        when(messageProducer.getIdentifier()).thenReturn(componentId);
-
-        // Mock the mock message forwarding policy.
-        MessageFlowPolicyResult failResult = mockNotSuccessMessageForwardingPolicy();
-
-        // Call the processor.
-        processor.process(exchange);
-
-        // Verify expected behavior
-        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), any());
-        verify(messageFlowService, never()).recordMessageFlowWithSameContent(anyLong(), anyLong(), any());
-        verify(messageFlowService).recordMessageNotForwarded(componentId,parentMessageFlowId,failResult,MessageFlowActionType.NOT_FORWARDED);
     }
 
     
@@ -112,11 +76,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         // Call the mock message flow service to get a mock dto.
         mockRetrieveMessageFlow();
         
-        when(messageProducer.getIdentifier()).thenReturn(componentId);
-
-        // Mock the mock message forwarding policy.
-        mockSuccessMessageForwardingPolicy();
-
+        when(messageConsumer.getIdentifier()).thenReturn(componentId);
 
         // Call the processor and throw an exception
         ComponentNotFoundException ex = new ComponentNotFoundException(555l);
@@ -132,7 +92,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         // Make sure an event is not record when an exception is thrown.
         verify(outboxService, never()).recordEvent(anyLong(), anyLong(), any());
         
-        // Makes sure ta message not forwarded message flow step is not recorded when an exception is thrown.
+        // Makes sure a message not forwarded message flow step is not recorded when an exception is thrown.
         verify(messageFlowService, never()).recordMessageNotForwarded(anyLong(), anyLong(), any(), any());
     }
     
@@ -152,10 +112,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         // Call the mock message flow service to get a mock dto.
         mockRetrieveMessageFlow();
         
-        when(messageProducer.getIdentifier()).thenReturn(componentId);
-
-        // Mock the mock message forwarding policy.
-        mockSuccessMessageForwardingPolicy();
+        when(messageConsumer.getIdentifier()).thenReturn(componentId);
 
         MessageFlowProcessingException ex = mockRetryableException();
         
@@ -184,17 +141,14 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
      */
     @Test
     void testProcessor_DataIntegrityViolationExceptionThrown() throws Exception {
-              
+               
         // Mock the camel exchange message to return a mock message.
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
         mockRetrieveMessageFlow();
         
-        when(messageProducer.getIdentifier()).thenReturn(componentId);
-
-        // Mock the mock message forwarding policy.
-        mockSuccessMessageForwardingPolicy();
+        when(messageConsumer.getIdentifier()).thenReturn(componentId);
 
         MessageFlowProcessingException ex = mockNotRetryableException();
         

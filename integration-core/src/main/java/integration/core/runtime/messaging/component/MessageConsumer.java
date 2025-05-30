@@ -1,7 +1,7 @@
 package integration.core.runtime.messaging.component;
 
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
-import integration.core.runtime.messaging.exception.nonretryable.ConfigurationException;
+import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 /**
@@ -23,5 +23,5 @@ public interface MessageConsumer extends MessagingComponent {
      * @return
      * @throws RouteConfigurationException 
      */
-    MessageAcceptancePolicy getMessageAcceptancePolicy() throws ConfigurationException, RouteConfigurationException;
+    MessageAcceptancePolicy getMessageAcceptancePolicy() throws ComponentConfigurationException;
 }
