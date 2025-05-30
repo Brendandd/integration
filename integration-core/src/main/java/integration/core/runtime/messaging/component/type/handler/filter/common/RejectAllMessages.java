@@ -19,9 +19,7 @@ public class RejectAllMessages extends MessageAcceptancePolicy {
 
     @Override
     public MessageFlowPolicyResult applyPolicy(MessageFlowDto messageFlow) throws FilterException {
-        MessageFlowPolicyResult result = new MessageFlowPolicyResult(false, getName(), "All messages are rejected by this policy");
-        
-        return result;
+        return new MessageFlowPolicyResult(false, getName(), "All messages are rejected by this policy");
     }
     
     @Override

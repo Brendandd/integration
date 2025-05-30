@@ -18,5 +18,5 @@ public abstract class MessageTransformer {
         }
     }
 
-    public abstract String transformMessage(MessageFlowDto messageFlow) throws TransformationException, Exception;
+    public abstract String transformMessage(MessageFlowDto messageFlow) throws TransformationException;
 }

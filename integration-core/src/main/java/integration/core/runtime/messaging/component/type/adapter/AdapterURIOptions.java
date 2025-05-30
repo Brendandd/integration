@@ -4,13 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AdapterURIOptions {
-    private Map<String, String>uriOptions = new HashMap<>();
+    private final Map<String, String>uriOptions = new HashMap<>();
 
     
     /**
      * Adds a camel URI options.
-     * 
-     * @return
+     *
      */
     protected void addURIOption(String key, String value) {
         uriOptions.put(key, value);

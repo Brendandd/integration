@@ -11,7 +11,7 @@ import integration.core.runtime.messaging.exception.nonretryable.EntityNotFoundE
 public class RouteNotFoundException extends EntityNotFoundException {
     private static final long serialVersionUID = -8219003265184923387L;
     
-    private static String ENTITY = "Route";
+    private final static String ENTITY = "Route";
     
     public RouteNotFoundException(long routeId) {
         super(ENTITY, routeId, IdentifierType.ROUTE_ID);

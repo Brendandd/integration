@@ -14,12 +14,11 @@ import integration.core.runtime.messaging.component.type.adapter.annotation.Adap
  * @author Brendan Douglas
  */
 public abstract class BaseAdapter extends BaseMessagingComponent  {
-    private Map<String, String>uriOptions = new HashMap<>();
+    private final Map<String, String>uriOptions = new HashMap<>();
        
     /**
      * Adds camel URI options.
-     * 
-     * @return
+     *
      */
     protected void addURIOption(String key, String value) {
         uriOptions.put(key, value);

@@ -12,8 +12,8 @@ import integration.core.domain.messaging.OutboxEvent;
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
 
     @Query(name = "getEvents", value = "select e from OutboxEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
-    public List<OutboxEvent> getEvents(long componentId, int numberToRead);
+    List<OutboxEvent> getEvents(long componentId, int numberToRead);
     
     @Query(name = "getEvents", value = "select e from OutboxEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate")
-    public List<OutboxEvent> getEvents(long componentId);
+    List<OutboxEvent> getEvents(long componentId);
 }

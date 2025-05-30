@@ -14,7 +14,7 @@ public interface MessageConsumer extends MessagingComponent {
      * 
      * @param messageProducer
      */
-    public void addMessageProducer(MessageProducer messageProducer);
+    void addMessageProducer(MessageProducer messageProducer);
     
     
     /**

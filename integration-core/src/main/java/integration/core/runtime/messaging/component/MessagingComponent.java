@@ -10,33 +10,33 @@ import integration.core.runtime.messaging.exception.nonretryable.ComponentConfig
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
 
 public interface MessagingComponent {
-    public String getName() throws ComponentConfigurationException;
+    String getName() throws ComponentConfigurationException;
 
-    public IntegrationComponentTypeEnum getType() throws ComponentConfigurationException;
-    
-    public IntegrationComponentCategoryEnum getCategory() throws ComponentConfigurationException;
-    
-    public String getComponentPath() throws ComponentConfigurationException, RouteConfigurationException;
-    
-    public long getIdentifier();
-    
-    public void setIdentifier(long identifier);
-    
-    public BaseRoute getRoute();
-    
-    public void setRoute(BaseRoute route);
-    
-    public Map<String, String> getConfiguration();
-    
-    public void setConfiguration(Map<String, String> configuration);
-    
-    public IntegrationComponentStateEnum getInboundState();
+    IntegrationComponentTypeEnum getType() throws ComponentConfigurationException;
 
-    public void setInboundState(IntegrationComponentStateEnum inboundState);
+    IntegrationComponentCategoryEnum getCategory() throws ComponentConfigurationException;
 
-    public IntegrationComponentStateEnum getOutboundState();
+    String getComponentPath() throws ComponentConfigurationException, RouteConfigurationException;
 
-    public void setOutboundState(IntegrationComponentStateEnum outboundState);
-                
-    public void validateAnnotations() throws ComponentConfigurationException;
+    long getIdentifier();
+
+    void setIdentifier(long identifier);
+
+    BaseRoute getRoute();
+
+    void setRoute(BaseRoute route);
+
+    Map<String, String> getConfiguration();
+
+    void setConfiguration(Map<String, String> configuration);
+
+    IntegrationComponentStateEnum getInboundState();
+
+    void setInboundState(IntegrationComponentStateEnum inboundState);
+
+    IntegrationComponentStateEnum getOutboundState();
+
+    void setOutboundState(IntegrationComponentStateEnum outboundState);
+
+    void validateAnnotations() throws ComponentConfigurationException;
 }

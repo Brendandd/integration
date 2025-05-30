@@ -43,7 +43,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
      */
     @Test
     void testProcessor_MessagePendingForwarding() throws Exception {
-        long forwardedMessageFlowId = 71l;
+        long forwardedMessageFlowId = 71L;
                
         mockMessageFlowIdCamelMessage();
 
@@ -119,7 +119,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
 
 
         // Call the processor and throw an exception
-        ComponentNotFoundException ex = new ComponentNotFoundException(555l);
+        ComponentNotFoundException ex = new ComponentNotFoundException(555L);
         when(messageFlowService.recordMessageFlowWithSameContent(componentId, parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING)).thenThrow(ex);
         
         ComponentNotFoundException thrown = assertThrows(

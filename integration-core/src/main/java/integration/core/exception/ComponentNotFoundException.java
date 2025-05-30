@@ -11,7 +11,7 @@ import integration.core.runtime.messaging.exception.nonretryable.EntityNotFoundE
 public class ComponentNotFoundException extends EntityNotFoundException {
     private static final long serialVersionUID = -8219003265184923387L;
     
-    private static String ENTITY = "Component";
+    private final static String ENTITY = "Component";
     
     public ComponentNotFoundException(long componentId) {
         super(ENTITY, componentId, IdentifierType.COMPONENT_ID);

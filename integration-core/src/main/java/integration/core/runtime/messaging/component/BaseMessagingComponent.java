@@ -562,9 +562,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @return
      */
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) throws ComponentConfigurationException {
-        T annotation = this.getClass().getAnnotation(annotationClass);
-
-        return annotation;
+        return this.getClass().getAnnotation(annotationClass);
     }
     
     

@@ -34,7 +34,7 @@ public abstract class BaseRoute {
         
     protected long identifier;
     
-    private List<MessagingComponent> components = new ArrayList<>();
+    private final List<MessagingComponent> components = new ArrayList<>();
    
     /**
      * An inbound adapter message can be sent to one or more message processors.

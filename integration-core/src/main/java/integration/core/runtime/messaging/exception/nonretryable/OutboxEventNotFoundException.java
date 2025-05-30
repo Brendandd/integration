@@ -10,7 +10,7 @@ import integration.core.domain.IdentifierType;
 public class OutboxEventNotFoundException extends EntityNotFoundException {
     private static final long serialVersionUID = -448389444835675541L;
     
-    private static String ENTITY = "Outbox event";
+    private final static String ENTITY = "Outbox event";
     
     public OutboxEventNotFoundException(long eventId) {
         super(ENTITY, eventId, IdentifierType.OUTBOX_EVENT_ID);

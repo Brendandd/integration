@@ -31,9 +31,9 @@ import integration.core.runtime.messaging.service.OutboxService;
  */
 public class BaseMessageFlowProcessorTest {
     // Ids used for all tests.
-    protected long componentId = 555l;
-    protected long parentMessageFlowId = 70l;
-    protected long eventId = 25l;
+    protected long componentId = 555L;
+    protected long parentMessageFlowId = 70L;
+    protected long eventId = 25L;
     
     
     @Mock
@@ -160,18 +160,14 @@ public class BaseMessageFlowProcessorTest {
     protected MessageFlowProcessingException mockRetryableException() {
         Throwable queryTimeOutException = new QueryTimeoutException("Query timed out");
         DataAccessException dataAccessException = new DataAccessException("DB error", queryTimeOutException) {};
-        MessageFlowProcessingException ex = new MessageFlowProcessingException("Message flow error", parentMessageFlowId, dataAccessException);
-        
-        return ex;
+        return new MessageFlowProcessingException("Message flow error", parentMessageFlowId, dataAccessException);
     }
     
     
     protected MessageFlowProcessingException mockNotRetryableException() {
         Throwable queryTimeOutException = new DataIntegrityViolationException("Duplicate key");
         DataAccessException dataAccessException = new DataAccessException("DB error", queryTimeOutException) {};
-        MessageFlowProcessingException ex = new MessageFlowProcessingException("Message flow error", parentMessageFlowId, dataAccessException);
-        
-        return ex;
+        return new MessageFlowProcessingException("Message flow error", parentMessageFlowId, dataAccessException);
     }
 
     

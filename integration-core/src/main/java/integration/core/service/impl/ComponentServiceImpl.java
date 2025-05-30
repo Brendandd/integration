@@ -66,11 +66,4 @@ public class ComponentServiceImpl implements ComponentService {
             throw new ComponentAccessException("Database error while getting a component", componentId, e);
         }
     }
-
-    
-//    @Override
-//    public void updateProperty(long componentId, long propertyId) {
-//        // TODO Auto-generated method stub
-//        
-//    }
 }

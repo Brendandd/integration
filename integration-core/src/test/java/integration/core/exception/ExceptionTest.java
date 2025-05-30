@@ -20,7 +20,7 @@ public class ExceptionTest {
     @Test
     public void testComponentNotFoundException() {
         // This type of exception can never be retried.
-        ComponentNotFoundException exception = new ComponentNotFoundException(123l);
+        ComponentNotFoundException exception = new ComponentNotFoundException(123L);
         assertFalse(exception.isRetryable());
     }
 
@@ -28,7 +28,7 @@ public class ExceptionTest {
     @Test
     public void testRouteNotFoundException() {
      // This type of exception can never be retried.
-        RouteNotFoundException exception = new RouteNotFoundException(123l);
+        RouteNotFoundException exception = new RouteNotFoundException(123L);
         assertFalse(exception.isRetryable());
     }
 
@@ -36,7 +36,7 @@ public class ExceptionTest {
     @Test
     public void testEventNotFoundException() {
      // This type of exception can never be retried.
-        OutboxEventNotFoundException exception = new OutboxEventNotFoundException(123l);
+        OutboxEventNotFoundException exception = new OutboxEventNotFoundException(123L);
         assertFalse(exception.isRetryable());
     }
     
@@ -44,7 +44,7 @@ public class ExceptionTest {
     @Test
     public void testMesageFlowNotFoundException() {
      // This type of exception can never be retried.
-        MessageFlowNotFoundException exception = new MessageFlowNotFoundException(123l);
+        MessageFlowNotFoundException exception = new MessageFlowNotFoundException(123L);
         assertFalse(exception.isRetryable());
     }
 
@@ -52,7 +52,7 @@ public class ExceptionTest {
     @Test
     public void testComponentAccessExceptionNoRetry() {
         // This will not retry as the cause is not a cause which will retry.
-        ComponentAccessException exception = new ComponentAccessException("An issue accessing the component", 123l, new NullPointerException("A NPE"));
+        ComponentAccessException exception = new ComponentAccessException("An issue accessing the component", 123L, new NullPointerException("A NPE"));
         assertFalse(exception.isRetryable());
     } 
     
@@ -60,7 +60,7 @@ public class ExceptionTest {
     @Test
     public void testComponentAccessExceptionWillRetry() {
         // This will retry as the cause is an exception which might works after retry.
-        ComponentAccessException exception = new ComponentAccessException("An issue accessing the component", 123l, new RecoverableDataAccessException("An error saving a component"));
+        ComponentAccessException exception = new ComponentAccessException("An issue accessing the component", 123L, new RecoverableDataAccessException("An error saving a component"));
         assertTrue(exception.isRetryable());
     } 
     
@@ -68,7 +68,7 @@ public class ExceptionTest {
     @Test
     public void testRouteAccessExceptionNoRetry() {
         // This will not retry as the cause is not a cause which will retry.
-        RouteAccessException exception = new RouteAccessException("An issue accessing the route", 123l, new NullPointerException("A NPE"));
+        RouteAccessException exception = new RouteAccessException("An issue accessing the route", 123L, new NullPointerException("A NPE"));
         assertFalse(exception.isRetryable());
     } 
     
@@ -76,7 +76,7 @@ public class ExceptionTest {
     @Test
     public void testRouteAccessExceptionWillRetry() {
         // This will retry as the cause is an exception which might works after retry.
-        RouteAccessException exception = new RouteAccessException("An issue accessing the route", 123l, new RecoverableDataAccessException("An error saving a route"));
+        RouteAccessException exception = new RouteAccessException("An issue accessing the route", 123L, new RecoverableDataAccessException("An error saving a route"));
         assertTrue(exception.isRetryable());
     } 
     
@@ -87,11 +87,11 @@ public class ExceptionTest {
     @Test
     public void testNonRetryExceptionCauseInRetryableException() {
         // The cause is an exception which cannot be retried
-        RouteNotFoundException cause = new RouteNotFoundException(123l);
+        RouteNotFoundException cause = new RouteNotFoundException(123L);
         assertFalse(cause.isRetryable());
         
         // The exception being thrown can be retried, but due to the cause it will not retry.
-        RouteAccessException exception = new RouteAccessException("An issue accessing the route", 123l, cause);
+        RouteAccessException exception = new RouteAccessException("An issue accessing the route", 123L, cause);
         assertFalse(exception.isRetryable()); 
     }
 }

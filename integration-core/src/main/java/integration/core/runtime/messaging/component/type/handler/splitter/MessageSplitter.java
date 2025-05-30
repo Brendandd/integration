@@ -13,9 +13,7 @@ public abstract class MessageSplitter {
 
     public String[] split(MessageFlowDto messageFlow) throws SplitterException {
         try {
-            String[] splitMessages = splitMessage(messageFlow);
-
-            return splitMessages;
+            return splitMessage(messageFlow);
         } catch (Exception e) {
             throw new SplitterException("Error splitting the message", messageFlow.getId(), e);
         }

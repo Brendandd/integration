@@ -33,7 +33,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessorTest extends BaseM
     
     @Test
     void testProcessor_MessageAccepted() throws Exception {
-        long acceptedMessageFlowId = 71l;
+        long acceptedMessageFlowId = 71L;
         
         mockMessageFlowIdCamelMessage();
         

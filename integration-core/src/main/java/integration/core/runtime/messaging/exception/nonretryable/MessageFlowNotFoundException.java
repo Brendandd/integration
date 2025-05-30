@@ -10,7 +10,7 @@ import integration.core.domain.IdentifierType;
 public class MessageFlowNotFoundException extends EntityNotFoundException {
     private static final long serialVersionUID = -6856908339059940620L;
     
-    private static String ENTITY = "Route";
+    private final static String ENTITY = "Route";
     
     public MessageFlowNotFoundException(long messageFlowId) {
         super(ENTITY, messageFlowId, IdentifierType.MESSAGE_FLOW_ID);

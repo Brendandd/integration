@@ -17,9 +17,6 @@ import integration.core.runtime.messaging.exception.retryable.MessageFlowProcess
 /**
  * Service to store messages/message flows.
  */
-/**
- * 
- */
 public interface MessageFlowService {
       
     /**
@@ -120,7 +117,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    public MessageFlowDto recordTransformationError(long componentId, long messageFlowId, TransformationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordTransformationError(long componentId, long messageFlowId, TransformationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
     
     /**
@@ -134,7 +131,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    public MessageFlowDto recordFilterError(long componentId, long messageFlowId, FilterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordFilterError(long componentId, long messageFlowId, FilterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
     
     /**
@@ -148,7 +145,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    public MessageFlowDto recordSplitterError(long componentId, long messageFlowId, SplitterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordSplitterError(long componentId, long messageFlowId, SplitterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -162,7 +159,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    public MessageFlowDto recordMessageFlowError(long componentId, long messageFlowId, IntegrationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordMessageFlowError(long componentId, long messageFlowId, IntegrationException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
 
     /**

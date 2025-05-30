@@ -11,10 +11,6 @@ public class KeepOriginalFileName extends FileNamingStrategy {
 
     @Override
     public String getFilename(Exchange exchange, long messageFlowId) throws MessageFlowProcessingException {
-        String filename = (String)propertyService.getPropertyValue("CamelFileName", messageFlowId);
-        
-        //TODO If null it is probably an error.
-        
-        return filename;    
+        return (String)propertyService.getPropertyValue("CamelFileName", messageFlowId);
     }
 }
