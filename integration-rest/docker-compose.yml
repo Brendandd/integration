@@ -3,7 +3,7 @@ version: '3.8'
 services:
   integration-rest:
     build: .
-    image: integration-rest
+    image: integration-rest:latest
     environment:
       MYSQL_HOST_IP: ${MYSQL_HOST_IP}
       MYSQL_USER_NAME: ${MYSQL_USER_NAME}
