@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   hl7-file-output-route:
     build: .
