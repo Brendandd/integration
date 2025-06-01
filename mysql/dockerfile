@@ -1,5 +1,3 @@
-# Dockerfile for MySQL (optional customizations)
 FROM mysql:8.0
 
-ARG INITIAL_DATA_DIR
-COPY ${INITIAL_DATA_DIR}/ /docker-entrypoint-initdb.d/
+COPY ./init/ /docker-entrypoint-initdb.d/

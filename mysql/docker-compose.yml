@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   mysql:
-    build:
-      context: .
+    build: .
+    image: integration-mysql:latest
     container_name: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: integration
       MYSQL_USER: ${MYSQL_USER_NAME}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -14,7 +12,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ${INIT_DIR}:/docker-entrypoint-initdb.d
     networks:
       - integration-net
     restart: always

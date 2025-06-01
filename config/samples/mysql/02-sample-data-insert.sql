@@ -1,1 +1,0 @@
-INSERT INTO `camel_messageprocessed_seq` (sequence_name, next_val) VALUES ('default', 1);
