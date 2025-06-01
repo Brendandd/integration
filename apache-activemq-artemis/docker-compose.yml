@@ -1,6 +1,7 @@
 services:
   artemis:
     build: .
+    image: integration-artemis:latest
     container_name: artemis
     environment:
       ARTEMIS_USERNAME: ${ACTIVEMQ_USER_NAME}
