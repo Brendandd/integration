@@ -3,7 +3,7 @@ version: '3.8'
 services:
   hl7-file-output-route:
     build: .
-    image: hl7-file-output-route
+    image: hl7-file-output-route:latest
     environment:
       MYSQL_HOST_IP: ${MYSQL_HOST_IP}
       MYSQL_USER_NAME: ${MYSQL_USER_NAME}

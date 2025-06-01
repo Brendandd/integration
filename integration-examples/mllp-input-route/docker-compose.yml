@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mllp-input-route:
     build: .
-    image: mllp-input-route
+    image: mllp-input-route:latest
     environment:
       MYSQL_HOST_IP: ${MYSQL_HOST_IP}
       MYSQL_USER_NAME: ${MYSQL_USER_NAME}
