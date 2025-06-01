@@ -1,9 +1,6 @@
-version: '3.8'
-
 services:
   samba-in:
     image: dperson/samba
-    container_name: samba-in
     command: >
       -u "${SMB_INBOUND_ADAPTER_SAMBA_USER};${SMB_INBOUND_ADAPTER_SAMBA_PASSWORD}"
       -s "${SMB_INBOUND_ADAPTER_SAMBA_SHARE_NAME};${SMB_INBOUND_ADAPTER_SAMBA_SHARE_PATH};yes;no;no;${SMB_INBOUND_ADAPTER_SAMBA_USER};${SMB_INBOUND_ADAPTER_SAMBA_USER}"
@@ -17,7 +14,6 @@ services:
 
   samba-out:
     image: dperson/samba
-    container_name: samba-out
     command: >
       -u "${SMB_OUTBOUND_ADAPTER_SAMBA_USER};${SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD}"
       -s "${SMB_OUTBOUND_ADAPTER_SAMBA_SHARE_NAME};${SMB_OUTBOUND_ADAPTER_SAMBA_SHARE_PATH};yes;no;no;${SMB_OUTBOUND_ADAPTER_SAMBA_USER};${SMB_OUTBOUND_ADAPTER_SAMBA_USER}"
