@@ -2,7 +2,6 @@ services:
   mysql:
     build: .
     image: integration-mysql:latest
-    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: integration

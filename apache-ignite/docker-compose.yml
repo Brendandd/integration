@@ -1,7 +1,6 @@
 services:
   ignite:
     image: apacheignite/ignite:latest
-    container_name: ignite-node
     environment:
       - IGNITE_CONFIG_URI=file:/opt/ignite/config/ignite-config.xml
     volumes:
