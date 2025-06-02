@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba-in
+  namespace: integration-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samba-in
+  template:
+    metadata:
+      labels:
+        app: samba-in
+    spec:
+      containers:
+        - name: samba-in
+          image: dperson/samba
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec /usr/bin/samba.sh
+              -u "${SMB_INBOUND_ADAPTER_SAMBA_USER};${SMB_INBOUND_ADAPTER_SAMBA_PASSWORD}"
+              -s "file-in;/mount;yes;no;no;${SMB_INBOUND_ADAPTER_SAMBA_USER};${SMB_INBOUND_ADAPTER_SAMBA_USER}"
+          env:
+            - name: SMB_INBOUND_ADAPTER_SAMBA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: smb-inbound-secret
+                  key: SMB_INBOUND_ADAPTER_SAMBA_USER
+            - name: SMB_INBOUND_ADAPTER_SAMBA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: smb-inbound-secret
+                  key: SMB_INBOUND_ADAPTER_SAMBA_PASSWORD
+          volumeMounts:
+            - name: samba-in-data
+              mountPath: /mount
+      volumes:
+        - name: samba-in-data
+          emptyDir: {}  # Replace with hostPath or PVC for persistence
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba-out
+  namespace: integration-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samba-out
+  template:
+    metadata:
+      labels:
+        app: samba-out
+    spec:
+      containers:
+        - name: samba-out
+          image: dperson/samba
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec /usr/bin/samba.sh
+              -u "${SMB_OUTBOUND_ADAPTER_SAMBA_USER};${SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD}"
+              -s "file-out;/mount;yes;no;no;${SMB_OUTBOUND_ADAPTER_SAMBA_USER};${SMB_OUTBOUND_ADAPTER_SAMBA_USER}"
+          env:
+            - name: SMB_OUTBOUND_ADAPTER_SAMBA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: smb-outbound-secret
+                  key: SMB_OUTBOUND_ADAPTER_SAMBA_USER
+            - name: SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: smb-outbound-secret
+                  key: SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD
+          volumeMounts:
+            - name: samba-out-data
+              mountPath: /mount
+      volumes:
+        - name: samba-out-data
+          emptyDir: {}

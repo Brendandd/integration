@@ -1,7 +1,13 @@
 FROM vromero/activemq-artemis
 
-# Optionally copy in configs
- COPY ./broker.xml /var/lib/artemis/etc/
+# Copy custom broker configuration
+COPY broker.xml /var/lib/artemis/etc/
 
-# Or run custom scripts
-# RUN echo "custom setup" >> /var/lib/artemis/README.txt
+# Set correct permissions
+USER root
+
+RUN chmod 644 /var/lib/artemis/etc/broker.xml
+
+USER artemis
+CMD ["/var/lib/artemis/bin/artemis", "run"]
+ 

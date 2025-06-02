@@ -14,8 +14,8 @@ import integration.messaging.hl7.component.adapter.smb.BaseHL7OutboundSMBAdapter
  * 
  */
 @IntegrationComponent(name = "SMB-Outbound-Adapter")
-@AdapterOption(key = "username", value = "${SMB_USER_NAME}") 
-@AdapterOption(key = "password", value = "${SMB_PASSWORD}") 
+@AdapterOption(key = "username", value = "${SMB_OUTBOUND_ADAPTER_SAMBA_USER}") 
+@AdapterOption(key = "password", value = "${SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD}") 
 @AllowedContentType(ContentTypeEnum.HL7)
 @FileNaming(strategy = "customNamingStrategy")
 //@LoadHeader(name = "camelFileName")

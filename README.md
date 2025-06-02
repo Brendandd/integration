@@ -189,6 +189,7 @@ These instructions will help you set up a local development environment.
 ### Prerequisites
 
 - **Docker**
+- **A running Kubernetes cluster**:  This has been tested using Docker Desktop.
 - **Java (JDK 17 or higher)**: Required for building the application.
 - **Maven**: Required for building the Java project locally.
 
@@ -202,26 +203,27 @@ From the **integration** folder
 mvn clean install
 ```
 
-Then, navigate to the **integration/config/samples/scripts** folder and run the following using the provided .bat files:
+Then, navigate to the **integration/config/samples/scripts** folder and run the kubectl commands in each file (or just run the .bat file).  Please update if required.
 
-### First, run these services:
-
-```
-run-apache-activemq-artemis
-run-apache-ignite
-run-mysql
-run-samba (creates two containers: one for the inbound adapter and one for the outbound adapter)
-```
-
-### Then, proceed with running the integration services:
+### Then, build Docker images and deploy each service.  Each service has a k8s folder
+with a deployment.yml and/or a service.yml file.
 
 ```
-run-file-input-route
-run-file-output-route
-run-mllp-input-route
-run-mllp-output-route
-run-rest-services
+apache-activemq-artemis
+apache-ignite
+mysql
+samba (creates two containers: one for the inbound adapter and one for the outbound adapter)
 ```
+
+### Finally, build Docker images and deploy each test route. Each service has a k8s folder
+with a deployment.yml and/or a service.yml file.
+```
+mllp-input-route
+mllp-output-route
+hl7-file-input-route
+hl7-file-output-route
+```
+
 
 Please see the individual `README.md` files under `integration/integration-examples` for details on the routes.
 

@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hl7-file-input-route
+  namespace: integration-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hl7-file-input-route
+  template:
+    metadata:
+      labels:
+        app: hl7-file-input-route
+    spec:
+      containers:
+        - name: hl7-file-input-route
+          image: hl7-file-input-route:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            # MySQL
+            - name: MYSQL_HOST_IP
+              value: mysql
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER_NAME
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+
+            # ActiveMQ
+            - name: ACTIVEMQ_HOST_IP
+              value: artemis-service
+            - name: ACTIVEMQ_PORT
+              value: "61616"
+            - name: ACTIVEMQ_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: activemq-secret
+                  key: ACTIVEMQ_USER_NAME
+            - name: ACTIVEMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: activemq-secret
+                  key: ACTIVEMQ_PASSWORD
+
+            # Ignite
+            - name: IGNITE_HOST
+              value: ignite-node
+            - name: IGNITE_PORT
+              value: "10800"
+                  
+            # Samba
+            - name: SMB_INBOUND_ADAPTER_SAMBA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: smb-inbound-secret
+                  key: SMB_INBOUND_ADAPTER_SAMBA_USER
+            - name: SMB_INBOUND_ADAPTER_SAMBA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: smb-inbound-secret
+                  key: SMB_INBOUND_ADAPTER_SAMBA_PASSWORD
+
+            # Route config path
+            - name: HL7_FILE_INPUT_CONFIG_FILE
+              value: /app/route-config.json
+
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/route-config.json
+              subPath: config_file
+
+      volumes:
+        - name: config-volume
+          configMap:
+            name: hl7-file-input-route-config

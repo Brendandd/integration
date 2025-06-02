@@ -10,7 +10,7 @@ COPY target/hl7-file-output-route-1.0.0-SNAPSHOT.jar app.jar
 ENV JAVA_OPTS="-Xmx1024m -Xms512m"
 
 # Run the Java application with all --add-opens JVM options
-CMD java $JAVA_OPTS \
+CMD ["sh", "-c", "java $JAVA_OPTS \
   --add-opens=java.base/jdk.internal.access=ALL-UNNAMED \
   --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
   --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
@@ -30,4 +30,4 @@ CMD java $JAVA_OPTS \
   --add-opens=java.base/java.lang.invoke=ALL-UNNAMED \
   --add-opens=java.base/java.math=ALL-UNNAMED \
   --add-opens=java.sql/java.sql=ALL-UNNAMED \
-  -jar /app/app.jar
+  -jar /app/app.jar"]

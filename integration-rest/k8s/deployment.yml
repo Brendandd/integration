@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-rest
+  namespace: integration-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: integration-rest
+  template:
+    metadata:
+      labels:
+        app: integration-rest
+    spec:
+      containers:
+        - name: integration-rest
+          image: integration-rest:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            # MySQL
+            - name: MYSQL_HOST_IP
+              value: mysql
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER_NAME
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+
+            # ActiveMQ
+            - name: ACTIVEMQ_HOST_IP
+              value: artemis-service
+            - name: ACTIVEMQ_PORT
+              value: "61616"
+            - name: ACTIVEMQ_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: activemq-secret
+                  key: ACTIVEMQ_USER_NAME
+            - name: ACTIVEMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: activemq-secret
+                  key: ACTIVEMQ_PASSWORD
+
+            # Ignite
+            - name: IGNITE_HOST
+              value: ignite-node
+            - name: IGNITE_PORT
+              value: "10800"

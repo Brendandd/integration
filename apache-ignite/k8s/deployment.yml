@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ignite
+  labels:
+    app: ignite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ignite
+  template:
+    metadata:
+      labels:
+        app: ignite
+    spec:
+      containers:
+        - name: ignite
+          image: apacheignite/ignite:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 10800
+            - containerPort: 47500
+            - containerPort: 47501

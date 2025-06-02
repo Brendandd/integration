@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smb-in
+  namespace: integration-dev
+spec:
+  selector:
+    app: samba-in
+  ports:
+    - name: smb-tcp-445
+      port: 445
+      targetPort: 445
+    - name: smb-tcp-139
+      port: 139
+      targetPort: 139
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smb-out
+  namespace: integration-dev
+spec:
+  selector:
+    app: samba-out
+  ports:
+    - name: smb-tcp-445
+      port: 445
+      targetPort: 445
+    - name: smb-tcp-139
+      port: 139
+      targetPort: 139

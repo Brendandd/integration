@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artemis-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+  
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artemis
+  labels:
+    app: artemis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: artemis
+  template:
+    metadata:
+      labels:
+        app: artemis
+    spec:
+      containers:
+        - name: artemis
+          image: integration-artemis:latest
+          imagePullPolicy: Never
+          env:
+            - name: ARTEMIS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: activemq-secret
+                  key: ACTIVEMQ_USER_NAME
+            - name: ARTEMIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: activemq-secret
+                  key: ACTIVEMQ_PASSWORD
+          ports:
+            - containerPort: 8161
+            - containerPort: 61616
+          volumeMounts:
+            - name: artemis-data
+              mountPath: /var/lib/artemis/data
+      volumes:
+        - name: artemis-data
+          persistentVolumeClaim:
+            claimName: artemis-pvc
