@@ -1,1 +1,0 @@
-docker compose -f ../../../integration-examples/hl7-file-input-route/docker-compose.yml --env-file ../.env.example up --build -d
