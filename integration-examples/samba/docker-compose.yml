@@ -1,0 +1,34 @@
+services:
+  samba-in:
+    image: dperson/samba
+    command: >
+      -u "${SMB_INBOUND_ADAPTER_SAMBA_USER};${SMB_INBOUND_ADAPTER_SAMBA_PASSWORD}"
+      -s "${SMB_INBOUND_ADAPTER_SAMBA_SHARE_NAME};${SMB_INBOUND_ADAPTER_SAMBA_SHARE_PATH};yes;no;no;${SMB_INBOUND_ADAPTER_SAMBA_USER};${SMB_INBOUND_ADAPTER_SAMBA_USER}"
+    volumes:
+      - samba-in-data:${SMB_INBOUND_ADAPTER_SAMBA_SHARE_PATH}
+    networks:
+      integration-net:
+        aliases:
+          - smb-in
+    restart: always
+
+  samba-out:
+    image: dperson/samba
+    command: >
+      -u "${SMB_OUTBOUND_ADAPTER_SAMBA_USER};${SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD}"
+      -s "${SMB_OUTBOUND_ADAPTER_SAMBA_SHARE_NAME};${SMB_OUTBOUND_ADAPTER_SAMBA_SHARE_PATH};yes;no;no;${SMB_OUTBOUND_ADAPTER_SAMBA_USER};${SMB_OUTBOUND_ADAPTER_SAMBA_USER}"
+    volumes:
+      - samba-out-data:${SMB_OUTBOUND_ADAPTER_SAMBA_SHARE_PATH}
+    networks:
+      integration-net:
+        aliases:
+          - smb-out
+    restart: always
+
+networks:
+  integration-net:
+    external: true
+
+volumes:
+  samba-in-data:
+  samba-out-data:

@@ -1,0 +1,23 @@
+services:
+  mysql:
+    build: .
+    image: integration-mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: integration
+      MYSQL_USER: ${MYSQL_USER_NAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - integration-net
+    restart: always
+
+networks:
+  integration-net:
+    external: true
+
+volumes:
+  mysql-data:
