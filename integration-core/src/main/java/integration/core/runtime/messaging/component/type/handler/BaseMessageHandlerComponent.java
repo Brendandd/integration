@@ -94,7 +94,7 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
         // The entry point for all message handlers.  Consumes from one or more topics.
         for (MessageProducer messageProducer : messageProducers) {
 
-            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=1")
                 .routeId("ingress-" + getIdentifier() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)

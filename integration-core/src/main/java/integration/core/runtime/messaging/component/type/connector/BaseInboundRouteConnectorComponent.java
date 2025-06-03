@@ -77,7 +77,7 @@ public abstract class BaseInboundRouteConnectorComponent extends BaseRouteConnec
     protected void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         
         // The entry point for all inbound route connectors.  Consumes from one or more topics.
-        from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+        from("jms:VirtualTopic." + getConnectorName() + "::Consumer." + getComponentPath() + ".VirtualTopic." + getName() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=1")
         .routeId("ingress-" + getIdentifier())
         .routeGroup(getComponentPath())
         .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)

@@ -80,7 +80,7 @@ public abstract class BaseOutboundRouteConnectorComponent extends BaseRouteConne
         // The entry point for all outbound route connectors.  Consumes from one or more topics.
         for (MessageProducer messageProducer : messageProducers) {
           
-            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=1")
                 .routeId("ingress-" + getIdentifier())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)

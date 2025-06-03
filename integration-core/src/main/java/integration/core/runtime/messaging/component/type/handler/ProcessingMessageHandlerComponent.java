@@ -38,7 +38,7 @@ public abstract class ProcessingMessageHandlerComponent extends BaseMessageHandl
 
         
         // A route to consume a message flow id from the processing route.
-        from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+        from("jms:queue:processingQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=1")
             .routeId("startProcessing-" + getIdentifier())
             .routeGroup(getComponentPath())
             .setHeader("contentType", constant(getContentType()))

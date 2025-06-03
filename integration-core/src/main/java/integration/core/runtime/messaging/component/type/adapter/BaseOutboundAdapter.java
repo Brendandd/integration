@@ -69,7 +69,7 @@ public abstract class BaseOutboundAdapter extends BaseAdapter implements Message
         // The entry point for an outbound adapter.  Consumes from one or more topics.
         for (MessageProducer messageProducer : messageProducers) {
             
-            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
+            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=1")
                 .routeId("ingress-" + messageProducer.getComponentPath() + "-" + messageProducer.getComponentPath())
                 .routeGroup(getComponentPath())
                 .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
