@@ -26,9 +26,9 @@ public class MessageSplitterProcessor extends BaseMessageFlowProcessor<BaseSplit
     public void process(Exchange exchange) throws Exception {
         MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
         
-        String[] splitMessages = component.getSplitter().split(parentMessageFlowDto);
+        int numberOfMessages = component.getSplitter().getSplitCount(parentMessageFlowDto);
                   
-        for (int i = 0; i < splitMessages.length; i++) {
+        for (int i = 0; i < numberOfMessages; i++) {
             MessageFlowDto splitMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(),parentMessageFlowDto.getId(), MessageFlowActionType.CREATED_FROM_SPLIT);
             outboxService.recordEvent(splitMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(),component.getOwner(), OutboxEventType.PROCESSING_COMPLETE); 
         }

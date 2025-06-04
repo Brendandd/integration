@@ -14,19 +14,11 @@ import integration.messaging.hl7.datamodel.HL7Message;
 public class SplitBasedOnOBX extends MessageSplitter {
 
     @Override
-    public String[] splitMessage(MessageFlowDto messageFlow) throws SplitterException {
+    public int splitMessage(MessageFlowDto messageFlow) throws SplitterException {
         try {
             HL7Message hl7Message = new HL7Message(messageFlow.getMessage().getContent());
             
-            int obxCount = hl7Message.getSegmentCount("OBX");
-
-            String[] messageFlowArray = new String[obxCount];
-
-            for (int i = 0; i < obxCount; i++) {
-                messageFlowArray[i] = hl7Message.toString();
-            }
-
-            return messageFlowArray;
+            return hl7Message.getSegmentCount("OBX");
         } catch (Exception e) {
             throw new SplitterException("Error splitting the message", messageFlow.getId(), e);
         }

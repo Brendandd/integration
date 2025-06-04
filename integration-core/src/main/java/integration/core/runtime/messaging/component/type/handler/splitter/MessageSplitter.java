@@ -3,15 +3,14 @@ package integration.core.runtime.messaging.component.type.handler.splitter;
 import integration.core.dto.MessageFlowDto;
 
 /**
- * Abstract class for all splitters. A splitter will duplicate a mesage. Each message
- * will be returned as part of the array.
+ * Abstract class for all splitters. A splitter will duplicate a message.  A count of the split messages is returned.
  * 
  * @author Brendan Douglas
  *
  */
 public abstract class MessageSplitter {
 
-    public String[] split(MessageFlowDto messageFlow) throws SplitterException {
+    public int getSplitCount(MessageFlowDto messageFlow) throws SplitterException {
         try {
             return splitMessage(messageFlow);
         } catch (Exception e) {
@@ -19,5 +18,5 @@ public abstract class MessageSplitter {
         }
     }
 
-    public abstract String[] splitMessage(MessageFlowDto messageFlow) throws SplitterException;
+    public abstract int splitMessage(MessageFlowDto messageFlow) throws SplitterException;
 }

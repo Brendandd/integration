@@ -211,7 +211,7 @@ public abstract class BaseRoute {
 
             lock.lock(); // Lock acquired
 
-            List<OutboxEventDto> events = outboxService.getEventsForRoute(getIdentifier(), 400);
+            List<OutboxEventDto> events = outboxService.getEventsForRoute(getIdentifier(), 10);
 
             for (OutboxEventDto event : events) {
 
