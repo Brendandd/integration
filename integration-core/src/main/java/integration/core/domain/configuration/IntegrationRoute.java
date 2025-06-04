@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import integration.core.domain.BaseIntegrationDomain;
+import integration.core.domain.messaging.OutboxEvent;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,6 +23,7 @@ public class IntegrationRoute extends BaseIntegrationDomain {
     private String name;
     private String owner;
 
+    private List<OutboxEvent>events = new ArrayList<>();
     private List<IntegrationComponent> components = new ArrayList<IntegrationComponent>();
 
     @Column(name = "name")
@@ -50,5 +52,16 @@ public class IntegrationRoute extends BaseIntegrationDomain {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    public List<OutboxEvent> getEvents() {
+        return events;
+    }
+
+    
+    public void setEvents(List<OutboxEvent> events) {
+        this.events = events;
     }
 }

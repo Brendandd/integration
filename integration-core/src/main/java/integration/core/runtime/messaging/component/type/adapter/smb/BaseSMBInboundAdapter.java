@@ -69,7 +69,7 @@ public abstract class BaseSMBInboundAdapter extends BaseInboundAdapter {
                     String messageContent = exchange.getMessage().getBody(String.class);
                     MessageFlowDto messageFlowDto = messageFlowService.recordInitialMessageFlow(messageContent, getIdentifier(), getContentType(), headers, MessageFlowActionType.ACCEPTED);
                                        
-                    outboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), OutboxEventType.INGRESS_COMPLETE); 
+                    outboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), getRoute().getIdentifier(), getOwner(), OutboxEventType.INGRESS_COMPLETE); 
                 });
         
     }

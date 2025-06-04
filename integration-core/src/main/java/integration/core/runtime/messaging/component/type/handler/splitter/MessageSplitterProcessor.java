@@ -30,7 +30,7 @@ public class MessageSplitterProcessor extends BaseMessageFlowProcessor<BaseSplit
                   
         for (int i = 0; i < splitMessages.length; i++) {
             MessageFlowDto splitMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(),parentMessageFlowDto.getId(), MessageFlowActionType.CREATED_FROM_SPLIT);
-            outboxService.recordEvent(splitMessageFlowDto.getId(),component.getIdentifier(), OutboxEventType.PROCESSING_COMPLETE); 
+            outboxService.recordEvent(splitMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(),component.getOwner(), OutboxEventType.PROCESSING_COMPLETE); 
         }
     }
 }

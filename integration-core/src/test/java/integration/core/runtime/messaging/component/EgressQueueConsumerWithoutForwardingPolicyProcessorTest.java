@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,6 +50,9 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         mockRetrieveMessageFlow();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
+        when(messageConsumer.getRoute()).thenReturn(route);
+        when(messageConsumer.getRoute().getIdentifier()).thenReturn(routeId);
+        when(messageConsumer.getOwner()).thenReturn("Mock Owner");
 
         when(messageFlowService.recordMessageFlowWithSameContent(componentId, parentMessageFlowId, MessageFlowActionType.PENDING_FORWARDING)).thenReturn(forwardedMessageFlowDto);
         when(forwardedMessageFlowDto.getId()).thenReturn(forwardedMessageFlowId);
@@ -57,7 +61,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         processor.process(exchange);
 
         // Verify expected behavior
-        verify(outboxService).recordEvent(forwardedMessageFlowId, componentId, OutboxEventType.PENDING_FORWARDING);
+        verify(outboxService).recordEvent(forwardedMessageFlowId, componentId, routeId, owner, OutboxEventType.PENDING_FORWARDING);
         verify(messageFlowService, never()).recordMessageNotForwarded(anyLong(), anyLong(), any(), any());
     }
 
@@ -90,7 +94,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         assertFalse(thrown.isRetryable());
 
         // Make sure an event is not record when an exception is thrown.
-        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), any());
+        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), anyLong(), anyString(), any());
         
         // Makes sure a message not forwarded message flow step is not recorded when an exception is thrown.
         verify(messageFlowService, never()).recordMessageNotForwarded(anyLong(), anyLong(), any(), any());
@@ -126,7 +130,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         assertTrue(thrown.isRetryable());
 
         // Make sure an event is not record when an exception is thrown.
-        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), any());
+        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), anyLong(), anyString(), any());
         
         // Makes sure a message not forwarded message flow step is not recorded when an exception is thrown.
         verify(messageFlowService, never()).recordMessageNotForwarded(anyLong(), anyLong(), any(), any());
@@ -162,7 +166,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         assertFalse(thrown.isRetryable());
 
         // Make sure an event is not record when an exception is thrown.
-        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), any());
+        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), anyLong(), anyString(), any());
         
         // Makes sure a message not forwarded message flow step is not recorded when an exception is thrown.
         verify(messageFlowService, never()).recordMessageNotForwarded(anyLong(), anyLong(), any(), any());

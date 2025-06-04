@@ -6,6 +6,7 @@ package integration.core.domain;
 public enum IdentifierType {
     COMPONENT_ID,
     ROUTE_ID,
+    OWNER,
     COMPONENT_PATH,
     OUTBOX_EVENT_ID,
     MESSAGE_FLOW_ID,

@@ -30,6 +30,6 @@ public class MessageTransformationProcessor extends BaseMessageFlowProcessor<Bas
         String transformedContent = component.getTransformer().transform(parentMessageFlowDto);
         
         MessageFlowDto transformedMessageFlowDto = messageFlowService.recordNewContentMessageFlow(transformedContent, component.getIdentifier(),parentMessageFlowDto.getId(), component.getContentType(), MessageFlowActionType.TRANSFORMED);
-        outboxService.recordEvent(transformedMessageFlowDto.getId(),component.getIdentifier(), OutboxEventType.PROCESSING_COMPLETE); 
+        outboxService.recordEvent(transformedMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(),component.getOwner(), OutboxEventType.PROCESSING_COMPLETE); 
     }
 }

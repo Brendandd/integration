@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.QueryTimeoutException;
 
 import integration.core.dto.MessageFlowDto;
+import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.component.type.handler.filter.FilterException;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageFlowPolicyResult;
@@ -32,8 +33,10 @@ import integration.core.runtime.messaging.service.OutboxService;
 public class BaseMessageFlowProcessorTest {
     // Ids used for all tests.
     protected long componentId = 555L;
+    protected long routeId = 123L;
     protected long parentMessageFlowId = 70L;
     protected long eventId = 25L;
+    protected String owner = "Mock Owner";
     
     
     @Mock
@@ -59,6 +62,9 @@ public class BaseMessageFlowProcessorTest {
 
     @Mock
     protected MessageFlowDto forwardedMessageFlowDto;
+    
+    @Mock
+    protected BaseRoute route;
     
     @Mock
     protected MessageFlowDto acceptedMessageFlowDto;

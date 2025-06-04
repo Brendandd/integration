@@ -31,7 +31,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessor extends BaseMessag
         // Apply the message forwarding rules and either write an event for further processing or filter the message.
         if (result.isSuccess()) {
             MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-            outboxService.recordEvent(forwardedMessageFlowDto.getId(),component.getIdentifier(), OutboxEventType.PENDING_FORWARDING);
+            outboxService.recordEvent(forwardedMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner(), OutboxEventType.PENDING_FORWARDING);
         } else {
             messageFlowService.recordMessageNotForwarded(component.getIdentifier(), parentMessageFlowDto.getId(), result, MessageFlowActionType.NOT_FORWARDED);
         }  

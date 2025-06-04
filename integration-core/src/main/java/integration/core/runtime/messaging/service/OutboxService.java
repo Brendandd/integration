@@ -28,8 +28,20 @@ public interface OutboxService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    void recordEvent(long messageFlowId, long componentId, OutboxEventType eventType) throws MessageFlowProcessingException, OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    void recordEvent(long messageFlowId, long componentId, long routeId, String owner, OutboxEventType eventType) throws MessageFlowProcessingException, OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
+    
+    /**
+     * Returns events for a route.
+     * 
+     * @param routeId
+     * @param numberToRead
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws OutboxEventProcessingException
+     */
+    List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead) throws MessageFlowProcessingException, OutboxEventProcessingException;
+    
     
     /**
      * Returns events for a component.
@@ -41,18 +53,19 @@ public interface OutboxService {
      * @throws OutboxEventProcessingException
      */
     List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowProcessingException, OutboxEventProcessingException;
-
+    
     
     /**
-     * Returns events for a component.
+     * Returns events for an owner (single microservice).
      * 
-     * @param componentId
+     * @param owner
+     * @param numberToRead
      * @return
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      */
-    List<OutboxEventDto> getEvents(long componentId) throws MessageFlowProcessingException, OutboxEventProcessingException;
-    
+    List<OutboxEventDto> getEventsForOwner(String owner, int numberToRead) throws MessageFlowProcessingException, OutboxEventProcessingException;
+
     
     /**
      * Marks an event for retry.

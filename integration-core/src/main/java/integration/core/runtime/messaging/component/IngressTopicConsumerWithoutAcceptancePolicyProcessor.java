@@ -26,6 +26,6 @@ public class IngressTopicConsumerWithoutAcceptancePolicyProcessor extends BaseMe
         MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
         
         MessageFlowDto messageFlowDto  = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(), parentMessageFlowDto.getId(),MessageFlowActionType.ACCEPTED);
-        outboxService.recordEvent(messageFlowDto.getId(),component.getIdentifier(), OutboxEventType.INGRESS_COMPLETE);  
+        outboxService.recordEvent(messageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner(), OutboxEventType.INGRESS_COMPLETE);  
     }
 }

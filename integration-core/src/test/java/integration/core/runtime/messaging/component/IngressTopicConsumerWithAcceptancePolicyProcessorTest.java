@@ -2,6 +2,7 @@ package integration.core.runtime.messaging.component;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,6 +42,9 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessorTest extends BaseM
         mockRetrieveMessageFlow();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
+        when(messageConsumer.getRoute()).thenReturn(route);
+        when(messageConsumer.getRoute().getIdentifier()).thenReturn(routeId);
+        when(messageConsumer.getOwner()).thenReturn("Mock Owner");
         
         // Mock the mock message acceptance policy.
         mockSuccessMessageAcceptancePolicy();
@@ -54,7 +58,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessorTest extends BaseM
         processor.process(exchange);
 
         // Verify expected behavior
-        verify(outboxService).recordEvent(acceptedMessageFlowId, componentId, OutboxEventType.INGRESS_COMPLETE);
+        verify(outboxService).recordEvent(acceptedMessageFlowId, componentId, routeId, owner, OutboxEventType.INGRESS_COMPLETE);
         verify(messageFlowService, never()).recordMessageNotAccepted(anyLong(), anyLong(), any(), any());
     }
 
@@ -75,7 +79,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessorTest extends BaseM
         processor.process(exchange);
 
         // Verify expected behavior
-        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), any());
+        verify(outboxService, never()).recordEvent(anyLong(), anyLong(), anyLong(), anyString(), any());
         verify(messageFlowService, never()).recordMessageFlowWithSameContent(anyLong(), anyLong(), any());
         verify(messageFlowService).recordMessageNotAccepted(componentId,parentMessageFlowId,notAcceptedResult,MessageFlowActionType.NOT_ACCEPTED);
     }

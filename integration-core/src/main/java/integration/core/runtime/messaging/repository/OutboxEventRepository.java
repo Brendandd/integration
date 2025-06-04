@@ -11,9 +11,12 @@ import integration.core.domain.messaging.OutboxEvent;
 @Repository
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
 
-    @Query(name = "getEvents", value = "select e from OutboxEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
-    List<OutboxEvent> getEvents(long componentId, int numberToRead);
+    @Query(name = "getEventsForRoute", value = "select e from OutboxEvent e where e.route.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
+    List<OutboxEvent> getEventsForRoute(long routeId, int numberToRead);
     
-    @Query(name = "getEvents", value = "select e from OutboxEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate")
-    List<OutboxEvent> getEvents(long componentId);
+    @Query(name = "getEventsForComponent", value = "select e from OutboxEvent e where e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
+    List<OutboxEvent> getEventsForComponent(long componentId, int numberToRead);
+    
+    @Query(name = "getEventsForOwner", value = "select e from OutboxEvent e where e.owner = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
+    List<OutboxEvent> getEventsForOwner(String owner, int numberToRead);
 }

@@ -85,7 +85,7 @@ public abstract class BaseMllpInboundAdapter extends BaseInboundAdapter {
                 messageFlowService.recordNewContentMessageFlow(ackContent, getIdentifier(), inboundMessageFlowId, ContentTypeEnum.HL7_ACK, MessageFlowActionType.ACKNOWLEDGMENT_SENT);
                                         
                 // Final step in the ingress route is to write an event for the outbox.
-                outboxService.recordEvent(inboundMessageFlowId,getIdentifier(), OutboxEventType.INGRESS_COMPLETE); 
+                outboxService.recordEvent(inboundMessageFlowId,getIdentifier(), getRoute().getIdentifier(), getOwner(), OutboxEventType.INGRESS_COMPLETE); 
             });
         
     }

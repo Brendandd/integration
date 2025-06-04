@@ -26,6 +26,6 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessor extends BaseMes
         MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
         
         MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
-        outboxService.recordEvent(forwardedMessageFlowDto.getId(), component.getIdentifier(), OutboxEventType.PENDING_FORWARDING);    
+        outboxService.recordEvent(forwardedMessageFlowDto.getId(), component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner(), OutboxEventType.PENDING_FORWARDING);    
     }
 }

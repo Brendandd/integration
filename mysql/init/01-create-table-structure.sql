@@ -72,6 +72,8 @@ CREATE TABLE `outbox_event` (
   `event_date_time` datetime DEFAULT NULL,
   `message_flow_id` int DEFAULT NULL,
   `component_id` int DEFAULT NULL,
+  `route_id` int DEFAULT NULL,
+  `owner` varchar(45) DEFAULT NULL,
   `retry_count` int DEFAULT NULL,
   `retry_after` datetime DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
