@@ -7,12 +7,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -26,6 +28,7 @@ import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.ComponentDto;
 import integration.core.dto.MessageFlowDto;
+import integration.core.dto.OutboxEventDto;
 import integration.core.exception.ExceptionIdentifier;
 import integration.core.exception.IntegrationException;
 import integration.core.runtime.messaging.BaseRoute;
@@ -266,6 +269,44 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             .routeGroup(getComponentPath())  
             .transacted()
                 .process(egressQueueProducerProcessor);
+        
+        
+        // Event processor routes.
+        from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=500&delay=2000")
+        .routeId("eventProcessorTimer-" + getIdentifier())
+        .process(exchange -> {
+            Lock lock = null;
+            
+            try {
+                IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
+                lock = cache.lock(getComponentPath());
+    
+                lock.lock(); // Lock acquired
+    
+                List<OutboxEventDto> events = outboxService.getEventsForComponent(getIdentifier(), 50);
+
+                for (OutboxEventDto event : events) {
+                   
+                    String uri;
+                    String route = eventRoutingMap.get(event.getType());
+                    
+                    if (route != null) {
+                        uri = route + "-" + event.getComponentId();
+                    } else {                        
+                        continue; // skip unknown types
+                    }
+                    
+                    Map<String, Object>headers = new HashMap<>();
+                    headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                    headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+                    
+                    
+                    exchange.getContext().createProducerTemplate().sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
+                }
+            } finally {
+                lock.unlock(); // Release lock after all events processed
+            }
+        });   
     }
 
     

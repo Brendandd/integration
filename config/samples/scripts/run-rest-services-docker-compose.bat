@@ -1,0 +1,1 @@
+docker compose -f ../../../integration-rest/docker-compose.yml --env-file ../.env.example up --build -d
