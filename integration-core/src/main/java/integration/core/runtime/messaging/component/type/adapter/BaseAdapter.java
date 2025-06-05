@@ -62,7 +62,7 @@ public abstract class BaseAdapter extends BaseMessagingComponent  {
         super.configure();
         
         // Timer to update the outbound connection details from the database.
-        from("timer://outboundConnectionDetailsChangeTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
+        from("timer://outboundConnectionDetailsChangeTimer-" + getIdentifier() + "?period=300000&delay=2000")
         .routeId("connectionDetailsChangeTimer-" + getIdentifier())
         .process(exchange -> {
             ComponentDto component = componentConfigurationService.getComponent(identifier);

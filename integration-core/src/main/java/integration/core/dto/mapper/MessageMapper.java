@@ -15,6 +15,7 @@ public class MessageMapper extends BaseMapper<MessageDto, Message> {
         MessageDto destination = new MessageDto();
         destination.setId(source.getId());
         destination.setContent(source.getContent());
+       
         destination.setContentType(source.getContentType());
         
         return destination;

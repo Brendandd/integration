@@ -49,7 +49,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        when(messageFlowService.retrieveMessageFlow(parentMessageFlowId)).thenReturn(parentMessageFlowDto);
+        when(messageFlowService.retrieveMessageFlow(parentMessageFlowId, true)).thenReturn(parentMessageFlowDto);
         
         when(messageProducer.getIdentifier()).thenReturn(componentId);
         when(messageProducer.getRoute()).thenReturn(route);
@@ -85,7 +85,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithContent();
         
         when(messageProducer.getIdentifier()).thenReturn(componentId);
 
@@ -114,7 +114,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithContent();
         
         when(messageProducer.getIdentifier()).thenReturn(componentId);
 
@@ -154,7 +154,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithContent();
         
         when(messageProducer.getIdentifier()).thenReturn(componentId);
 
@@ -193,7 +193,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessorTest extends BaseMe
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithContent();
         
         when(messageProducer.getIdentifier()).thenReturn(componentId);
 

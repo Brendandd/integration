@@ -31,7 +31,7 @@ public class MllpForwardingProcessor extends BaseMessageFlowProcessor<BaseMllpOu
         outboxService.deleteEvent(eventId);
     
         long messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
-        MessageFlowDto messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId);
+        MessageFlowDto messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
         
         // Change the status of the message flow from pending forwarding to forwarded
         messageFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);

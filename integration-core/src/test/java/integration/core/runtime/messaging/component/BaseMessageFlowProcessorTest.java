@@ -177,8 +177,14 @@ public class BaseMessageFlowProcessorTest {
     }
 
     
-    protected void mockRetrieveMessageFlow() throws MessageFlowNotFoundException, MessageFlowProcessingException {
-        when(messageFlowService.retrieveMessageFlow(parentMessageFlowId)).thenReturn(parentMessageFlowDto);
+    protected void mockRetrieveMessageFlowWithoutContent() throws MessageFlowNotFoundException, MessageFlowProcessingException {
+        when(messageFlowService.retrieveMessageFlow(parentMessageFlowId, false)).thenReturn(parentMessageFlowDto);
+        when(parentMessageFlowDto.getId()).thenReturn(parentMessageFlowId);
+    }
+    
+    
+    protected void mockRetrieveMessageFlowWithContent() throws MessageFlowNotFoundException, MessageFlowProcessingException {
+        when(messageFlowService.retrieveMessageFlow(parentMessageFlowId, true)).thenReturn(parentMessageFlowDto);
         when(parentMessageFlowDto.getId()).thenReturn(parentMessageFlowId);
     }
     

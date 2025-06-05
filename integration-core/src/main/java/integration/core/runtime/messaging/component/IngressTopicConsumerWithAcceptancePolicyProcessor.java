@@ -24,7 +24,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessor extends BaseMessa
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
                                         
         MessageFlowPolicyResult result = component.getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
         if (result.isSuccess()) {

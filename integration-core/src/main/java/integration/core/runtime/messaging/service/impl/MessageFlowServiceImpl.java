@@ -3,6 +3,7 @@ package integration.core.runtime.messaging.service.impl;
 import java.util.Map;
 import java.util.Optional;
 
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,16 +56,22 @@ public class MessageFlowServiceImpl implements MessageFlowService {
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException 
      */
-    private MessageFlow retrieveMandatoryMessageFlow(long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException {    
+    private MessageFlow retrieveMandatoryMessageFlow(long messageFlowId, boolean includeMessage) throws MessageFlowProcessingException, MessageFlowNotFoundException {    
         try {
-            Optional<MessageFlow> messageFlow = messageFlowRepository.findById(messageFlowId);
+            Optional<MessageFlow> messageFlowOptional = messageFlowRepository.findById(messageFlowId);
     
             // The message flow must exist.
-            if (messageFlow.isEmpty()) {
+            if (messageFlowOptional.isEmpty()) {
                 throw new MessageFlowNotFoundException(messageFlowId);
             }  
+                       
+            MessageFlow messageFlow = messageFlowOptional.get();
             
-            return messageFlow.get();
+            if (includeMessage) {               
+                Hibernate.initialize(messageFlow.getMessage().getContent());
+            }
+            
+            return messageFlow;
         } catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Message flow not found", messageFlowId, e);
         }
@@ -76,10 +83,10 @@ public class MessageFlowServiceImpl implements MessageFlowService {
      * @throws MessageFlowNotFoundException 
      */
     @Override
-    public MessageFlowDto retrieveMessageFlow(long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException {    
-        MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId);
+    public MessageFlowDto retrieveMessageFlow(long messageFlowId, boolean includeMessage) throws MessageFlowProcessingException, MessageFlowNotFoundException {    
+        MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId, includeMessage);
         
-        MessageFlowMapper mapper = new MessageFlowMapper();
+        MessageFlowMapper mapper = new MessageFlowMapper(includeMessage);
         
         return mapper.doMapping(messageFlow);
     }
@@ -106,7 +113,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             MessageFlowDto messageFlowDto = recordMessageFlow(request);
             
-            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId());
+            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId(), false);
                    
             // Create the filter object.
             MessageFlowFiltered filter = new MessageFlowFiltered();
@@ -116,7 +123,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             messageFlow = messageFlowRepository.save(messageFlow);
             
-            MessageFlowMapper mapper = new MessageFlowMapper();
+            MessageFlowMapper mapper = new MessageFlowMapper(false);
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while filtering a message",parentMessageFlowId, e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
@@ -135,7 +142,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             MessageFlowDto messageFlowDto = recordMessageFlow(request);
             
-            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId());
+            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId(), false);
                    
             // Create the error object.
             MessageFlowError error = new MessageFlowError();
@@ -144,7 +151,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             messageFlow = messageFlowRepository.save(messageFlow);
             
-            MessageFlowMapper mapper = new MessageFlowMapper();
+            MessageFlowMapper mapper = new MessageFlowMapper(false);
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while recording a transformation error",parentMessageFlowId, e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
@@ -163,7 +170,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             MessageFlowDto messageFlowDto = recordMessageFlow(request);
             
-            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId());
+            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId(), false);
                    
             // Create the error object.
             MessageFlowError error = new MessageFlowError();
@@ -172,7 +179,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             messageFlow = messageFlowRepository.save(messageFlow);
             
-            MessageFlowMapper mapper = new MessageFlowMapper();
+            MessageFlowMapper mapper = new MessageFlowMapper(false);
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while recording a splitter error",parentMessageFlowId, e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
@@ -192,7 +199,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             MessageFlowDto messageFlowDto = recordMessageFlow(request);
             
-            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId());
+            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId(), false);
                    
             // Create the error object.
             MessageFlowError error = new MessageFlowError();
@@ -201,7 +208,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             messageFlow = messageFlowRepository.save(messageFlow);
             
-            MessageFlowMapper mapper = new MessageFlowMapper();
+            MessageFlowMapper mapper = new MessageFlowMapper(false);
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while recording a filter error",parentMessageFlowId, e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
@@ -220,7 +227,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             MessageFlowDto messageFlowDto = recordMessageFlow(request);
             
-            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId());
+            MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowDto.getId(), false);
                    
             // Create the error object.
             MessageFlowError error = new MessageFlowError();
@@ -229,7 +236,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             messageFlow = messageFlowRepository.save(messageFlow);
             
-            MessageFlowMapper mapper = new MessageFlowMapper();
+            MessageFlowMapper mapper = new MessageFlowMapper(false);
             return mapper.doMapping(messageFlow);
         } catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while recording a message flow error",parentMessageFlowId, e).addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
@@ -292,7 +299,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             MessageFlow parentMessageFlow = null;
             
             if (parentMessageFlowId != null) {
-                parentMessageFlow = retrieveMandatoryMessageFlow(parentMessageFlowId);
+                parentMessageFlow = retrieveMandatoryMessageFlow(parentMessageFlowId, false);
             }
     
             // If the message was not supplied then create it from the parent message flow id if that was supplied.
@@ -352,7 +359,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             
             savedStep = messageFlowRepository.save(messageFlow);
             
-            MessageFlowMapper mapper = new MessageFlowMapper();
+            MessageFlowMapper mapper = new MessageFlowMapper(false);
             return mapper.doMapping(savedStep);
         }  catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while recording a message flow", request.getComponentId(),  e);
@@ -362,7 +369,7 @@ public class MessageFlowServiceImpl implements MessageFlowService {
     
     @Override
     public void updateAction(Long messageFlowId, MessageFlowActionType newAction) throws MessageFlowProcessingException, MessageFlowNotFoundException {
-        MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId);
+        MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId, false);
         
         messageFlow.setAction(newAction);
         

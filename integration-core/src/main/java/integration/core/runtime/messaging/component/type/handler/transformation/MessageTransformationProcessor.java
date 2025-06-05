@@ -24,7 +24,7 @@ public class MessageTransformationProcessor extends BaseMessageFlowProcessor<Bas
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
         
         // Transform the content.
         String transformedContent = component.getTransformer().transform(parentMessageFlowDto);

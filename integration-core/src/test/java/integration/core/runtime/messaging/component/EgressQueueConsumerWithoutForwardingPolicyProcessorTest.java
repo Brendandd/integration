@@ -47,7 +47,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithoutContent();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
         when(messageConsumer.getRoute()).thenReturn(route);
@@ -78,7 +78,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithoutContent();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
 
@@ -114,7 +114,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithoutContent();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
 
@@ -150,7 +150,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessorTest extends Bas
         mockMessageFlowIdCamelMessage();
 
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithoutContent();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
 

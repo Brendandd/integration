@@ -23,7 +23,7 @@ public class IngressTopicConsumerWithoutAcceptancePolicyProcessor extends BaseMe
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, false);
         
         MessageFlowDto messageFlowDto  = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(), parentMessageFlowDto.getId(),MessageFlowActionType.ACCEPTED);
         outboxService.recordEvent(messageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner(), OutboxEventType.INGRESS_COMPLETE);  

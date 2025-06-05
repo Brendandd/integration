@@ -30,7 +30,7 @@ public class IntraRouteJMSTopicProducerEgressForwardingProcessor extends BaseMes
         outboxService.deleteEvent(eventId);
     
         long messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
-        MessageFlowDto messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId);
+        MessageFlowDto messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, false);
         
         // Change the status of the message flow from pending forwarding to forwarded
         messageFlowService.updateAction(messageFlowId, MessageFlowActionType.FORWARDED);

@@ -78,8 +78,10 @@ CREATE TABLE `outbox_event` (
   `retry_after` datetime DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=225 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  KEY `component` (`component_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=41727 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 CREATE TABLE `message_flow_group` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -97,8 +99,10 @@ CREATE TABLE `message_flow` (
   `action` varchar(100) DEFAULT NULL,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=260 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  KEY `parent` (`parent_message_flow_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=48258 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 CREATE TABLE `message_flow_filtered` (

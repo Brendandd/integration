@@ -10,15 +10,26 @@ import integration.core.dto.MessageFlowDto;
  * @author Brendan Douglas
  */
 public class MessageFlowMapper extends BaseMapper<MessageFlowDto, MessageFlow> {
+    
+    private boolean includeMessage = false;
+    
+    public MessageFlowMapper(boolean includeMessage) {
+        this.includeMessage = includeMessage; 
+    }
 
+    
     @Override
     public MessageFlowDto doMapping(MessageFlow source) {
         MessageFlowDto destination = new MessageFlowDto();
 
+        
         MessageMapper messageMapper = new MessageMapper();
         
         destination.setId(source.getId());
-        destination.setMessage(messageMapper.doMapping(source.getMessage()));
+        
+        if (includeMessage) {
+            destination.setMessage(messageMapper.doMapping(source.getMessage()));
+        }
         
         
         MessageFlowPropertyMapper messageFlowPropertyMapper = new MessageFlowPropertyMapper();

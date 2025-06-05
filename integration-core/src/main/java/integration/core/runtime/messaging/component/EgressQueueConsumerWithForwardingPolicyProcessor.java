@@ -24,7 +24,7 @@ public class EgressQueueConsumerWithForwardingPolicyProcessor extends BaseMessag
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
         
         MessageFlowPolicyResult result = component.getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
                                                        

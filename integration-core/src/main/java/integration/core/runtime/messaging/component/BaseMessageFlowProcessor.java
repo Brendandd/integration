@@ -28,11 +28,11 @@ public abstract class BaseMessageFlowProcessor<T extends MessagingComponent> imp
     }
     
     
-    protected MessageFlowDto getMessageFlowDtoFromExchangeBody(Exchange exchange) throws MessageFlowProcessingException, MessageFlowNotFoundException {
+    protected MessageFlowDto getMessageFlowDtoFromExchangeBody(Exchange exchange, boolean includeMessage) throws MessageFlowProcessingException, MessageFlowNotFoundException {
         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
         exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), parentMessageFlowId);
         
-        return messageFlowService.retrieveMessageFlow(parentMessageFlowId);
+        return messageFlowService.retrieveMessageFlow(parentMessageFlowId, includeMessage);
     }
 
 }

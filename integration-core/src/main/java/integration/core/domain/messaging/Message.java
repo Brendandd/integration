@@ -20,7 +20,7 @@ public class Message extends BaseIntegrationDomain {
     private String content;
     private ContentTypeEnum contentType;
        
-    private Message() {
+    public Message() {
         
     }
 

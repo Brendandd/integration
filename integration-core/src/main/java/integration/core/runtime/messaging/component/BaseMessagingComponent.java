@@ -272,7 +272,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         
         
         // Event processor routes.
-        from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=500&delay=2000")
+        from("timer://eventProcessorTimer-" + getIdentifier() + "?period=500&delay=2000")
         .routeId("eventProcessorTimer-" + getIdentifier())
         .process(exchange -> {
             Lock lock = null;
@@ -312,7 +312,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     protected void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
-        from("timer://stateTimer-" + getIdentifier() + "?fixedRate=true&period=100&delay=2000")
+        from("timer://stateTimer-" + getIdentifier() + "?period=30000&delay=2000")
         .routeId("stateTimer-" + getIdentifier())
         .process(exchange -> {
             ComponentDto component = componentConfigurationService.getComponent(identifier);
@@ -585,7 +585,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         Long parentMessageFlowId = exchange.getMessage().getBody(Long.class);
         exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), parentMessageFlowId);
         
-        return messageFlowService.retrieveMessageFlow(parentMessageFlowId);
+        return messageFlowService.retrieveMessageFlow(parentMessageFlowId, false);
     }
     
     

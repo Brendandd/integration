@@ -24,7 +24,7 @@ public class MessageSplitterProcessor extends BaseMessageFlowProcessor<BaseSplit
     
     @Override
     public void process(Exchange exchange) throws Exception {
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
         
         int numberOfMessages = component.getSplitter().getSplitCount(parentMessageFlowDto);
                   

@@ -23,7 +23,7 @@ public class EgressQueueConsumerWithoutForwardingPolicyProcessor extends BaseMes
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange);
+        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, false);
         
         MessageFlowDto forwardedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.PENDING_FORWARDING);
         outboxService.recordEvent(forwardedMessageFlowDto.getId(), component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner(), OutboxEventType.PENDING_FORWARDING);    

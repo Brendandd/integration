@@ -103,7 +103,7 @@ public interface MessageFlowService {
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException
      */
-    MessageFlowDto retrieveMessageFlow(long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException;
+    MessageFlowDto retrieveMessageFlow(long messageFlowId, boolean includeMessage) throws MessageFlowProcessingException, MessageFlowNotFoundException;
 
     
     /**

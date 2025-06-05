@@ -39,7 +39,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessorTest extends BaseM
         mockMessageFlowIdCamelMessage();
         
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithContent();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
         when(messageConsumer.getRoute()).thenReturn(route);
@@ -68,7 +68,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessorTest extends BaseM
         mockMessageFlowIdCamelMessage();
         
         // Call the mock message flow service to get a mock dto.
-        mockRetrieveMessageFlow();
+        mockRetrieveMessageFlowWithContent();
         
         when(messageConsumer.getIdentifier()).thenReturn(componentId);
         
