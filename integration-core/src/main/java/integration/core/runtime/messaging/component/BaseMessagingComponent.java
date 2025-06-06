@@ -197,10 +197,13 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             if (!theException.isRetryable() && messageFlowId != null) {
                 messageFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
             } else {
-                exchange.setRollbackOnly(true); 
+                exchange.setRollbackOnly(true);
             }
         })
-        .handled(true);
+        .handled(exchange -> {
+            MessageFlowProcessingException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
+            return !ex.isRetryable();          
+        });
 
         
         // Handled Queue publishing exceptions.  For now retry everything. 
@@ -213,13 +216,15 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             Long eventId = getEventId(theException, exchange);
             
             // If there was an event id we can mark the event for retry.
-            if (eventId != null) {
+            if (theException.isRetryable() && eventId != null) {
                 outboxService.markEventForRetry(eventId);
+                exchange.setRollbackOnly(true);
             }
-  
-            exchange.setRollbackOnly(true);
         })
-        .handled(true);
+        .handled(exchange -> {
+            QueuePublishingException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, QueuePublishingException.class);
+            return !ex.isRetryable();
+        });
 
         
         // Handled exceptions forwarding the message from a component.  For now retry everything. 
@@ -233,14 +238,16 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             Long eventId = getEventId(theException, exchange);
             
             // If there was an event id we can mark the event for retry.
-            if (eventId != null) {
+            if (theException.isRetryable() && eventId != null) {
                 outboxService.markEventForRetry(eventId);
+                exchange.setRollbackOnly(true);
             }
-  
-            exchange.setRollbackOnly(true);
         })
-        .handled(true);
-        
+        .handled(exchange -> {
+            MessageForwardingException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageForwardingException.class);
+            return !ex.isRetryable();
+        });
+
         
         // Handled other types of exceptions.  If there is an id we can record an error.  No id means we need to retry.
         onException(Exception.class)
@@ -258,7 +265,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                 exchange.setRollbackOnly(true); 
             }
         })
-        .handled(true);       
+        .handled(exchange -> {
+            Long messageFlowId = exchange.getIn().getHeader(IdentifierType.MESSAGE_FLOW_ID.name(), Long.class);
+            return messageFlowId != null;
+        });       
     }
 
     
@@ -285,18 +295,23 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             
             List<OutboxEventDto>events = null;
             
+            
+            Set<Long>processedEventIds = new HashSet<>();
+            
             try {
                 IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
                 lock = cache.lock(getComponentPath());
                 
                 lock.lock(); // Lock acquired
     
-                while (!(events = outboxService.getEventsForComponent(getIdentifier(), 50, eventTypesToProcess)).isEmpty()) {
+                while (!(events = outboxService.getEventsForComponent(getIdentifier(), 50, eventTypesToProcess,processedEventIds.isEmpty() ? null : processedEventIds)).isEmpty()) {
                     for (OutboxEventDto event : events) {
                         String route = eventRoutingMap.get(event.getType());
                         if (route == null) {
                             continue;
                         }
+                        
+                        processedEventIds.add(event.getId());
                     
                         String uri = route + "-" + event.getComponentId();
                         Map<String, Object> headers = new HashMap<>();

@@ -16,10 +16,10 @@ import jakarta.persistence.LockModeType;
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
     
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query(name = "getEventsForRoute", value = "select e from OutboxEvent e where e.type in ?3 and e.route.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
-    List<OutboxEvent> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes);
+    @Query(name = "getEventsForRoute", value = "select e from OutboxEvent e where e.type in ?3 and (?4 IS NULL OR e.id NOT IN ?4) and e.route.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
+    List<OutboxEvent> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes, Set<Long>processedEventIds);
        
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query(name = "getEventsForComponent", value = "select e from OutboxEvent e where e.type in ?3 and e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
-    List<OutboxEvent> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes);
+    @Query(name = "getEventsForComponent", value = "select e from OutboxEvent e where e.type in ?3 and (?4 IS NULL OR e.id NOT IN ?4) and e.component.id = ?1 AND (e.retryAfter IS NULL OR e.retryAfter <= CURRENT_TIMESTAMP) order by e.createdDate LIMIT ?2")
+    List<OutboxEvent> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes, Set<Long>processedEventIds);
 }

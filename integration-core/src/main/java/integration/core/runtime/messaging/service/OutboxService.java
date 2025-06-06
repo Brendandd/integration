@@ -42,7 +42,7 @@ public interface OutboxService {
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      */
-    List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes) throws MessageFlowProcessingException, OutboxEventProcessingException;
+    List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException;
 
     
     /**
@@ -54,7 +54,7 @@ public interface OutboxService {
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      */
-    List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes) throws MessageFlowProcessingException, OutboxEventProcessingException;
+    List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException;
 
     
     /**

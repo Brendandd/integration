@@ -81,12 +81,12 @@ public class OutboxServiceImpl implements OutboxService {
 
     
     @Override
-    public List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes) throws MessageFlowProcessingException, OutboxEventProcessingException {
+    public List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException {
         try  {
             OutboxEventMapper mapper = new OutboxEventMapper();
             List<OutboxEventDto> eventDtos = new ArrayList<>();
     
-            List<OutboxEvent> events = eventRepository.getEventsForRoute(routeId, numberToRead, eventTypes);
+            List<OutboxEvent> events = eventRepository.getEventsForRoute(routeId, numberToRead, eventTypes, processedEventIds);
     
             for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));
@@ -104,12 +104,12 @@ public class OutboxServiceImpl implements OutboxService {
 
     
     @Override
-    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes) throws OutboxEventProcessingException {
+    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws OutboxEventProcessingException {
         try  {
             OutboxEventMapper mapper = new OutboxEventMapper();
             List<OutboxEventDto> eventDtos = new ArrayList<>();
     
-            List<OutboxEvent> events = eventRepository.getEventsForComponent(componentId, numberToRead, eventTypes);
+            List<OutboxEvent> events = eventRepository.getEventsForComponent(componentId, numberToRead, eventTypes, processedEventIds);
     
             for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));

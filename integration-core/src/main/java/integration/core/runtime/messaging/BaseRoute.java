@@ -216,8 +216,10 @@ public abstract class BaseRoute {
             lock.lock(); // Lock acquired
             
             List<OutboxEventDto>events = null;
+            
+            Set<Long>processedEventIds = new HashSet<>();
 
-            while (!(events = outboxService.getEventsForRoute(getIdentifier(), 50, eventTypesToProcess)).isEmpty()) {
+            while (!(events = outboxService.getEventsForRoute(getIdentifier(), 50, eventTypesToProcess,processedEventIds.isEmpty() ? null : processedEventIds)).isEmpty()) {
                 for (OutboxEventDto event : events) {
     
                    BaseMessagingComponent component = (BaseMessagingComponent) getComponent(event.getComponentId());
@@ -230,6 +232,8 @@ public abstract class BaseRoute {
                     } else {                        
                         continue; // skip unknown types
                     }
+                    
+                    processedEventIds.add(event.getId());
                     
                     Map<String,Object>headers = new HashMap<>();
                     headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
@@ -261,8 +265,9 @@ public abstract class BaseRoute {
             lock.lock(); // Lock acquired
             
             List<OutboxEventDto>events = null;
+            Set<Long>processedEventIds = new HashSet<>();
 
-            while (!(events = outboxService.getEventsForRoute(getIdentifier(), 50, eventTypesToProcess)).isEmpty()) {
+            while (!(events = outboxService.getEventsForRoute(getIdentifier(), 50, eventTypesToProcess,processedEventIds.isEmpty() ? null : processedEventIds)).isEmpty()) {
                 for (OutboxEventDto event : events) {
     
                    BaseMessagingComponent component = (BaseMessagingComponent) getComponent(event.getComponentId());
@@ -275,6 +280,8 @@ public abstract class BaseRoute {
                     } else {                        
                         continue; // skip unknown types
                     }
+                    
+                    processedEventIds.add(event.getId());
                     
                     Map<String,Object>headers = new HashMap<>();
                     headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
