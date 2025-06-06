@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,12 +81,12 @@ public class OutboxServiceImpl implements OutboxService {
 
     
     @Override
-    public List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead) throws OutboxEventProcessingException {
+    public List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes) throws MessageFlowProcessingException, OutboxEventProcessingException {
         try  {
             OutboxEventMapper mapper = new OutboxEventMapper();
             List<OutboxEventDto> eventDtos = new ArrayList<>();
     
-            List<OutboxEvent> events = eventRepository.getEventsForRoute(routeId, numberToRead);
+            List<OutboxEvent> events = eventRepository.getEventsForRoute(routeId, numberToRead, eventTypes);
     
             for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));
@@ -98,40 +99,17 @@ public class OutboxServiceImpl implements OutboxService {
             List<ExceptionIdentifier>identifiers = new ArrayList<>();
             identifiers.add(new ExceptionIdentifier(IdentifierType.ROUTE_ID, routeId));
             throw new OutboxEventProcessingException("Database error while retrieving events for route", e);
-        } 
-    }
-    
-    
-    @Override
-    public List<OutboxEventDto> getEventsForOwner(String owner, int numberToRead) throws OutboxEventProcessingException {
-        try  {
-            OutboxEventMapper mapper = new OutboxEventMapper();
-            List<OutboxEventDto> eventDtos = new ArrayList<>();
-    
-            List<OutboxEvent> events = eventRepository.getEventsForOwner(owner, numberToRead);
-    
-            for (OutboxEvent event : events) {
-                eventDtos.add(mapper.doMapping(event));
-            }
-            
-            return eventDtos;
-        } catch(DataAccessException e) {
-            
-            // There is no event id to put in the exception
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(IdentifierType.OWNER, owner));
-            throw new OutboxEventProcessingException("Database error while retrieving events for owner (microservice)", e);
-        } 
+        }         
     }
 
     
     @Override
-    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead) throws OutboxEventProcessingException {
+    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes) throws OutboxEventProcessingException {
         try  {
             OutboxEventMapper mapper = new OutboxEventMapper();
             List<OutboxEventDto> eventDtos = new ArrayList<>();
     
-            List<OutboxEvent> events = eventRepository.getEventsForComponent(componentId, numberToRead);
+            List<OutboxEvent> events = eventRepository.getEventsForComponent(componentId, numberToRead, eventTypes);
     
             for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));
@@ -146,7 +124,7 @@ public class OutboxServiceImpl implements OutboxService {
             throw new OutboxEventProcessingException("Database error while retrieving events for component", e);
         } 
     }
-    
+
     
     @Override
     public void deleteEvent(long eventId) throws OutboxEventProcessingException, OutboxEventNotFoundException {

@@ -1,6 +1,7 @@
 package integration.core.runtime.messaging.service;
 
 import java.util.List;
+import java.util.Set;
 
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.OutboxEventDto;
@@ -29,19 +30,20 @@ public interface OutboxService {
      * @throws ComponentNotFoundException
      */
     void recordEvent(long messageFlowId, long componentId, long routeId, String owner, OutboxEventType eventType) throws MessageFlowProcessingException, OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
-
+    
     
     /**
-     * Returns events for a route.
+     * 
      * 
      * @param routeId
      * @param numberToRead
+     * @param eventTypes
      * @return
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      */
-    List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead) throws MessageFlowProcessingException, OutboxEventProcessingException;
-    
+    List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes) throws MessageFlowProcessingException, OutboxEventProcessingException;
+
     
     /**
      * Returns events for a component.
@@ -52,19 +54,7 @@ public interface OutboxService {
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      */
-    List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead) throws MessageFlowProcessingException, OutboxEventProcessingException;
-    
-    
-    /**
-     * Returns events for an owner (single microservice).
-     * 
-     * @param owner
-     * @param numberToRead
-     * @return
-     * @throws MessageFlowProcessingException
-     * @throws OutboxEventProcessingException
-     */
-    List<OutboxEventDto> getEventsForOwner(String owner, int numberToRead) throws MessageFlowProcessingException, OutboxEventProcessingException;
+    List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes) throws MessageFlowProcessingException, OutboxEventProcessingException;
 
     
     /**

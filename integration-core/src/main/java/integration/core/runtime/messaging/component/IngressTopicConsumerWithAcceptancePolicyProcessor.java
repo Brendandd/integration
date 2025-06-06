@@ -30,7 +30,7 @@ public class IngressTopicConsumerWithAcceptancePolicyProcessor extends BaseMessa
         if (result.isSuccess()) {
             // Record the content received by this component.
             MessageFlowDto acceptedMessageFlowDto = messageFlowService.recordMessageFlowWithSameContent(component.getIdentifier(), parentMessageFlowDto.getId(), MessageFlowActionType.ACCEPTED);
-        
+                   
             // Record an event so the message can be forwarded to other components for processing.
             outboxService.recordEvent(acceptedMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner(), OutboxEventType.INGRESS_COMPLETE); 
         } else {

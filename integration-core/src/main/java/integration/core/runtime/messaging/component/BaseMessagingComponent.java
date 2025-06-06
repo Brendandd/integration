@@ -3,6 +3,7 @@ package integration.core.runtime.messaging.component;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -262,6 +263,8 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     protected void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {
+        
+        
        
         // A route to place the ingress message flow onto the egress queue
         from("direct:toEgressQueue-" + getIdentifier())
@@ -269,7 +272,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             .routeGroup(getComponentPath())  
             .transacted()
                 .process(egressQueueProducerProcessor);
-        
+
         
         // Event processor routes.
         from("timer://eventProcessorTimer-" + getIdentifier() + "?period=500&delay=2000")
@@ -277,31 +280,31 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         .process(exchange -> {
             Lock lock = null;
             
+            Set<OutboxEventType>eventTypesToProcess = new HashSet<>();
+            eventTypesToProcess.add(OutboxEventType.PENDING_FORWARDING);
+            
+            List<OutboxEventDto>events = null;
+            
             try {
                 IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
                 lock = cache.lock(getComponentPath());
-    
+                
                 lock.lock(); // Lock acquired
     
-                List<OutboxEventDto> events = outboxService.getEventsForComponent(getIdentifier(), 50);
-
-                for (OutboxEventDto event : events) {
-                   
-                    String uri;
-                    String route = eventRoutingMap.get(event.getType());
+                while (!(events = outboxService.getEventsForComponent(getIdentifier(), 50, eventTypesToProcess)).isEmpty()) {
+                    for (OutboxEventDto event : events) {
+                        String route = eventRoutingMap.get(event.getType());
+                        if (route == null) {
+                            continue;
+                        }
                     
-                    if (route != null) {
-                        uri = route + "-" + event.getComponentId();
-                    } else {                        
-                        continue; // skip unknown types
+                        String uri = route + "-" + event.getComponentId();
+                        Map<String, Object> headers = new HashMap<>();
+                        headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+    
+                        producerTemplate.sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
                     }
-                    
-                    Map<String, Object>headers = new HashMap<>();
-                    headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
-                    headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
-                    
-                    
-                    exchange.getContext().createProducerTemplate().sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
                 }
             } finally {
                 lock.unlock(); // Release lock after all events processed
