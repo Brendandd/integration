@@ -1,7 +1,6 @@
 package integration.core.runtime.messaging.service;
 
 import java.util.List;
-import java.util.Set;
 
 import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.OutboxEventDto;
@@ -33,19 +32,6 @@ public interface OutboxService {
     
     
     /**
-     * 
-     * 
-     * @param routeId
-     * @param numberToRead
-     * @param eventTypes
-     * @return
-     * @throws MessageFlowProcessingException
-     * @throws OutboxEventProcessingException
-     */
-    List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException;
-
-    
-    /**
      * Returns events for a component.
      * 
      * @param componentId
@@ -54,7 +40,7 @@ public interface OutboxService {
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      */
-    List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException;
+    List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead,List<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException;
 
     
     /**

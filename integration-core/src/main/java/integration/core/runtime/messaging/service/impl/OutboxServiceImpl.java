@@ -5,12 +5,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,35 +82,20 @@ public class OutboxServiceImpl implements OutboxService {
 
     
     @Override
-    public List<OutboxEventDto> getEventsForRoute(long routeId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws MessageFlowProcessingException, OutboxEventProcessingException {
+    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead,List<Long>processedEventIds) throws OutboxEventProcessingException {
         try  {
             OutboxEventMapper mapper = new OutboxEventMapper();
             List<OutboxEventDto> eventDtos = new ArrayList<>();
     
-            List<OutboxEvent> events = eventRepository.getEventsForRoute(routeId, numberToRead, eventTypes, processedEventIds);
-    
-            for (OutboxEvent event : events) {
-                eventDtos.add(mapper.doMapping(event));
+            Pageable limit = PageRequest.of(0, numberToRead);
+            
+            List<OutboxEvent> events = null;
+            
+            if (processedEventIds.isEmpty()) {
+                events = eventRepository.getEventsForComponent(componentId, limit);
+            } else {
+                events = eventRepository.getEventsForComponent(componentId, processedEventIds, limit);
             }
-            
-            return eventDtos;
-        } catch(DataAccessException e) {
-            
-            // There is no event id to put in the exception
-            List<ExceptionIdentifier>identifiers = new ArrayList<>();
-            identifiers.add(new ExceptionIdentifier(IdentifierType.ROUTE_ID, routeId));
-            throw new OutboxEventProcessingException("Database error while retrieving events for route", e);
-        }         
-    }
-
-    
-    @Override
-    public List<OutboxEventDto> getEventsForComponent(long componentId, int numberToRead, Set<OutboxEventType>eventTypes,Set<Long>processedEventIds) throws OutboxEventProcessingException {
-        try  {
-            OutboxEventMapper mapper = new OutboxEventMapper();
-            List<OutboxEventDto> eventDtos = new ArrayList<>();
-    
-            List<OutboxEvent> events = eventRepository.getEventsForComponent(componentId, numberToRead, eventTypes, processedEventIds);
     
             for (OutboxEvent event : events) {
                 eventDtos.add(mapper.doMapping(event));

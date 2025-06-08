@@ -5,6 +5,7 @@ import java.util.Map;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
+import integration.core.domain.messaging.OutboxEventType;
 import integration.core.runtime.messaging.BaseRoute;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
@@ -41,4 +42,6 @@ public interface MessagingComponent {
     void validateAnnotations() throws ComponentConfigurationException;
     
     String getOwner();
+    
+    Map<OutboxEventType, String> getEventRoutingMap();
 }

@@ -18,7 +18,7 @@ public abstract class ProcessingMessageHandlerComponent extends BaseMessageHandl
 
     @Autowired
     private ProcessingQueueProducerProcessor processingQueueProducerProcessor;
-    
+        
     @PostConstruct
     public void ProcessingMessageHandlerComponentInit() {
         processingQueueProducerProcessor.setComponent(this);
@@ -45,6 +45,8 @@ public abstract class ProcessingMessageHandlerComponent extends BaseMessageHandl
             .transacted()   
                 .process(getProcessingProcessor());
     }
+
+    
     
     /**
      * The default routing.  Subclasses can override if required.

@@ -3,12 +3,14 @@ package integration.core.runtime.messaging.component;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -16,6 +18,8 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteSet;
+import org.apache.ignite.configuration.CollectionConfiguration;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -105,7 +109,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected MessageFlowPropertyService messageFlowPropertyService;
-    
+       
     protected final Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
 
     public abstract Logger getLogger();
@@ -117,7 +121,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @PostConstruct
     public void BaseMessagingComponentInit() {
-        egressQueueProducerProcessor.setComponent(this);
+        egressQueueProducerProcessor.setComponent(this);        
     }
 
     
@@ -193,6 +197,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
             getLogger().warn("Message flow exception - summary: {}", theException); 
             
             Long messageFlowId = getMessageFlowId(theException, exchange);
+
+            
+            getLogger().info("*******************BRENDAN**************************", theException.isRetryable());
             
             if (!theException.isRetryable() && messageFlowId != null) {
                 messageFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
@@ -273,60 +280,78 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
     
     protected void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        
-        
-       
         // A route to place the ingress message flow onto the egress queue
         from("direct:toEgressQueue-" + getIdentifier())
-            .routeId("toEgressQueue-" + getIdentifier())
-            .routeGroup(getComponentPath())  
-            .transacted()
-                .process(egressQueueProducerProcessor);
+        .routeId("toEgressQueue-" + getIdentifier())
+        .routeGroup(getComponentPath())
+        .transacted()
+            .process(egressQueueProducerProcessor);
+
+        
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
+        IgniteSet<Long> igniteInProgressSet = ignite.set("processingEvents" + getIdentifier(), new CollectionConfiguration());
 
         
         // Event processor routes.
-        from("timer://eventProcessorTimer-" + getIdentifier() + "?period=500&delay=2000")
-        .routeId("eventProcessorTimer-" + getIdentifier())
-        .process(exchange -> {
-            Lock lock = null;
-            
-            Set<OutboxEventType>eventTypesToProcess = new HashSet<>();
-            eventTypesToProcess.add(OutboxEventType.PENDING_FORWARDING);
-            
-            List<OutboxEventDto>events = null;
-            
-            
-            Set<Long>processedEventIds = new HashSet<>();
-            
-            try {
-                IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
-                lock = cache.lock(getComponentPath());
-                
-                lock.lock(); // Lock acquired
-    
-                while (!(events = outboxService.getEventsForComponent(getIdentifier(), 50, eventTypesToProcess,processedEventIds.isEmpty() ? null : processedEventIds)).isEmpty()) {
-                    for (OutboxEventDto event : events) {
-                        String route = eventRoutingMap.get(event.getType());
-                        if (route == null) {
-                            continue;
-                        }
-                        
-                        processedEventIds.add(event.getId());
-                    
-                        String uri = route + "-" + event.getComponentId();
-                        Map<String, Object> headers = new HashMap<>();
-                        headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
-                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
-    
-                        producerTemplate.sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
-                    }
-                }
-            } finally {
-                lock.unlock(); // Release lock after all events processed
-            }
-        });   
-    }
+        from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=300&delay=2000")
+                .routeId("eventProcessorTimer-" + getIdentifier()).process(exchange -> {
+                    Lock eventSelectionLock = cache.lock("event-selection-lock-" + getIdentifier());
 
+                    while (true) {
+                        List<OutboxEventDto> events = null;
+
+                        eventSelectionLock.lock();
+                        try {
+                            List<Long> idsToExclude = new ArrayList<>();
+                            if (igniteInProgressSet != null && !igniteInProgressSet.isEmpty()) {
+                                idsToExclude.addAll(igniteInProgressSet);
+                            }
+
+                            // Select the records to process while holding the lock.
+                            events = outboxService.getEventsForComponent(getIdentifier(), 50, idsToExclude);
+
+                            for (OutboxEventDto event : events) {
+                                igniteInProgressSet.add(event.getId());
+                            }
+                        } finally {
+                            eventSelectionLock.unlock();
+                        }
+
+                        if (events.isEmpty()) {
+                            break;
+                        }
+
+                        // Group by event type
+                        Map<OutboxEventType, List<OutboxEventDto>> eventsByType = events.stream().collect(Collectors.groupingBy(OutboxEventDto::getType));
+
+                        // Process each batch by event type in a separate thread.
+                        for (Map.Entry<OutboxEventType, List<OutboxEventDto>> entry : eventsByType.entrySet()) {
+                            OutboxEventType type = entry.getKey();
+                            List<OutboxEventDto> batch = entry.getValue();
+
+                            executor.submit(() -> {
+                                for (OutboxEventDto event : batch) {
+                                    try {
+                                        String route = eventRoutingMap.get(type);
+                                        if (route == null) {
+                                            return;
+                                        }
+                                        String uri = route + "-" + event.getComponentId();
+                                        Map<String, Object> headers = new HashMap<>();
+                                        headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+
+                                        producerTemplate.sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
+                                    } finally {
+                                        igniteInProgressSet.remove(event.getId());
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+    }
     
     protected void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
@@ -616,6 +641,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
     
     
+    @Override
     public Map<OutboxEventType, String> getEventRoutingMap() {
         return eventRoutingMap;
     }
