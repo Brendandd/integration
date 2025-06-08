@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,15 +84,13 @@ public class OutboxServiceImpl implements OutboxService {
         try  {
             OutboxEventMapper mapper = new OutboxEventMapper();
             List<OutboxEventDto> eventDtos = new ArrayList<>();
-    
-            Pageable limit = PageRequest.of(0, numberToRead);
-            
+               
             List<OutboxEvent> events = null;
             
             if (processedEventIds.isEmpty()) {
-                events = eventRepository.getEventsForComponent(componentId, limit);
+                events = eventRepository.getEventsForComponent(componentId, numberToRead);
             } else {
-                events = eventRepository.getEventsForComponent(componentId, processedEventIds, limit);
+                events = eventRepository.getEventsForComponent(componentId, processedEventIds, numberToRead);
             }
     
             for (OutboxEvent event : events) {
