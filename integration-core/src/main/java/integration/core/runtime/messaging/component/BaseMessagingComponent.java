@@ -295,62 +295,62 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         
         // Event processor routes.
         from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=300&delay=2000")
-                .routeId("eventProcessorTimer-" + getIdentifier()).process(exchange -> {
-                    Lock eventSelectionLock = cache.lock("event-selection-lock-" + getIdentifier());
+        .routeId("eventProcessorTimer-" + getIdentifier()).process(exchange -> {
+            Lock eventSelectionLock = cache.lock("event-selection-lock-" + getIdentifier());
 
-                    while (true) {
-                        List<OutboxEventDto> events = null;
+            while (true) {
+                List<OutboxEventDto> events = null;
 
-                        eventSelectionLock.lock();
-                        try {
-                            List<Long> idsToExclude = new ArrayList<>();
-                            if (igniteInProgressSet != null && !igniteInProgressSet.isEmpty()) {
-                                idsToExclude.addAll(igniteInProgressSet);
-                            }
-
-                            // Select the records to process while holding the lock.
-                            events = outboxService.getEventsForComponent(getIdentifier(), 50, idsToExclude);
-
-                            for (OutboxEventDto event : events) {
-                                igniteInProgressSet.add(event.getId());
-                            }
-                        } finally {
-                            eventSelectionLock.unlock();
-                        }
-
-                        if (events.isEmpty()) {
-                            break;
-                        }
-
-                        // Group by event type
-                        Map<OutboxEventType, List<OutboxEventDto>> eventsByType = events.stream().collect(Collectors.groupingBy(OutboxEventDto::getType));
-
-                        // Process each batch by event type in a separate thread.
-                        for (Map.Entry<OutboxEventType, List<OutboxEventDto>> entry : eventsByType.entrySet()) {
-                            OutboxEventType type = entry.getKey();
-                            List<OutboxEventDto> batch = entry.getValue();
-
-                            executor.submit(() -> {
-                                for (OutboxEventDto event : batch) {
-                                    try {
-                                        String route = eventRoutingMap.get(type);
-                                        if (route == null) {
-                                            return;
-                                        }
-                                        String uri = route + "-" + event.getComponentId();
-                                        Map<String, Object> headers = new HashMap<>();
-                                        headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
-                                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
-
-                                        producerTemplate.sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
-                                    } finally {
-                                        igniteInProgressSet.remove(event.getId());
-                                    }
-                                }
-                            });
-                        }
+                eventSelectionLock.lock();
+                try {
+                    List<Long> idsToExclude = new ArrayList<>();
+                    if (igniteInProgressSet != null && !igniteInProgressSet.isEmpty()) {
+                        idsToExclude.addAll(igniteInProgressSet);
                     }
-                });
+
+                    // Select the records to process while holding the lock.
+                    events = outboxService.getEventsForComponent(getIdentifier(), 50, idsToExclude);
+
+                    for (OutboxEventDto event : events) {
+                        igniteInProgressSet.add(event.getId());
+                    }
+                } finally {
+                    eventSelectionLock.unlock();
+                }
+
+                if (events.isEmpty()) {
+                    break;
+                }
+
+                // Group by event type
+                Map<OutboxEventType, List<OutboxEventDto>> eventsByType = events.stream().collect(Collectors.groupingBy(OutboxEventDto::getType));
+
+                // Process each batch by event type in a separate thread.
+                for (Map.Entry<OutboxEventType, List<OutboxEventDto>> entry : eventsByType.entrySet()) {
+                    OutboxEventType type = entry.getKey();
+                    List<OutboxEventDto> batch = entry.getValue();
+
+                    executor.submit(() -> {
+                        for (OutboxEventDto event : batch) {
+                            try {
+                                String route = eventRoutingMap.get(type);
+                                if (route == null) {
+                                    return;
+                                }
+                                String uri = route + "-" + event.getComponentId();
+                                Map<String, Object> headers = new HashMap<>();
+                                headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                                headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+
+                                producerTemplate.sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
+                            } finally {
+                                igniteInProgressSet.remove(event.getId());
+                            }
+                        }
+                    });
+                }
+            }
+        });
     }
     
     protected void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
