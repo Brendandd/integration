@@ -440,7 +440,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
 
         
         // Reads a message flow id from the egress queue. This is the entry point for the egress step of a component.
-        from("jms:queue:egressQueue-" + getIdentifier())
+        from("jms:queue:egressQueue-" + getIdentifier() + "?acknowledgementModeName=CLIENT_ACKNOWLEDGE&concurrentConsumers=5")
             .routeId("egressQueue-" + getIdentifier())
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
