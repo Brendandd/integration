@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
-import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
+import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.splitter.annotation.UsesSplitter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import jakarta.annotation.PostConstruct;
@@ -18,11 +18,14 @@ import jakarta.annotation.PostConstruct;
  * done as part of the splitting process.
  */
 @ComponentType(type = IntegrationComponentTypeEnum.SPLITTER)
-public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComponent {
+public abstract class BaseSplitterComponent extends BaseMessageHandlerComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSplitterComponent.class);
     
     @Autowired
-    private MessageSplitterProcessor messageSplitterProcessor;
+    private SplitterInboxEventProcessor inboxEventProcessor;
+    
+    @Autowired
+    private SplitterOutboxEventProcessor outboxEventProcessor;
 
     @Override
     public Logger getLogger() {
@@ -32,16 +35,11 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
     
     @PostConstruct
     public void BaseSplitterComponentInit() {
-        messageSplitterProcessor.setComponent(this);
+        inboxEventProcessor.setComponent(this);
+        outboxEventProcessor.setComponent(this);
     }
 
     
-    @Override
-    public MessageSplitterProcessor getProcessingProcessor() {
-        return messageSplitterProcessor;
-    }
-
-
     public MessageSplitter getSplitter() throws ComponentConfigurationException {
         UsesSplitter annotation = getRequiredAnnotation(UsesSplitter.class);
         
@@ -53,6 +51,7 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
     protected void configureComponentLevelExceptionHandlers() {
         // Handle splitter errors
         onException(SplitterException.class)
+        .maximumRedeliveries(0)
         .process(exchange -> {            
             SplitterException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, SplitterException.class);
             getLogger().error("Full exception trace", theException);
@@ -76,4 +75,16 @@ public abstract class BaseSplitterComponent extends ProcessingMessageHandlerComp
         
         requiredAnnotations.add(UsesSplitter.class);
     }
+
+    
+    @Override
+    public SplitterInboxEventProcessor getInboxEventProcessor() {
+        return inboxEventProcessor;
+    }
+
+    
+    @Override
+    public SplitterOutboxEventProcessor getOutboxEventProcessor() {
+        return outboxEventProcessor;
+    }  
 }

@@ -4,7 +4,7 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
-import integration.messaging.hl7.component.adapter.smb.BaseHL7InboundSMBAdapter;
+import integration.messaging.hl7.component.adapter.smb.inbound.BaseHL7InboundSMBAdapter;
 
 /**
  * Reads a file from the configured folder,

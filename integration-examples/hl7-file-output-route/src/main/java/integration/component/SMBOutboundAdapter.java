@@ -5,7 +5,7 @@ import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
 import integration.core.runtime.messaging.component.type.adapter.smb.annotation.FileNaming;
-import integration.messaging.hl7.component.adapter.smb.BaseHL7OutboundSMBAdapter;
+import integration.messaging.hl7.component.adapter.smb.outbound.BaseHL7OutboundSMBAdapter;
 
 /**
  * Component to write the file.

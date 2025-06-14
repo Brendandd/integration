@@ -45,16 +45,6 @@ CREATE TABLE `component_property` (
 
 
 
-CREATE TABLE `event` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `type` varchar(45) DEFAULT NULL,
-  `payload` blob,
-  `event_date_time` datetime DEFAULT NULL,
-  `created_by_user_id` varchar(45) DEFAULT NULL,
-  `created_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 CREATE TABLE `message` (
   `id` int NOT NULL AUTO_INCREMENT,
   `content` blob,
@@ -66,9 +56,9 @@ CREATE TABLE `message` (
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 SELECT * FROM integration.component;
 
+
 CREATE TABLE `outbox_event` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `type` varchar(45) DEFAULT NULL,
   `event_date_time` datetime DEFAULT NULL,
   `message_flow_id` int DEFAULT NULL,
   `component_id` int DEFAULT NULL,
@@ -76,13 +66,32 @@ CREATE TABLE `outbox_event` (
   `owner` varchar(45) DEFAULT NULL,
   `retry_count` int DEFAULT NULL,
   `retry_after` datetime DEFAULT NULL,
+  `error` blob,
   `created_by_user_id` varchar(45) DEFAULT NULL,
   `created_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `component` (`component_id`),
   KEY `type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=1402 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+
+CREATE TABLE `inbox_event` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `event_date_time` datetime DEFAULT NULL,
+  `message_flow_id` int DEFAULT NULL,
+  `component_id` int DEFAULT NULL,
+  `route_id` int DEFAULT NULL,
+  `owner` varchar(45) DEFAULT NULL,
+  `jms_message_id` varchar(100) DEFAULT NULL,
+  `retry_count` int DEFAULT NULL,
+  `retry_after` datetime DEFAULT NULL,
+  `error` blob,
+  `created_by_user_id` varchar(45) DEFAULT NULL,
+  `created_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `component` (`component_id`),
+  KEY `type` (`type`)
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 CREATE TABLE `message_flow_group` (

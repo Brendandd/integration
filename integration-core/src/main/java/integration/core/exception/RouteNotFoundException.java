@@ -13,7 +13,7 @@ public class RouteNotFoundException extends EntityNotFoundException {
     
     private final static String ENTITY = "Route";
     
-    public RouteNotFoundException(long routeId) {
+    public RouteNotFoundException(Long routeId) {
         super(ENTITY, routeId, IdentifierType.ROUTE_ID);
     }
 }

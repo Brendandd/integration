@@ -2,9 +2,9 @@ package integration.core.runtime.messaging.service;
 
 import java.util.List;
 
-import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.OutboxEventDto;
 import integration.core.exception.ComponentNotFoundException;
+import integration.core.exception.IntegrationException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.OutboxEventNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
@@ -22,13 +22,12 @@ public interface OutboxService {
      *  
      * @param messageFlowId
      * @param componentId
-     * @param eventType
      * @throws MessageFlowProcessingException
      * @throws OutboxEventProcessingException
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    void recordEvent(long messageFlowId, long componentId, long routeId, String owner, OutboxEventType eventType) throws MessageFlowProcessingException, OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    void recordEvent(long messageFlowId, long componentId, long routeId, String owner) throws MessageFlowProcessingException, OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
     
     /**
@@ -51,7 +50,7 @@ public interface OutboxService {
      * @throws OutboxEventProcessingException
      * @throws OutboxEventNotFoundException
      */
-    void markEventForRetry(long eventId) throws MessageFlowProcessingException, OutboxEventProcessingException, OutboxEventNotFoundException;
+    void markEventForRetry(long eventId, IntegrationException theException) throws MessageFlowProcessingException, OutboxEventProcessingException, OutboxEventNotFoundException;
     
     
     /**

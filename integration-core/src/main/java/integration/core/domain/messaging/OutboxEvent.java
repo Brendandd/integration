@@ -7,8 +7,6 @@ import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.configuration.IntegrationRoute;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -26,12 +24,12 @@ import jakarta.persistence.TemporalType;
 @Table(name = "outbox_event")
 public class OutboxEvent extends BaseIntegrationDomain {
     private MessageFlow messageFlow;
-    private OutboxEventType type;
     private IntegrationComponent component;
     private IntegrationRoute route;
     private Date retryAfter;
     private int retryCount;
     private String owner;
+    private String error;
 
     @ManyToOne
     @JoinColumn(name = "message_flow_id")
@@ -42,18 +40,6 @@ public class OutboxEvent extends BaseIntegrationDomain {
     
     public void setMessageFlow(MessageFlow messageFlow) {
         this.messageFlow = messageFlow;
-    }
-    
-    
-    @Column(name = "type")
-    @Enumerated(EnumType.STRING)
-    public OutboxEventType getType() {
-        return type;
-    }
-    
-    
-    public void setType(OutboxEventType type) {
-        this.type = type;
     }
 
     
@@ -111,5 +97,17 @@ public class OutboxEvent extends BaseIntegrationDomain {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+
+
+    @Column(name = "error")
+    public String getError() {
+        return error;
+    }
+
+
+    public void setError(String error) {
+        this.error = error;
     } 
 }

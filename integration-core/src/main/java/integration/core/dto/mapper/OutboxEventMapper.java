@@ -16,7 +16,6 @@ public class OutboxEventMapper extends BaseMapper<OutboxEventDto, OutboxEvent> {
         destination.setMessageFlowId(source.getMessageFlow().getId());
         destination.setId(source.getId());
         destination.setComponentId(source.getComponent().getId());
-        destination.setType(source.getType());
 
         return destination;
     }

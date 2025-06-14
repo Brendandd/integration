@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -30,8 +29,8 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentCategoryEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
-import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.ComponentDto;
+import integration.core.dto.InboxEventDto;
 import integration.core.dto.MessageFlowDto;
 import integration.core.dto.OutboxEventDto;
 import integration.core.exception.ExceptionIdentifier;
@@ -42,9 +41,10 @@ import integration.core.runtime.messaging.component.annotation.IntegrationCompon
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.RouteConfigurationException;
+import integration.core.runtime.messaging.exception.retryable.InboxEventSchedulerException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
-import integration.core.runtime.messaging.exception.retryable.MessageForwardingException;
-import integration.core.runtime.messaging.exception.retryable.QueuePublishingException;
+import integration.core.runtime.messaging.exception.retryable.OutboxEventSchedulerException;
+import integration.core.runtime.messaging.service.InboxService;
 import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessageFlowService;
 import integration.core.runtime.messaging.service.OutboxService;
@@ -60,18 +60,12 @@ import jakarta.annotation.PostConstruct;
  * 
  * Messaging components can be adapters (inbound and outbound), message handlers (eg. transformers, filters, splitters) and route connectors (inbound and outbound).
  * 
- * To ensure guaranteed message delivery between components the transactional outbox pattern is used.  Firstly a message is written to an event table within the same transactions as the 
- * message flow record is stored in the main table.  A timer process then processes these events and within the same transaction the event is removed and a message written to a JMS topic to be 
- * picked up by another component.  
  * 
  * @author Brendan Douglas
  *
  */
 public abstract class BaseMessagingComponent extends RouteBuilder implements MessagingComponent {   
-    
-    // Outbox event to route mapping.
-    protected final Map<OutboxEventType, String> eventRoutingMap = new HashMap<>();
-    
+          
     protected long identifier;
     protected BaseRoute route;
     
@@ -80,10 +74,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected ComponentService componentConfigurationService;
-    
-    @Autowired
-    protected EgressQueueProducerProcessor egressQueueProducerProcessor;
-    
+            
     @Autowired
     protected CamelContext camelContext;
     
@@ -95,6 +86,9 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     
     @Autowired
     protected OutboxService outboxService;
+    
+    @Autowired
+    protected InboxService inboxService;
     
     protected Map<String,String>componentProperties;
 
@@ -113,15 +107,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected final Set<Class<? extends Annotation>> requiredAnnotations = new LinkedHashSet<>();
 
     public abstract Logger getLogger();
-    
-    public BaseMessagingComponent() {
-        configureEventRouting();
-    }
-    
+
     
     @PostConstruct
     public void BaseMessagingComponentInit() {
-        egressQueueProducerProcessor.setComponent(this);        
     }
 
     
@@ -190,76 +179,63 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      * @param routeBuilder
      */
     protected void configureGlobalExceptionHandlers(RouteBuilder routeBuilder) {
-        onException(MessageFlowProcessingException.class)
+                
+        // Handle exceptions caught by the outbox event scheduler. 
+        onException(OutboxEventSchedulerException.class)
+        .maximumRedeliveries(0)
         .process(exchange -> {           
-            MessageFlowProcessingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
+            OutboxEventSchedulerException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, OutboxEventSchedulerException.class);
             getLogger().error("Full exception trace", theException);
-            getLogger().warn("Message flow exception - summary: {}", theException); 
-            
-            Long messageFlowId = getMessageFlowId(theException, exchange);
-
-            
-            getLogger().info("*******************BRENDAN**************************", theException.isRetryable());
-            
-            if (!theException.isRetryable() && messageFlowId != null) {
-                messageFlowService.recordMessageFlowError(getIdentifier(), messageFlowId, theException);
-            } else {
-                exchange.setRollbackOnly(true);
-            }
-        })
-        .handled(exchange -> {
-            MessageFlowProcessingException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageFlowProcessingException.class);
-            return !ex.isRetryable();          
-        });
-
-        
-        // Handled Queue publishing exceptions.  For now retry everything. 
-        onException(QueuePublishingException.class)
-        .process(exchange -> {           
-            QueuePublishingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, QueuePublishingException.class);
-            getLogger().error("Full exception trace", theException);
-            getLogger().warn("Queue publishing exception - summary: {}", theException); 
+            getLogger().warn("Outbox Event Scheduler Exception - summary: {}", theException); 
             
             Long eventId = getEventId(theException, exchange);
             
             // If there was an event id we can mark the event for retry.
             if (theException.isRetryable() && eventId != null) {
-                outboxService.markEventForRetry(eventId);
+                outboxService.markEventForRetry(eventId, theException);
                 exchange.setRollbackOnly(true);
             }
+            
+            //TODO need to set event as failed if not retryable.
         })
         .handled(exchange -> {
-            QueuePublishingException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, QueuePublishingException.class);
+            OutboxEventSchedulerException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, OutboxEventSchedulerException.class);
             return !ex.isRetryable();
         });
 
         
-        // Handled exceptions forwarding the message from a component.  For now retry everything. 
-        onException(MessageForwardingException.class)
+        // Handle exceptions caught by the inbox event scheduler. 
+        onException(InboxEventSchedulerException.class)
+        .maximumRedeliveries(0)
         .process(exchange -> {           
-            MessageForwardingException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageForwardingException.class);
-
+            InboxEventSchedulerException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, InboxEventSchedulerException.class);
             getLogger().error("Full exception trace", theException);
-            getLogger().warn("Message forwarding exception - summary: {}", theException); 
+            getLogger().warn("Outbox Event Scheduler Exception - summary: {}", theException); 
             
             Long eventId = getEventId(theException, exchange);
             
             // If there was an event id we can mark the event for retry.
             if (theException.isRetryable() && eventId != null) {
-                outboxService.markEventForRetry(eventId);
+                inboxService.markEventForRetry(eventId, theException);
                 exchange.setRollbackOnly(true);
             }
+            
+            //TODO need to set event as failed if not retryable.
         })
         .handled(exchange -> {
-            MessageForwardingException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, MessageForwardingException.class);
+            InboxEventSchedulerException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, InboxEventSchedulerException.class);
             return !ex.isRetryable();
         });
 
         
         // Handled other types of exceptions.  If there is an id we can record an error.  No id means we need to retry.
         onException(Exception.class)
+        
         .process(exchange -> {           
             Exception theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+            
+            theException.printStackTrace();
+            
             getLogger().error("Full exception trace", theException);
             getLogger().warn("Unknown exception - summary: {}", theException); 
             
@@ -279,79 +255,113 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     }
 
     
-    protected void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {
-        // A route to place the ingress message flow onto the egress queue
-        from("direct:toEgressQueue-" + getIdentifier())
-        .routeId("toEgressQueue-" + getIdentifier())
-        .routeGroup(getComponentPath())
-        .transacted()
-            .process(egressQueueProducerProcessor);
-
-        
+    protected void configureOutboxRoutes() throws ComponentConfigurationException, RouteConfigurationException {       
         ExecutorService executor = Executors.newFixedThreadPool(20);
         IgniteCache<String, Integer> cache = ignite.getOrCreateCache("eventCache3");
-        IgniteSet<Long> igniteInProgressSet = ignite.set("processingEvents" + getIdentifier(), new CollectionConfiguration());
+        IgniteSet<Long> igniteOutboxEventInProgressSet = ignite.set("processingOutboxEvents" + getIdentifier(), new CollectionConfiguration());
+
+       
+        // Event processor routes.
+        from("timer://outboxEventProcessorTimer-" + getIdentifier() + "?period=300&delay=2000")
+        .routeId("outboxEventProcessorTimer-" + getIdentifier())
+        .process(exchange -> {
+            Lock eventSelectionLock = cache.lock("outbox-event-selection-lock-" + getIdentifier());
+
+            List<OutboxEventDto> events = null;
+            
+            eventSelectionLock.lock();
+            try {
+                List<Long> idsToExclude = new ArrayList<>();
+                if (igniteOutboxEventInProgressSet != null && !igniteOutboxEventInProgressSet.isEmpty()) {
+                    idsToExclude.addAll(igniteOutboxEventInProgressSet);
+                }
+
+                // Select the records to process while holding the lock.
+                events = outboxService.getEventsForComponent(getIdentifier(), 50, idsToExclude);
+                
+
+                for (OutboxEventDto event : events) {
+                    igniteOutboxEventInProgressSet.add(event.getId());
+                }   
+            } finally {
+                eventSelectionLock.unlock();
+            }
+
+            for (OutboxEventDto event : events) {
+                executor.submit(() -> {
+                    
+                    try {
+                        Map<String, Object> headers = new HashMap<>();
+                        headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+
+                        producerTemplate.sendBodyAndHeaders("direct:processOutboxEvent-" + event.getComponentId(), event.getMessageFlowId(), headers);   
+                    } finally {
+                        igniteOutboxEventInProgressSet.remove(event.getId());
+                    }
+                });                   
+            }
+        });    
 
         
+        IgniteSet<Long> igniteInboxEventInProgressSet = ignite.set("processingInboxEvents" + getIdentifier(), new CollectionConfiguration());
+        
         // Event processor routes.
-        from("timer://eventProcessorTimer-" + getIdentifier() + "?fixedRate=true&period=300&delay=2000")
-        .routeId("eventProcessorTimer-" + getIdentifier()).process(exchange -> {
-            Lock eventSelectionLock = cache.lock("event-selection-lock-" + getIdentifier());
+        from("timer://inboxEventProcessorTimer-" + getIdentifier() + "?period=300&delay=2000")
+        .routeId("inboxEventProcessorTimer-" + getIdentifier())
+        .process(exchange -> {
+            Lock eventSelectionLock = cache.lock("inbox-event-selection-lock-" + getIdentifier());
 
-            while (true) {
-                List<OutboxEventDto> events = null;
-
-                eventSelectionLock.lock();
-                try {
-                    List<Long> idsToExclude = new ArrayList<>();
-                    if (igniteInProgressSet != null && !igniteInProgressSet.isEmpty()) {
-                        idsToExclude.addAll(igniteInProgressSet);
-                    }
-
-                    // Select the records to process while holding the lock.
-                    events = outboxService.getEventsForComponent(getIdentifier(), 50, idsToExclude);
-
-                    for (OutboxEventDto event : events) {
-                        igniteInProgressSet.add(event.getId());
-                    }
-                } finally {
-                    eventSelectionLock.unlock();
+            List<InboxEventDto> events = null;
+            
+            eventSelectionLock.lock();
+            try {
+                List<Long> idsToExclude = new ArrayList<>();
+                if (igniteInboxEventInProgressSet != null && !igniteInboxEventInProgressSet.isEmpty()) {
+                    idsToExclude.addAll(igniteInboxEventInProgressSet);
                 }
 
-                if (events.isEmpty()) {
-                    break;
-                }
-
-                // Group by event type
-                Map<OutboxEventType, List<OutboxEventDto>> eventsByType = events.stream().collect(Collectors.groupingBy(OutboxEventDto::getType));
-
-                // Process each batch by event type in a separate thread.
-                for (Map.Entry<OutboxEventType, List<OutboxEventDto>> entry : eventsByType.entrySet()) {
-                    OutboxEventType type = entry.getKey();
-                    List<OutboxEventDto> batch = entry.getValue();
-
-                    executor.submit(() -> {
-                        for (OutboxEventDto event : batch) {
-                            try {
-                                String route = eventRoutingMap.get(type);
-                                if (route == null) {
-                                    return;
-                                }
-                                String uri = route + "-" + event.getComponentId();
-                                Map<String, Object> headers = new HashMap<>();
-                                headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
-                                headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
-
-                                producerTemplate.sendBodyAndHeaders("direct:" + uri, event.getId(), headers);
-                            } finally {
-                                igniteInProgressSet.remove(event.getId());
-                            }
-                        }
-                    });
-                }
+                // Select the records to process while holding the lock.
+                events = inboxService.getEventsForComponent(getIdentifier(), 50, idsToExclude);
+                
+                for (InboxEventDto event : events) {
+                    igniteInboxEventInProgressSet.add(event.getId());
+                }   
+            } finally {
+                eventSelectionLock.unlock();
             }
-        });
+
+            for (InboxEventDto event : events) {
+                executor.submit(() -> {
+                    
+                    try {
+                        Map<String, Object> headers = new HashMap<>();
+                        headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
+                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+
+                        producerTemplate.sendBodyAndHeaders("direct:processInboxEvent-" + event.getComponentId(), event.getMessageFlowId(), headers);   
+                    } finally {
+                        igniteInboxEventInProgressSet.remove(event.getId());
+                    }
+                });                   
+            }
+        });  
+
+        
+        from("direct:processInboxEvent-" + getIdentifier())
+        .routeId("processInboxEvent-" + getIdentifier())
+        .routeGroup(getComponentPath())
+        .transacted("jpaTransactionPolicy")
+            .process(getInboxEventProcessor()); 
+
+        
+        from("direct:processOutboxEvent-" + getIdentifier())
+        .routeId("processOutboxEvent-" + getIdentifier())
+        .routeGroup(getComponentPath())
+        .transacted("jpaTransactionPolicy")
+            .process(getOutboxEventProcessor());  
     }
+
     
     protected void configureStateChangeRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         // Timer to check the state of a component and take the appropriate action eg. stop, start or do nothing.
@@ -437,25 +447,6 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         configureOutboxRoutes();
 
         configureStateChangeRoutes(); 
-
-        
-        // Reads a message flow id from the egress queue. This is the entry point for the egress step of a component.
-        from("jms:queue:egressQueue-" + getIdentifier() + "?acknowledgementModeName=SESSION_TRANSACTED&concurrentConsumers=10&maxConcurrentConsumers=30")
-            .routeId("egressQueue-" + getIdentifier())
-            .setHeader("contentType", constant(getContentType()))
-            .routeGroup(getComponentPath())
-            .transacted()
-                .process(getEgressQueueConsumerProcessor()); 
-
-        
-        // The final route in the egress step of a component.  It forwards the message to the next destination which might be another component in the same route,
-        // a component in a different route or externally.
-        from("direct:egressForwarding-" + getIdentifier())
-            .routeId("egressForwarding-" + getIdentifier())
-            .routeGroup(getComponentPath())
-            .autoStartup(outboundState == IntegrationComponentStateEnum.RUNNING)
-            .transacted()
-                .process(getEgressForwardingProcessor());    
     }
 
     
@@ -467,24 +458,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
      */
     protected abstract void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException;
 
-    
-    /**
-     * Gets the egress queue consumer processor.
-     * 
-     * @throws ComponentConfigurationException
-     * @throws RouteConfigurationException
-     */
-    protected abstract BaseMessageFlowProcessor<?> getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException;
-
-    
-    /**
-     * Configures the egress route for a component.
-     *
-     * @throws RouteConfigurationException 
-     * @throws ComponentConfigurationException 
-     */
-    protected abstract BaseMessageFlowProcessor<?> getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException;
-    
+           
     
     @Override
     public BaseRoute getRoute() {
@@ -630,24 +604,26 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
         
         return messageFlowService.retrieveMessageFlow(parentMessageFlowId, false);
     }
-    
-    
-    /**
-     * The default routing.  Subclasses can override if required.
-     */
-    protected void configureEventRouting() {
-        eventRoutingMap.put(OutboxEventType.INGRESS_COMPLETE, "toEgressQueue");
-        eventRoutingMap.put(OutboxEventType.PENDING_FORWARDING, "egressForwarding");
-    }
-    
-    
-    @Override
-    public Map<OutboxEventType, String> getEventRoutingMap() {
-        return eventRoutingMap;
-    }
 
+    
     @Override
     public String getOwner() {
         return env.getProperty("owner");  
     } 
+
+    
+    /**
+     * Get this components inbox event processor.
+     * 
+     * @return
+     */
+    public abstract InboxEventProcessor getInboxEventProcessor();
+
+    
+    /**
+     * Get this components outbox event processor.
+     * 
+     * @return
+     */
+    public abstract OutboxEventProcessor getOutboxEventProcessor();
 }

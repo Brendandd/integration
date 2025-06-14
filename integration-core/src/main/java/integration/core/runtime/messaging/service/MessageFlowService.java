@@ -13,12 +13,13 @@ import integration.core.runtime.messaging.component.type.handler.splitter.Splitt
 import integration.core.runtime.messaging.component.type.handler.transformation.TransformationException;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
+import integration.core.runtime.messaging.exception.retryable.OutboxEventProcessingException;
 
 /**
  * Service to store messages/message flows.
  */
 public interface MessageFlowService {
-      
+   
     /**
      * Records the message as not accepted (filtered).
      * 
@@ -30,9 +31,23 @@ public interface MessageFlowService {
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
+     * @throws OutboxEventProcessingException 
      */
-    MessageFlowDto recordMessageNotAccepted(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordMessageNotAccepted(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
+    
+    /**
+     * Records the message as accepted by the component.
+     * 
+     * @param componentId
+     * @param messageFlowId
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
+     */
+    MessageFlowDto recordMessageAccepted(long componentId, long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+
     
     /**
      * Records the message as not forwarded (filtered).
@@ -45,8 +60,22 @@ public interface MessageFlowService {
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
+     * @throws OutboxEventProcessingException 
      */
-    MessageFlowDto recordMessageNotForwarded(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    MessageFlowDto recordMessageNotForwarded(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+
+    
+    /**
+     * Records the message as pending forwarding by the component.
+     * 
+     * @param componentId
+     * @param messageFlowId
+     * @return
+     * @throws MessageFlowProcessingException
+     * @throws MessageFlowNotFoundException
+     * @throws ComponentNotFoundException
+     */
+    MessageFlowDto recordMessagePendingForwarding(long componentId, long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -64,7 +93,7 @@ public interface MessageFlowService {
      */
     MessageFlowDto recordInitialMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, Map<String, Object> headers, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
-    
+     
     /**
      * Records a message flow event linked to a parent message flow where the content has been changed.
      * 
@@ -129,7 +158,7 @@ public interface MessageFlowService {
      * @return
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException
-     * @throws ComponentNotFoundException
+     * @throws ComponentNotFoundException 
      */
     MessageFlowDto recordFilterError(long componentId, long messageFlowId, FilterException theException) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
@@ -163,12 +192,11 @@ public interface MessageFlowService {
 
 
     /**
-     * Updates the action of a message flow.
+     * Updates the action of a message flow from pending forwarding to forwarded.
      * 
      * @param messageFlowId
-     * @param forwarded
      * @throws MessageFlowProcessingException
      * @throws MessageFlowNotFoundException
      */
-    void updateAction(Long messageFlowId, MessageFlowActionType forwarded) throws MessageFlowProcessingException, MessageFlowNotFoundException;
+    void updatePendingForwardingToForwardedAction(Long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException;
 }

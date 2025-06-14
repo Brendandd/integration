@@ -18,11 +18,11 @@ import integration.core.domain.IdentifierType;
 import integration.core.domain.configuration.IntegrationComponent;
 import integration.core.domain.messaging.MessageFlow;
 import integration.core.domain.messaging.OutboxEvent;
-import integration.core.domain.messaging.OutboxEventType;
 import integration.core.dto.OutboxEventDto;
 import integration.core.dto.mapper.OutboxEventMapper;
 import integration.core.exception.ComponentNotFoundException;
 import integration.core.exception.ExceptionIdentifier;
+import integration.core.exception.IntegrationException;
 import integration.core.repository.ComponentRepository;
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.nonretryable.OutboxEventNotFoundException;
@@ -48,18 +48,19 @@ public class OutboxServiceImpl implements OutboxService {
 
     
     @Override
-    public void recordEvent(long messageFlowId, long componentId, long routeId, String owner, OutboxEventType eventType) throws OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
+    public void recordEvent(long messageFlowId, long componentId, long routeId, String owner) throws OutboxEventProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         try {
             Optional<MessageFlow> messageFlowOptional = messageFlowRepository.findById(messageFlowId);
         
             // The message flow must exist.
             if (messageFlowOptional.isEmpty()) {
                 throw new MessageFlowNotFoundException(messageFlowId);
-            }             
+            }      
+            
+            MessageFlow messageFlow = messageFlowOptional.get();
     
             OutboxEvent event = new OutboxEvent();
-            event.setMessageFlow(messageFlowOptional.get());
-            event.setType(eventType);
+            event.setMessageFlow(messageFlow);
             
             Optional<IntegrationComponent> integrationComponent = componentRepository.findById(componentId);
             if (integrationComponent.isEmpty()) {
@@ -125,7 +126,7 @@ public class OutboxServiceImpl implements OutboxService {
     
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markEventForRetry(long eventId) throws MessageFlowProcessingException, OutboxEventNotFoundException, OutboxEventProcessingException {
+    public void markEventForRetry(long eventId, IntegrationException theException) throws MessageFlowProcessingException, OutboxEventNotFoundException, OutboxEventProcessingException {
         try {
             Optional<OutboxEvent> eventOptional =  eventRepository.findById(eventId);
             if (eventOptional.isEmpty()) {
@@ -136,6 +137,7 @@ public class OutboxServiceImpl implements OutboxService {
             
             int retryCount = event.getRetryCount();
             event.setRetryCount(++retryCount);
+            event.setError(theException.toString());
             
             Calendar calendar = Calendar.getInstance();
             
@@ -150,7 +152,7 @@ public class OutboxServiceImpl implements OutboxService {
             
             eventRepository.save(event);  
         } catch(DataAccessException e) {
-            throw new OutboxEventProcessingException("Database error while setting the event to failed", eventId, e);
+            throw new OutboxEventProcessingException("Database error while marking the event for retry", eventId, e);
         }
     }
 }

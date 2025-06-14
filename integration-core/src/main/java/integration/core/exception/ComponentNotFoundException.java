@@ -13,7 +13,7 @@ public class ComponentNotFoundException extends EntityNotFoundException {
     
     private final static String ENTITY = "Component";
     
-    public ComponentNotFoundException(long componentId) {
+    public ComponentNotFoundException(Long componentId) {
         super(ENTITY, componentId, IdentifierType.COMPONENT_ID);
     }
 }

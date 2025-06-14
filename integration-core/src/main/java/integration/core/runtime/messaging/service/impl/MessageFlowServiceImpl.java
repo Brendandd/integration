@@ -34,7 +34,9 @@ import integration.core.runtime.messaging.component.type.handler.transformation.
 import integration.core.runtime.messaging.exception.nonretryable.MessageFlowNotFoundException;
 import integration.core.runtime.messaging.exception.retryable.MessageFlowProcessingException;
 import integration.core.runtime.messaging.repository.MessageFlowRepository;
+import integration.core.runtime.messaging.service.MessageFlowPropertyService;
 import integration.core.runtime.messaging.service.MessageFlowService;
+import integration.core.runtime.messaging.service.OutboxService;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -46,8 +48,14 @@ public class MessageFlowServiceImpl implements MessageFlowService {
                   
     @Autowired
     private ComponentRepository componentRepository;
-
-
+    
+    @Autowired
+    private OutboxService outboxService;
+    
+    @Autowired
+    private MessageFlowPropertyService propertyService;
+    
+    
     /**
      * A helper method to retrieve a MessageFlowDto by id.
      * 
@@ -93,14 +101,38 @@ public class MessageFlowServiceImpl implements MessageFlowService {
 
     
     @Override
-    public MessageFlowDto recordMessageNotAccepted(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
-        return filterMessage(componentId, parentMessageFlowId, policyResult, action);
+    public MessageFlowDto recordMessageNotAccepted(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
+        return filterMessage(componentId, parentMessageFlowId, policyResult, MessageFlowActionType.MESSAGE_NOT_ACCEPTED);
     }
 
     
     @Override
-    public MessageFlowDto recordMessageNotForwarded(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
-        return filterMessage(componentId, parentMessageFlowId, policyResult, action);
+    public MessageFlowDto recordMessageAccepted(long componentId, long parentMessageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {  
+        MessageFlowRequest request = new MessageFlowRequest();
+        
+        request.setComponentId(componentId);
+        request.setParentMessageFlowId(parentMessageFlowId);
+        request.setAction(MessageFlowActionType.MESSAGE_ACCEPTED);
+        
+        return recordMessageFlow(request);
+    }
+
+    
+    @Override
+    public MessageFlowDto recordMessageNotForwarded(long componentId, long parentMessageFlowId,MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
+        return filterMessage(componentId, parentMessageFlowId, policyResult, MessageFlowActionType.MESSAGE_NOT_FORWARDED);
+    }
+
+    
+    @Override
+    public MessageFlowDto recordMessagePendingForwarding(long componentId, long parentMessageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {        
+        MessageFlowRequest request = new MessageFlowRequest();
+        
+        request.setComponentId(componentId);
+        request.setParentMessageFlowId(parentMessageFlowId);
+        request.setAction(MessageFlowActionType.MESSAGE_PENDING_FORWARDING);
+        
+        return recordMessageFlow(request);
     }
 
     
@@ -286,8 +318,8 @@ public class MessageFlowServiceImpl implements MessageFlowService {
     
     private MessageFlowDto recordMessageFlow(MessageFlowRequest request) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException {
         MessageFlow savedStep = null;
-        
-        try {
+               
+        try {         
             String messageContent = request.getMessageContent();
             long componentId = request.getComponentId();
             Long parentMessageFlowId = request.getParentMessageFlowId();
@@ -360,7 +392,10 @@ public class MessageFlowServiceImpl implements MessageFlowService {
             savedStep = messageFlowRepository.save(messageFlow);
             
             MessageFlowMapper mapper = new MessageFlowMapper(false);
-            return mapper.doMapping(savedStep);
+            
+            MessageFlowDto dto = mapper.doMapping(savedStep);
+            
+            return dto;
         }  catch(DataAccessException e) {
             throw new MessageFlowProcessingException("Database error while recording a message flow", request.getComponentId(),  e);
         }
@@ -368,10 +403,14 @@ public class MessageFlowServiceImpl implements MessageFlowService {
 
     
     @Override
-    public void updateAction(Long messageFlowId, MessageFlowActionType newAction) throws MessageFlowProcessingException, MessageFlowNotFoundException {
+    public void updatePendingForwardingToForwardedAction(Long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException {
         MessageFlow messageFlow = retrieveMandatoryMessageFlow(messageFlowId, false);
         
-        messageFlow.setAction(newAction);
+        if (messageFlow.getAction() != MessageFlowActionType.MESSAGE_PENDING_FORWARDING) {
+            throw new MessageFlowProcessingException("Message flow is not the correct action type.  It should have been: " + MessageFlowActionType.MESSAGE_PENDING_FORWARDING, messageFlow.getId());
+        }
+        
+        messageFlow.setAction(MessageFlowActionType.MESSAGE_FORWARDED);
         
         messageFlowRepository.save(messageFlow);
         

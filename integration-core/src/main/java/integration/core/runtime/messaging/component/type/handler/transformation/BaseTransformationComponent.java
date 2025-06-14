@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
-import integration.core.runtime.messaging.component.type.handler.ProcessingMessageHandlerComponent;
+import integration.core.runtime.messaging.component.type.handler.BaseMessageHandlerComponent;
 import integration.core.runtime.messaging.component.type.handler.transformation.annotation.UsesTransformer;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
 import jakarta.annotation.PostConstruct;
@@ -16,11 +16,14 @@ import jakarta.annotation.PostConstruct;
  * Base class for all transformation processing steps.
  */
 @ComponentType(type = IntegrationComponentTypeEnum.TRANSFORMER)
-public abstract class BaseTransformationComponent extends ProcessingMessageHandlerComponent {
+public abstract class BaseTransformationComponent extends BaseMessageHandlerComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformationComponent.class);
 
     @Autowired
-    private MessageTransformationProcessor messageTransformationProcessor;
+    private TransformerInboxEventProcessor inboxEventProcessor;
+    
+    @Autowired
+    private TransformerOutboxEventProcessor outboxEventProcessor;
     
     @Override
     public Logger getLogger() {
@@ -30,13 +33,8 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     
     @PostConstruct
     public void BaseTransformationComponentInit() {
-        messageTransformationProcessor.setComponent(this);
-    }
-    
-    
-    @Override
-    public MessageTransformationProcessor getProcessingProcessor() {
-        return messageTransformationProcessor;
+        inboxEventProcessor.setComponent(this);
+        outboxEventProcessor.setComponent(this);
     }
 
     
@@ -44,6 +42,7 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
     protected void configureComponentLevelExceptionHandlers() {
         // Handle transformation errors.
         onException(TransformationException.class)
+        .maximumRedeliveries(0)
         .process(exchange -> {           
             TransformationException theException = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
             getLogger().error("Full exception trace", theException);
@@ -79,4 +78,16 @@ public abstract class BaseTransformationComponent extends ProcessingMessageHandl
         super.configureRequiredAnnotations();
         requiredAnnotations.add(UsesTransformer.class);
     }
+
+    
+    @Override
+    public TransformerInboxEventProcessor getInboxEventProcessor() {
+        return inboxEventProcessor;
+    }
+
+    
+    @Override
+    public TransformerOutboxEventProcessor getOutboxEventProcessor() {
+        return outboxEventProcessor;
+    }   
 }

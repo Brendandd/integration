@@ -12,7 +12,7 @@ public class OutboxEventNotFoundException extends EntityNotFoundException {
     
     private final static String ENTITY = "Outbox event";
     
-    public OutboxEventNotFoundException(long eventId) {
+    public OutboxEventNotFoundException(Long eventId) {
         super(ENTITY, eventId, IdentifierType.OUTBOX_EVENT_ID);
     }
 }

@@ -1,5 +1,7 @@
 package integration.core.exception;
 
+import java.net.ConnectException;
+import java.sql.SQLTransientException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,9 @@ public abstract class IntegrationException extends Exception {
     
     private boolean isExplicitlyRetryableException(Throwable t) {
         return t instanceof TransientDataAccessException ||
-               t instanceof RecoverableDataAccessException;
+               t instanceof RecoverableDataAccessException ||
+               t instanceof SQLTransientException || 
+               t instanceof ConnectException;
     }
     
     public boolean isRetryable() {

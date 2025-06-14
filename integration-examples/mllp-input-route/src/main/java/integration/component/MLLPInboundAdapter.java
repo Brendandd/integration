@@ -3,7 +3,7 @@ package integration.component;
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.annotation.IntegrationComponent;
-import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
+import integration.messaging.hl7.component.adapter.mllp.inbound.BaseMLLPInboundAdapter;
 
 /**
  * An MLLP inbound adapter.
@@ -12,6 +12,6 @@ import integration.messaging.hl7.component.adapter.mllp.BaseMllpInboundAdapter;
  */
 @IntegrationComponent(name = "MLLP-Inbound-Adapter")
 @AllowedContentType(ContentTypeEnum.HL7)
-public class MLLPInboundAdapter extends BaseMllpInboundAdapter {
+public class MLLPInboundAdapter extends BaseMLLPInboundAdapter {
 
 }

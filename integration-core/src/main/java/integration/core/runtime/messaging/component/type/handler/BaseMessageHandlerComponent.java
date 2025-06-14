@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.runtime.messaging.component.BaseMessagingComponent;
-import integration.core.runtime.messaging.component.EgressQueueConsumerWithForwardingPolicyProcessor;
-import integration.core.runtime.messaging.component.IngressTopicConsumerWithAcceptancePolicyProcessor;
-import integration.core.runtime.messaging.component.IntraRouteJMSTopicProducerEgressForwardingProcessor;
 import integration.core.runtime.messaging.component.MessageConsumer;
 import integration.core.runtime.messaging.component.MessageProducer;
+import integration.core.runtime.messaging.component.WriteToInboxProcessor;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageAcceptancePolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.MessageForwardingPolicy;
 import integration.core.runtime.messaging.component.type.handler.filter.annotation.AcceptancePolicy;
@@ -37,20 +35,11 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
     protected final List<MessageProducer> messageProducers = new ArrayList<>();
     
     @Autowired
-    protected EgressQueueConsumerWithForwardingPolicyProcessor egressQueueConsumerWithForwardingPolicyProcessor;
-    
-    @Autowired
-    protected IngressTopicConsumerWithAcceptancePolicyProcessor ingressTopicConsumerWithAcceptancePolicyProcessor;
-    
-    @Autowired
-    protected IntraRouteJMSTopicProducerEgressForwardingProcessor intraRouteJMSTopicProducerEgressForwardingProcessor;
-
+    protected WriteToInboxProcessor writeToInboxProcessor;
     
     @PostConstruct
-    public void BaseMessageHandlerComponentInit() {
-        egressQueueConsumerWithForwardingPolicyProcessor.setComponent(this);
-        ingressTopicConsumerWithAcceptancePolicyProcessor.setComponent(this);
-        intraRouteJMSTopicProducerEgressForwardingProcessor.setComponent(this);
+    public void BaseMessageHabdlerComponentInit() {
+        writeToInboxProcessor.setComponent(this);
     }
 
     
@@ -86,33 +75,19 @@ public abstract class BaseMessageHandlerComponent extends BaseMessagingComponent
                
         return springContext.getBean(annotation.name(), MessageAcceptancePolicy.class);
     }    
-    
+
     
     @Override
     public void configureIngressRoutes() throws ComponentConfigurationException, RouteConfigurationException {
         
-        // The entry point for all message handlers.  Consumes from one or more topics.
         for (MessageProducer messageProducer : messageProducers) {
-
-            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?acknowledgementModeName=SESSION_TRANSACTED&concurrentConsumers=10&maxConcurrentConsumers=30")
-                .routeId("ingress-" + getIdentifier() + "-" + messageProducer.getComponentPath())
-                .routeGroup(getComponentPath())
-                .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
-                .transacted()
-                    .process(ingressTopicConsumerWithAcceptancePolicyProcessor);
-        }  
-    }
-
-    
-    @Override
-    public EgressQueueConsumerWithForwardingPolicyProcessor getEgressQueueConsumerProcessor() throws ComponentConfigurationException, RouteConfigurationException {
-       return egressQueueConsumerWithForwardingPolicyProcessor;
-    }
-
-    
-    @Override
-    protected IntraRouteJMSTopicProducerEgressForwardingProcessor getEgressForwardingProcessor() throws ComponentConfigurationException, RouteConfigurationException {
-        return intraRouteJMSTopicProducerEgressForwardingProcessor;
+            from("jms:VirtualTopic." + messageProducer.getComponentPath() + "::Consumer." + getComponentPath() + ".VirtualTopic." + messageProducer.getComponentPath() + "?concurrentConsumers=5&maxConcurrentConsumers=10")
+            .routeId("ingress-" + getIdentifier() + "-" + messageProducer.getIdentifier())
+            .routeGroup(getComponentPath())
+            .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
+            .transacted("jmsTransactionPolicy")
+            .process(writeToInboxProcessor);
+        } 
     }
 
     
