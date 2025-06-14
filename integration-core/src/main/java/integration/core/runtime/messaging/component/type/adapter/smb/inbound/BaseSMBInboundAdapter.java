@@ -85,7 +85,7 @@ public abstract class BaseSMBInboundAdapter extends BaseInboundAdapter {
             .setHeader("contentType", constant(getContentType()))
             .routeGroup(getComponentPath())
             .autoStartup(inboundState == IntegrationComponentStateEnum.RUNNING)
-            .transacted()
+            .transacted("jpaTransactionPolicy")
             
                 .process(exchange -> {
                     Map<String, Object> headers = exchange.getMessage().getHeaders();
