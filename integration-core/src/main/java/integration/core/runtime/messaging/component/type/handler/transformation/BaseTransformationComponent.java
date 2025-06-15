@@ -56,7 +56,10 @@ public abstract class BaseTransformationComponent extends BaseMessageHandlerComp
                 exchange.setRollbackOnly(true); 
             }
         })
-        .handled(true);         
+        .handled(exchange -> {
+            TransformationException ex = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, TransformationException.class);
+            return !ex.isRetryable();
+        });       
     }
 
     

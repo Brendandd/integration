@@ -13,7 +13,6 @@ import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.AllowedContentType;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.annotation.AdapterOption;
@@ -95,12 +94,12 @@ public abstract class BaseMLLPInboundAdapter extends BaseInboundAdapter {
                 
                 // Store the message received by this inbound adapter.
                 String inboundMessageContent = exchange.getMessage().getBody(String.class);
-                MessageFlowDto inboundMessageFlowDto = messageFlowService.recordInitialMessageFlow(inboundMessageContent, getIdentifier(), getContentType(), headers, MessageFlowActionType.INGESTED);
+                Long messageFlowId = messageFlowService.recordInitialMessageFlow(inboundMessageContent, getIdentifier(), getContentType(), headers, MessageFlowActionType.INGESTED);
                 
-                inboxService.recordEvent(inboundMessageFlowDto.getId(), getIdentifier(), getRoute().getIdentifier(), getOwner());
+                inboxService.recordEvent(messageFlowId, getIdentifier(), getRoute().getIdentifier(), getOwner());
                 
                 // Set the message flow id as as a header so it can be used later.
-                exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), inboundMessageFlowDto.getId());
+                exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
             })
             .transform(ack())
             .process(exchange -> {

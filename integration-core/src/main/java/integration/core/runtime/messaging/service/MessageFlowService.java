@@ -33,7 +33,7 @@ public interface MessageFlowService {
      * @throws ComponentNotFoundException
      * @throws OutboxEventProcessingException 
      */
-    MessageFlowDto recordMessageNotAccepted(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordMessageNotAccepted(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
     
     /**
@@ -46,7 +46,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordMessageAccepted(long componentId, long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordMessageAccepted(long componentId, long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -62,7 +62,7 @@ public interface MessageFlowService {
      * @throws ComponentNotFoundException
      * @throws OutboxEventProcessingException 
      */
-    MessageFlowDto recordMessageNotForwarded(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordMessageNotForwarded(long componentId, long messageFlowId, MessageFlowPolicyResult policyResult) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -75,7 +75,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordMessagePendingForwarding(long componentId, long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordMessagePendingForwarding(long componentId, long messageFlowId) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -91,7 +91,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordInitialMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, Map<String, Object> headers, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordInitialMessageFlow(String messageContent, long componentId, ContentTypeEnum contentType, Map<String, Object> headers, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
     
      
     /**
@@ -107,7 +107,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordNewContentMessageFlow(String messageContent, long componentId, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordNewContentMessageFlow(String messageContent, long componentId, long parentMessageFlowId, ContentTypeEnum contentType, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**
@@ -121,7 +121,7 @@ public interface MessageFlowService {
      * @throws MessageFlowNotFoundException
      * @throws ComponentNotFoundException
      */
-    MessageFlowDto recordMessageFlowWithSameContent(long componentId, long parentMessageFlowId, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
+    Long recordMessageFlowWithSameContent(long componentId, long parentMessageFlowId, MessageFlowActionType action) throws MessageFlowProcessingException, MessageFlowNotFoundException, ComponentNotFoundException;
 
     
     /**

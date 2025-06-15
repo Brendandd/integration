@@ -31,24 +31,30 @@ public class InboundRouteConnectorInboxEventProcessor extends BaseMessageFlowPro
     
     @Override
     public void process(Exchange exchange) throws Exception {
+        MessageFlowDto messageFlowDto = null;
+        Long messageFlowId = null;
+        
         try {
-            MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
+            messageFlowId = exchange.getMessage().getBody(Long.class);
+            exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
+            messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
+            
             Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
     
             // Apply the message forwarding rules
-            MessageFlowPolicyResult result = component.getMessageForwardingPolicy().applyPolicy(parentMessageFlowDto);
+            MessageFlowPolicyResult result = component.getMessageForwardingPolicy().applyPolicy(messageFlowDto);
                                                            
             if (result.isSuccess()) {
-                MessageFlowDto pendingForwardingMessageFlowDto = messageFlowService.recordMessagePendingForwarding(component.getIdentifier(), parentMessageFlowDto.getId());
-                outboxService.recordEvent(pendingForwardingMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner());
+                messageFlowId = messageFlowService.recordMessagePendingForwarding(component.getIdentifier(), messageFlowId);
+                outboxService.recordEvent(messageFlowId,component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner());
             } else {
-                messageFlowService.recordMessageNotForwarded(component.getIdentifier(), parentMessageFlowDto.getId(), result);
+                messageFlowService.recordMessageNotForwarded(component.getIdentifier(), messageFlowId, result);
             }  
             
             // Final step is to delete the event from the inbox.
             inboxService.deleteEvent(eventId);
         } catch(Exception e) {
-            throw new InboxEventSchedulerException(component.getIdentifier(), e);
+            throw new InboxEventSchedulerException(component.getIdentifier(),messageFlowId, e);
         }     
     }
 }

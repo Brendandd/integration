@@ -39,14 +39,19 @@ public class SMBOutboundAdapterOutboxEventProcessor extends BaseMessageFlowProce
     
     @Override
     public void process(Exchange exchange) throws Exception {
+        MessageFlowDto messageFlowDto = null;
+        Long messageFlowId = null;
+        
         try {
-            MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
+            messageFlowId = exchange.getMessage().getBody(Long.class);
+            exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
+            messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
             
             Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
             
             outboxService.deleteEvent(eventId);
             
-            Map<String, Object> headers = component.getHeaders(parentMessageFlowDto);
+            Map<String, Object> headers = component.getHeaders(messageFlowDto);
             
             // Apply the file name strategy if the annotation exists.
             FileNaming annotation = component.getAnnotation(FileNaming.class);
@@ -54,25 +59,25 @@ public class SMBOutboundAdapterOutboxEventProcessor extends BaseMessageFlowProce
             if (annotation != null) {
                 FileNamingStrategy strategy = springContext.getBean(annotation.strategy(), FileNamingStrategy.class);
                 
-                String fileName = strategy.getFilename(exchange, parentMessageFlowDto.getId());
+                String fileName = strategy.getFilename(exchange, messageFlowId);
     
                 if (fileName != null) {
                     headers.put(CAMEL_FILE_NAME, fileName);
                 }
             }
             
-            messageFlowService.updatePendingForwardingToForwardedAction(parentMessageFlowDto.getId());
+            messageFlowService.updatePendingForwardingToForwardedAction(messageFlowId);
                
             String uri = "smb:" + component.getHost() + "/" + component.getDestinationFolder() + component.constructAdapterOptions();
             
             // Forward the message via SMB.
             try {
-                producerTemplate.sendBodyAndHeaders(uri, parentMessageFlowDto.getMessageContent(), headers);
+                producerTemplate.sendBodyAndHeaders(uri, messageFlowDto.getMessageContent(), headers);
             } catch(Exception e) {
-                throw new SMBForwardingException(eventId, component.getIdentifier(), parentMessageFlowDto.getId(), e);
+                throw new SMBForwardingException(eventId, component.getIdentifier(), messageFlowId, e);
             }
         } catch(Exception e) {
-            throw new OutboxEventSchedulerException(component.getIdentifier(), e);
+            throw new OutboxEventSchedulerException(component.getIdentifier(), messageFlowId, e);
         }         
     }
 }

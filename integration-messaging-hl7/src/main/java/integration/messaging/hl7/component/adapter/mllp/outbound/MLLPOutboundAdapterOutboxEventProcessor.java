@@ -30,8 +30,13 @@ public class MLLPOutboundAdapterOutboxEventProcessor extends BaseMessageFlowProc
     
     @Override
     public void process(Exchange exchange) throws Exception {
+        MessageFlowDto messageFlowDto = null;
+        Long messageFlowId = null;
+        
         try {
-            MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
+            messageFlowId = exchange.getMessage().getBody(Long.class);
+            exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
+            messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
             
             Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
             
@@ -40,16 +45,16 @@ public class MLLPOutboundAdapterOutboxEventProcessor extends BaseMessageFlowProc
             String target = component.getTargetHost() + ":" + component.getTargetPort();
             String uri = "netty:tcp://" + target + component.constructAdapterOptions();
             
-            messageFlowService.updatePendingForwardingToForwardedAction(parentMessageFlowDto.getId());
+            messageFlowService.updatePendingForwardingToForwardedAction(messageFlowId);
             
             // Forward the message via MLLP.
             try {
-                producerTemplate.sendBodyAndHeaders(uri, parentMessageFlowDto.getMessageContent(), component.getHeaders(parentMessageFlowDto));
+                producerTemplate.sendBodyAndHeaders(uri, messageFlowDto.getMessageContent(), component.getHeaders(messageFlowDto));
             } catch(Exception e) {
-                throw new MLLPForwardingException(eventId, component.getIdentifier(), parentMessageFlowDto.getId(), e);
+                throw new MLLPForwardingException(eventId, component.getIdentifier(), messageFlowId, e);
             }
         } catch(Exception e) {
-            throw new OutboxEventSchedulerException(component.getIdentifier(), e);
+            throw new OutboxEventSchedulerException(component.getIdentifier(), messageFlowId, e);
         }         
     }
 }

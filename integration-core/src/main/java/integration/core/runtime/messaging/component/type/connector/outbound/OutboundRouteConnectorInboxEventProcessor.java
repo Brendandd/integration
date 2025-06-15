@@ -34,19 +34,24 @@ public class OutboundRouteConnectorInboxEventProcessor extends BaseMessageFlowPr
     
     @Override
     public void process(Exchange exchange) throws Exception {
+        MessageFlowDto messageFlowDto = null;
+        Long messageFlowId = null;
+        
         try {
-            MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
+            messageFlowId = exchange.getMessage().getBody(Long.class);
+            exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
+            messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
                     
             // Apply acceptance policy.
-            MessageFlowPolicyResult result = component.getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
+            MessageFlowPolicyResult result = component.getMessageAcceptancePolicy().applyPolicy(messageFlowDto);
             
             if (result.isSuccess()) {
-                MessageFlowDto acceptedMessageFlowDto = messageFlowService.recordMessageAccepted(component.getIdentifier(), parentMessageFlowDto.getId());
-                MessageFlowDto pendingForwardingFlowDto = messageFlowService.recordMessagePendingForwarding(component.getIdentifier(), acceptedMessageFlowDto.getId());
+                messageFlowId = messageFlowService.recordMessageAccepted(component.getIdentifier(), messageFlowId);
+                messageFlowId = messageFlowService.recordMessagePendingForwarding(component.getIdentifier(), messageFlowId);
                                   
-                outboxService.recordEvent(pendingForwardingFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner()); 
+                outboxService.recordEvent(messageFlowId,component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner()); 
             } else {
-                messageFlowService.recordMessageNotAccepted(component.getIdentifier(), parentMessageFlowDto.getId(), result);
+                messageFlowService.recordMessageNotAccepted(component.getIdentifier(), messageFlowId, result);
             } 
             
             // Now delete the event from the inbox.
@@ -54,7 +59,7 @@ public class OutboundRouteConnectorInboxEventProcessor extends BaseMessageFlowPr
             inboxService.deleteEvent(eventId);
             
         } catch(Exception e) {
-            throw new InboxEventSchedulerException(component.getIdentifier(), e);
+            throw new InboxEventSchedulerException(component.getIdentifier(), messageFlowId, e);
         }        
     }
 }

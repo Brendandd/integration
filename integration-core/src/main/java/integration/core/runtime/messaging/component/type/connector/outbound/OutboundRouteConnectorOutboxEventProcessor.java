@@ -30,13 +30,15 @@ public class OutboundRouteConnectorOutboxEventProcessor extends BaseMessageFlowP
     
     @Override
     public void process(Exchange exchange) throws Exception {
+        Long messageFlowId = null;
+        
         try {
             
             // Delete the event.
             long eventId = (long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
             outboxService.deleteEvent(eventId);
         
-            long messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
+            messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
             
             messageFlowService.updatePendingForwardingToForwardedAction(messageFlowId);
             
@@ -47,7 +49,7 @@ public class OutboundRouteConnectorOutboxEventProcessor extends BaseMessageFlowP
                 throw new JMSForwardingException(eventId, component.getIdentifier(), messageFlowId, e);
             }
         } catch(Exception e) {
-            throw new OutboxEventSchedulerException(component.getIdentifier(), e);
+            throw new OutboxEventSchedulerException(component.getIdentifier(), messageFlowId, e);
         }       
       
     }

@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import integration.core.domain.configuration.IntegrationComponentStateEnum;
 import integration.core.domain.configuration.IntegrationComponentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
-import integration.core.dto.MessageFlowDto;
 import integration.core.runtime.messaging.component.annotation.ComponentType;
 import integration.core.runtime.messaging.component.type.adapter.inbound.BaseInboundAdapter;
 import integration.core.runtime.messaging.exception.nonretryable.ComponentConfigurationException;
@@ -92,8 +91,8 @@ public abstract class BaseSMBInboundAdapter extends BaseInboundAdapter {
                     
                     // Store the message received by this inbound adapter.
                     String messageContent = exchange.getMessage().getBody(String.class);
-                    MessageFlowDto messageFlowDto = messageFlowService.recordInitialMessageFlow(messageContent, getIdentifier(), getContentType(), headers, MessageFlowActionType.INGESTED);                                       
-                    inboxService.recordEvent(messageFlowDto.getId(),getIdentifier(), getRoute().getIdentifier(), getOwner()); 
+                    Long messageFlowId = messageFlowService.recordInitialMessageFlow(messageContent, getIdentifier(), getContentType(), headers, MessageFlowActionType.INGESTED);                                       
+                    inboxService.recordEvent(messageFlowId,getIdentifier(), getRoute().getIdentifier(), getOwner()); 
                 });
         
     }

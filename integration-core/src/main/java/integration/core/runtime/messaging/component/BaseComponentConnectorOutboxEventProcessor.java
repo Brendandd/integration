@@ -23,8 +23,10 @@ public abstract class BaseComponentConnectorOutboxEventProcessor<T extends Messa
     @Override
     public void process(Exchange exchange) throws Exception {
         
+        Long messageFlowId = null;
+        
         try {
-            Long messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
+            messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());
             Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
             
             outboxService.deleteEvent(eventId);
@@ -38,7 +40,7 @@ public abstract class BaseComponentConnectorOutboxEventProcessor<T extends Messa
                 throw new JMSForwardingException(eventId, component.getIdentifier(), messageFlowId, e);
             }
         } catch(Exception e) {
-            throw new OutboxEventSchedulerException(component.getIdentifier(), e);
+            throw new OutboxEventSchedulerException(component.getIdentifier(), messageFlowId, e);
         }  
     }
 }

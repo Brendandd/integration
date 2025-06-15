@@ -11,9 +11,10 @@ import integration.core.exception.ConditionallyRetryableException;
 public class InboxEventSchedulerException extends ConditionallyRetryableException {
     private static final long serialVersionUID = 581006761016808349L;
 
-    public InboxEventSchedulerException(long componentId, Throwable cause) {
+    public InboxEventSchedulerException(long componentId, long messageFlowId, Throwable cause) {
         super("Error processing events from the inbox", cause);
         
         addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
+        addOtherIdentifier(IdentifierType.MESSAGE_FLOW_ID, messageFlowId);
     }
 }

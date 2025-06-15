@@ -8,7 +8,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import integration.core.dto.MessageFlowDto;
+import integration.core.domain.IdentifierType;
 import integration.core.runtime.messaging.service.InboxService;
 
 /**
@@ -24,10 +24,11 @@ public class WriteToInboxProcessor extends BaseMessageFlowProcessor<MessagingCom
 
     @Override
     public void process(Exchange exchange) throws Exception {          
-        MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
+        Long messageFlowId = exchange.getMessage().getBody(Long.class);
+        exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
         
         String jmsMessageId = (String)exchange.getMessage().getHeader("JMSMessageID");
         
-        inboxService.recordEvent(parentMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(),component.getOwner(), jmsMessageId); 
+        inboxService.recordEvent(messageFlowId,component.getIdentifier(), component.getRoute().getIdentifier(),component.getOwner(), jmsMessageId); 
     }
 }

@@ -30,24 +30,29 @@ public class FilterInboxEventProcessor extends BaseMessageFlowProcessor<BaseFilt
     
     @Override
     public void process(Exchange exchange) throws Exception {
+        MessageFlowDto messageFlowDto = null;
+        Long messageFlowId = null;
+        
         try {
-            MessageFlowDto parentMessageFlowDto = getMessageFlowDtoFromExchangeBody(exchange, true);
+            messageFlowId = exchange.getMessage().getBody(Long.class);
+            exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
+            messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
                     
             // Apply acceptance policy.
-            MessageFlowPolicyResult acceptancePolicyResult = component.getMessageAcceptancePolicy().applyPolicy(parentMessageFlowDto);
+            MessageFlowPolicyResult acceptancePolicyResult = component.getMessageAcceptancePolicy().applyPolicy(messageFlowDto);
             if (acceptancePolicyResult.isSuccess()) {
-                MessageFlowDto acceptedMessageFlowDto = messageFlowService.recordMessageAccepted(component.getIdentifier(), parentMessageFlowDto.getId());
+                messageFlowId = messageFlowService.recordMessageAccepted(component.getIdentifier(), messageFlowId);
                 
                 // Now apply the forwarding policy
-                MessageFlowPolicyResult forwardingPolicyResult = component.getMessageForwardingPolicy().applyPolicy(acceptedMessageFlowDto);
+                MessageFlowPolicyResult forwardingPolicyResult = component.getMessageForwardingPolicy().applyPolicy(messageFlowDto);
                 if (forwardingPolicyResult.isSuccess()) {
-                    MessageFlowDto pendingForwardingMessageFlowDto = messageFlowService.recordMessagePendingForwarding(component.getIdentifier(), parentMessageFlowDto.getId());
-                    outboxService.recordEvent(pendingForwardingMessageFlowDto.getId(),component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner());
+                    messageFlowId = messageFlowService.recordMessagePendingForwarding(component.getIdentifier(), messageFlowId);
+                    outboxService.recordEvent(messageFlowId,component.getIdentifier(), component.getRoute().getIdentifier(), component.getOwner());
                 } else {
-                    messageFlowService.recordMessageNotForwarded(component.getIdentifier(), parentMessageFlowDto.getId(), forwardingPolicyResult);
+                    messageFlowService.recordMessageNotForwarded(component.getIdentifier(), messageFlowId, forwardingPolicyResult);
                 }  
             } else {
-                messageFlowService.recordMessageNotAccepted(component.getIdentifier(), parentMessageFlowDto.getId(), acceptancePolicyResult);
+                messageFlowService.recordMessageNotAccepted(component.getIdentifier(), messageFlowId, acceptancePolicyResult);
             } 
             
             // Now delete the event from the inbox.
@@ -55,7 +60,7 @@ public class FilterInboxEventProcessor extends BaseMessageFlowProcessor<BaseFilt
             inboxService.deleteEvent(eventId);
             
         } catch(Exception e) {
-            throw new InboxEventSchedulerException(component.getIdentifier(), e);
+            throw new InboxEventSchedulerException(component.getIdentifier(),messageFlowId, e);
         }            
     }
 }
