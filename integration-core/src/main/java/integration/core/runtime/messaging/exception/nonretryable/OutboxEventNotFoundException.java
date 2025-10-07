@@ -13,6 +13,6 @@ public class OutboxEventNotFoundException extends EntityNotFoundException {
     private final static String ENTITY = "Outbox event";
     
     public OutboxEventNotFoundException(Long eventId) {
-        super(ENTITY, eventId, IdentifierType.OUTBOX_EVENT_ID);
+        super(ENTITY, eventId, IdentifierType.EVENT_ID);
     }
 }

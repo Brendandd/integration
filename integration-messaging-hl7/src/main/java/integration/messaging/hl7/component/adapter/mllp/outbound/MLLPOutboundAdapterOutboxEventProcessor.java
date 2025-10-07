@@ -38,7 +38,7 @@ public class MLLPOutboundAdapterOutboxEventProcessor extends BaseMessageFlowProc
             exchange.getMessage().setHeader(IdentifierType.MESSAGE_FLOW_ID.name(), messageFlowId);
             messageFlowDto = messageFlowService.retrieveMessageFlow(messageFlowId, true);
             
-            Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
+            Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.EVENT_ID.name());
             
             outboxService.deleteEvent(eventId);
                

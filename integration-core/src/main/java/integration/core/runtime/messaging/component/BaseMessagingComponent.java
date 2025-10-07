@@ -293,7 +293,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                     try {
                         Map<String, Object> headers = new HashMap<>();
                         headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
-                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+                        headers.put(IdentifierType.EVENT_ID.name(), event.getId());
 
                         producerTemplate.sendBodyAndHeaders("direct:processOutboxEvent-" + event.getComponentId(), event.getMessageFlowId(), headers);   
                     } finally {
@@ -337,7 +337,7 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
                     try {
                         Map<String, Object> headers = new HashMap<>();
                         headers.put(IdentifierType.MESSAGE_FLOW_ID.name(), event.getMessageFlowId());
-                        headers.put(IdentifierType.OUTBOX_EVENT_ID.name(), event.getId());
+                        headers.put(IdentifierType.EVENT_ID.name(), event.getId());
 
                         producerTemplate.sendBodyAndHeaders("direct:processInboxEvent-" + event.getComponentId(), event.getMessageFlowId(), headers);   
                     } finally {
@@ -425,10 +425,10 @@ public abstract class BaseMessagingComponent extends RouteBuilder implements Mes
     protected Long getEventId(IntegrationException theException, Exchange exchange) {
         Long messageFlowId = null;
         
-        if (theException.hasIdentifier(IdentifierType.OUTBOX_EVENT_ID)) {
-            messageFlowId = (Long)theException.getIdentifierValue(IdentifierType.OUTBOX_EVENT_ID);
+        if (theException.hasIdentifier(IdentifierType.EVENT_ID)) {
+            messageFlowId = (Long)theException.getIdentifierValue(IdentifierType.EVENT_ID);
         } else {
-            messageFlowId = exchange.getIn().getHeader(IdentifierType.OUTBOX_EVENT_ID.name(), Long.class);
+            messageFlowId = exchange.getIn().getHeader(IdentifierType.EVENT_ID.name(), Long.class);
         }  
         
         return messageFlowId;

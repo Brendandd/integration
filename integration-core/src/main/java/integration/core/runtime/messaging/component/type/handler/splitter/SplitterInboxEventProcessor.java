@@ -66,7 +66,7 @@ public class SplitterInboxEventProcessor extends BaseMessageFlowProcessor<BaseSp
             } 
             
             // Now delete the event from the inbox.
-            Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name()); 
+            Long eventId = (Long)exchange.getMessage().getHeader(IdentifierType.EVENT_ID.name()); 
             inboxService.deleteEvent(eventId);
             
         } catch(Exception e) {

@@ -15,7 +15,7 @@ public class OutboxEventProcessingException extends ConditionallyRetryableExcept
     public OutboxEventProcessingException(String message, long eventId, Throwable cause) {
         super(message, cause);
         
-        addOtherIdentifier(IdentifierType.OUTBOX_EVENT_ID, eventId);
+        addOtherIdentifier(IdentifierType.EVENT_ID, eventId);
     }
 
     

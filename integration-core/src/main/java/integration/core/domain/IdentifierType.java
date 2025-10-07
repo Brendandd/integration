@@ -8,7 +8,7 @@ public enum IdentifierType {
     ROUTE_ID,
     OWNER,
     COMPONENT_PATH,
-    OUTBOX_EVENT_ID,
+    EVENT_ID,
     MESSAGE_FLOW_ID,
     PROPERTY_KEY,
     NO_ID

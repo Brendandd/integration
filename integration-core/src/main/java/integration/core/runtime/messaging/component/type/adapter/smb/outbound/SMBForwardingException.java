@@ -14,7 +14,7 @@ public class SMBForwardingException extends ConditionallyRetryableException {
     public SMBForwardingException(long eventId, long componentId, long messageFlowId, Throwable cause){
         super("Exception forwarding message via SMB", cause);
         
-        addOtherIdentifier(IdentifierType.OUTBOX_EVENT_ID, eventId);
+        addOtherIdentifier(IdentifierType.EVENT_ID, eventId);
         addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
         addOtherIdentifier(IdentifierType.MESSAGE_FLOW_ID, messageFlowId);
     }

@@ -35,7 +35,7 @@ public class OutboundRouteConnectorOutboxEventProcessor extends BaseMessageFlowP
         try {
             
             // Delete the event.
-            long eventId = (long)exchange.getMessage().getHeader(IdentifierType.OUTBOX_EVENT_ID.name());
+            long eventId = (long)exchange.getMessage().getHeader(IdentifierType.EVENT_ID.name());
             outboxService.deleteEvent(eventId);
         
             messageFlowId = (Long)exchange.getMessage().getHeader(IdentifierType.MESSAGE_FLOW_ID.name());

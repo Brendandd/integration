@@ -14,7 +14,7 @@ public class MessageForwardingException extends ConditionallyRetryableException 
     public MessageForwardingException(String message, long eventId, long componentId, long messageFlowId, Throwable cause){
         super(message, cause);
         
-        addOtherIdentifier(IdentifierType.OUTBOX_EVENT_ID, eventId);
+        addOtherIdentifier(IdentifierType.EVENT_ID, eventId);
         addOtherIdentifier(IdentifierType.COMPONENT_ID, componentId);
         addOtherIdentifier(IdentifierType.MESSAGE_FLOW_ID, messageFlowId);
     }
