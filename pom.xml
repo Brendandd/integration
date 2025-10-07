@@ -20,6 +20,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <spring.boot.version>3.1.1</spring.boot.version>
         <mysql.version>8.0.33</mysql.version>
+        <postgres.version>42.7.3</postgres.version>
         <org.json.version>20250107</org.json.version>
         <apache.ignite.version>2.17.0</apache.ignite.version>
         <apache.common.version>3.14.0</apache.common.version>
@@ -55,6 +56,13 @@
                 <groupId>com.mysql</groupId>
                 <artifactId>mysql-connector-j</artifactId>
                 <version>${mysql.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgres.version}</version>
                 <scope>runtime</scope>
             </dependency>
 

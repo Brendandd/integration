@@ -2,6 +2,7 @@ package integration.core.runtime.messaging.service.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import integration.core.domain.configuration.ContentTypeEnum;
 import integration.core.domain.messaging.MessageFlowActionType;
@@ -82,6 +83,14 @@ public class MessageFlowRequest {
 
     
     public void setHeaders(Map<String, Object> headers) {
-        this.headers = headers;
+        
+        for (Map.Entry<String, Object> e : headers.entrySet()) {
+            String key = e.getKey();
+            Object value = e.getValue();
+            
+            if (value instanceof CharSequence || value instanceof Number || value instanceof Boolean || value instanceof UUID || value instanceof java.util.Date || value instanceof java.time.temporal.TemporalAccessor) {
+                this.headers.put(key, value);
+            }
+        }
     }
 }

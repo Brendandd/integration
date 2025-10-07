@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mllp-input-route
+  name: postgres
   namespace: integration-dev
 spec:
   selector:
-    app: mllp-input-route
+    app: postgres
   ports:
     - protocol: TCP
-      port: 8888
-      targetPort: 8888
-      nodePort: 30888  
+      port: 5432    
+      targetPort: 5432 
+      nodePort: 32432  
   type: NodePort
