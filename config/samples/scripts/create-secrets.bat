@@ -1,4 +1,4 @@
-kubectl create secret generic mysql-secret --from-literal=MYSQL_USER_NAME=admin --from-literal=MYSQL_PASSWORD=admin --from-literal=MYSQL_ROOT_PASSWORD=admin --namespace=integration-dev
+kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER_NAME=admin --from-literal=POSTGRES_PASSWORD=admin --namespace=integration-dev
 kubectl create secret generic activemq-secret --from-literal=ACTIVEMQ_USER_NAME=admin --from-literal=ACTIVEMQ_PASSWORD=admin --namespace=integration-dev
 kubectl create secret generic smb-inbound-secret --from-literal=SMB_INBOUND_ADAPTER_SAMBA_USER=testIn --from-literal=SMB_INBOUND_ADAPTER_SAMBA_PASSWORD=testpass --namespace=integration-dev
 kubectl create secret generic smb-outbound-secret --from-literal=SMB_OUTBOUND_ADAPTER_SAMBA_USER=testOut --from-literal=SMB_OUTBOUND_ADAPTER_SAMBA_PASSWORD=testpass --namespace=integration-dev  

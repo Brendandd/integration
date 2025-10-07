@@ -19,25 +19,20 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             # MySQL
-            - name: MYSQL_HOST_IP
-              value: mysql
-            - name: MYSQL_PORT
-              value: "3306"
-            - name: MYSQL_USER_NAME
+            - name: POSTGRES_HOST_IP
+              value: postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER_NAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_USER_NAME
-            - name: MYSQL_PASSWORD
+                  name: postgres-secret
+                  key: POSTGRES_USER_NAME
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_PASSWORD
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_ROOT_PASSWORD
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
 
             # ActiveMQ
             - name: ACTIVEMQ_HOST_IP

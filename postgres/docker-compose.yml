@@ -3,14 +3,13 @@ services:
     build: .
     image: integration-postgres:latest
     environment:
-      POSTGRES_ROOT_PASSWORD: ${POSTGRES_ROOT_PASSWORD}
-      POSTGRES_DATABASE: integration
+      POSTGRES_DB: integration
       POSTGRES_USER: ${POSTGRES_USER_NAME}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgres
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - integration-net
     restart: always
