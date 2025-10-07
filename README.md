@@ -189,7 +189,7 @@ These instructions will help you set up a local development environment.
 ### Prerequisites
 
 - **Docker**
-- **A running Kubernetes cluster**:  This has been tested using Docker Desktop.
+- **A running Kubernetes cluster (optional)**:  This has been tested using Docker Desktop.
 - **Java (JDK 17 or higher)**: Required for building the application.
 - **Maven**: Required for building the Java project locally.
 
@@ -203,26 +203,26 @@ From the **integration** folder
 mvn clean install
 ```
 
-Then, navigate to the **integration/config/samples/scripts** folder and run the kubectl commands in each file (or just run the .bat file).  Please update if required.
+The integration engine can be deployed using docker-compose or Kubernetes.
 
-### Then, build Docker images and deploy each service.  Each service has a k8s folder
-with a deployment.yml and/or a service.yml file.
+**Docker Compose**: Navigate to the **integration/config/samples/scripts** folder and run each of the docker compose bat files. These need to be run first before any of the routes.
 
 ```
-apache-activemq-artemis
-apache-ignite
-mysql
-samba (creates two containers: one for the inbound adapter and one for the outbound adapter)
+run-postgres-docker-compose
+run-apache-activemq-artemis-docker-compose
+run-apache-ignite-docker-compose
+run-samba-docker-compose
 ```
 
-### Finally, build Docker images and deploy each test route. Each service has a k8s folder
-with a deployment.yml and/or a service.yml file.
+**Kubernetes**: Navigate to the **integration/config/samples/scripts** folder and run the following 2 bat files.
+
 ```
-mllp-input-route
-mllp-output-route
-hl7-file-input-route
-hl7-file-output-route
+create-secrets
+create-config-maps
 ```
+
+Then, build Docker images and deploy each service.  Each service and route has a k8s folder with a deployment.yml and/or a service.yml file.
+
 
 
 Please see the individual `README.md` files under `integration/integration-examples` for details on the routes.
